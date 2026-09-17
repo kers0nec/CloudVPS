@@ -1,6 +1,6 @@
 {
   "name": "Cloud VPS",
-  "description": "Cloud VPS hosting platform featuring custom VPS creation, free TLS 1.3 domains, 24/7 Discord bot & selfbot user token hosting with workspace files, and a cyber-glass interface.",
+  "description": "Cloud VPS hosting platform featuring custom VPS creation and 24/7 Discord bot & selfbot hosting on clean-slate workspaces \u2014 upload or create your own files, zip bundles auto-extract automatically.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

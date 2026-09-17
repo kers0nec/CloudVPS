@@ -14,6 +14,7 @@ import rateLimit from 'express-rate-limit';
 import pino from 'pino';
 import pinoPretty from 'pino-pretty';
 import { z } from 'zod';
+import zlib from 'zlib';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -180,30 +181,29 @@ function loadDb() {
     }
   }
 
-  // Ensure workspace directories exist for every remaining real VPS
+  // Ensure workspace directories exist for every remaining real VPS, and
+  // strip legacy web-hosting/domain fields from records created by older
+  // versions (domains and site hosting were removed from the platform).
   for (const vpsId of Object.keys(db.vps)) {
+    const v = db.vps[vpsId];
+    delete v.domains;
+    delete v.primary_domain;
+    delete v.subdomain;
+    delete v.domain;
+    delete v.site_url;
     initVpsWorkspace(vpsId);
   }
 
   saveDb();
 }
 
+// Ensures the VPS workspace directory exists. It intentionally stays EMPTY:
+// no starter/demo files are ever seeded, so anything the user deletes stays
+// deleted and they start from a clean slate to create or upload their own files.
 function initVpsWorkspace(vpsId) {
   const wsDir = path.join(INSTANCES_DIR, vpsId);
   if (!existsSync(wsDir)) {
     mkdirSync(wsDir, { recursive: true });
-  }
-  const pkgJsonPath = path.join(wsDir, 'package.json');
-  if (!existsSync(pkgJsonPath)) {
-    try {
-      writeFileSync(pkgJsonPath, JSON.stringify({
-        name: `vps-${String(vpsId).toLowerCase()}`,
-        version: '1.0.0',
-        description: 'VPS Workspace Node Environment',
-        main: 'index.js',
-        dependencies: {}
-      }, null, 2), 'utf8');
-    } catch (e) {}
   }
 }
 
@@ -364,8 +364,6 @@ app.post('/api/register', (req, res) => {
  container_id: `c-${  vpsId}`,
  engine: 'native_sandbox',
  hostname: `vps-${vpsId}`,
- domain: `cloudvps.app/${vpsId}`,
- site_url: `/sites/${vpsId}/`,
  created_at: new Date().toISOString()
  };
  db.vps[vpsId] = userVps;
@@ -484,9 +482,11 @@ app.get('/api/vps', authRequired, (req, res) => {
  res.json({ success: true, vps: userVps });
 });
 
-// Create VPS with custom name, plan, OS, starter template, and free domain
+// Create VPS with custom name, plan and OS. The workspace starts completely
+// EMPTY — no demo/starter files are seeded, so the user can create or upload
+// their own files without fighting files they cannot delete.
 app.post('/api/vps', authRequired, (req, res) => {
- const { plan = 'performance', name, os = 'ubuntu', starter = 'blank', subdomain } = req.body || {};
+ const { plan = 'performance', name, os = 'ubuntu' } = req.body || {};
  const planInfo = PLANS[plan] || PLANS.performance;
 
  const vpsId = `vps-${  crypto.randomBytes(4).toString('hex')}`;
@@ -494,17 +494,12 @@ app.post('/api/vps', authRequired, (req, res) => {
  const vpsName = rawName || `Discord-Bot-${vpsId.slice(-4)}`;
  const randomIp = `172.20.0.${Math.floor(Math.random() * 240) + 10}`;
 
- // Clean subdomain or generate from name
- const requestedSub = (subdomain || rawName || vpsId).toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '') || vpsId;
- const initialDomain = `${requestedSub}.cloudvps.site`;
-
  const newVps = {
  id: vpsId,
  user_id: req.user.id,
  name: vpsName,
  plan,
  os,
- starter,
  status: 'running',
  cpu: planInfo.cpu,
  memory: planInfo.memory,
@@ -512,126 +507,33 @@ app.post('/api/vps', authRequired, (req, res) => {
  ip: randomIp,
  container_id: `c-${  vpsId}`,
  engine: 'native_sandbox',
- hostname: `${requestedSub}.node`,
- domain: initialDomain,
- primary_domain: initialDomain,
- subdomain: requestedSub,
- site_url: `/sites/${vpsId}/`,
- created_at: new Date().toISOString(),
- domains: [
- {
- subdomain: requestedSub,
- suffix: '.cloudvps.site',
- full_domain: initialDomain,
- target_path: 'site',
- ssl: 'Active (TLS 1.3 Let’s Encrypt)',
- status: 'online',
+ hostname: `node-${vpsId}`,
  created_at: new Date().toISOString()
- }
- ]
  };
 
  db.vps[vpsId] = newVps;
  initVpsWorkspace(vpsId);
 
- // Customize workspace based on selected starter template
- const wsDir = path.join(INSTANCES_DIR, vpsId);
- try {
- if (starter === 'discord_js') {
- const pkgPath = path.join(wsDir, 'package.json');
- const botJsPath = path.join(wsDir, 'bot.js');
- if (!fs.existsSync(pkgPath)) {
- fs.writeFileSync(pkgPath, JSON.stringify({
- name: vpsName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
- version: '1.0.0',
- main: 'bot.js',
- dependencies: { 'discord.js': '^14.14.1', 'dotenv': '^16.4.5' }
- }, null, 2), 'utf8');
- }
- if (!fs.existsSync(botJsPath)) {
- fs.writeFileSync(botJsPath, `require('dotenv').config();
-const { Client, GatewayIntentBits } = require('discord.js');
-
-const token = process.env.DISCORD_BOT_TOKEN || process.env.TOKEN;
-const client = new Client({
- intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
-});
-
-client.once('ready', () => {
- console.log('[OK] [24/7 Watchdog] Discord.js Bot ONLINE on ${vpsName}!');
- console.log(' Ready to respond to commands.');
-});
-
-client.on('messageCreate', msg => {
- if (msg.author.bot) return;
- if (msg.content === '!ping') msg.reply(' Pong! 24/7 Hosting active on ${vpsName}.');
-});
-
-if (!token) {
- console.warn('[WARN]️ No token configured yet. Set your DISCORD_BOT_TOKEN in Step 3!');
-} else {
- client.login(token);
-}
-`, 'utf8');
- }
- } else if (starter === 'website') {
- const siteDir = path.join(wsDir, 'site');
- fs.mkdirSync(siteDir, { recursive: true });
- const siteIndex = path.join(siteDir, 'index.html');
- if (!fs.existsSync(siteIndex)) {
- fs.writeFileSync(siteIndex, `<!DOCTYPE html>
-<html lang="en">
-<head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>${vpsName} — Live Web App</title>
- <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-zinc-950 text-white min-h-screen flex items-center justify-center p-6">
- <div class="max-w-lg w-full bg-zinc-900/80 border border-zinc-800 rounded-2xl p-8 backdrop-blur shadow-2xl text-center">
- <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-4">
- <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
- LIVE & SECURE &bull; TLS 1.3 SSL ACTIVE
- </div>
- <h1 class="text-3xl font-extrabold mb-2">${vpsName}</h1>
- <p class="text-zinc-400 text-sm mb-6">Running on real free domain <code class="text-sky-400 bg-zinc-800 px-2 py-0.5 rounded font-mono text-xs">https://${initialDomain}</code></p>
- <div class="p-4 bg-zinc-950/80 border border-zinc-800/80 rounded-xl text-left font-mono text-xs text-zinc-300 space-y-1">
- <div>Container: <span class="text-purple-400">${vpsId}</span></div>
- <div>Engine: <span class="text-emerald-400">VirtIO Hypervisor 24/7</span></div>
- <div>IPv4: <span class="text-cyan-400">${randomIp}</span></div>
- </div>
- </div>
-</body>
-</html>`, 'utf8');
- }
- }
- } catch (err) {
- console.warn('[Starter Init Error]:', err.message);
- }
-
  // Initialize bot supervisor for this VPS
- const initialRuntime = starter === 'discord_js' ? 'node' : 'python';
- const initialFilename = starter === 'discord_js' ? 'bot.js' : 'bot.py';
-
  db.bots[vpsId] = {
  status: 'stopped',
  running: false,
  pid: null,
- filename: initialFilename,
- runtime: initialRuntime,
+ filename: 'bot.py',
+ runtime: 'python',
  token: '',
  restarts: 0,
  started_at: null,
  logs: [
  `[CloudVPS Watchdog] Provisioned isolated root container "${newVps.name}" (${newVps.id})...`,
  `[CloudVPS Watchdog] Hardware assigned: ${newVps.cpu} | ${newVps.memory} | ${newVps.storage} NVMe`,
- `[CloudVPS Watchdog] IPv4 assigned: ${newVps.ip} | Free Domain: https://${initialDomain}`,
- `[CloudVPS 24/7 Supervisor] Workspace initialized. Upload your bot files, set your token, then press "Start Bot" to go 24/7.`
+ `[CloudVPS Watchdog] IPv4 assigned: ${newVps.ip}`,
+ `[CloudVPS 24/7 Supervisor] Clean-slate workspace ready. Create or upload your own files (zip bundles auto-extract), set your token, then press "Start Bot" to go 24/7.`
  ]
  };
 
  saveDb();
- res.status(201).json({ success: true, vps: newVps, domain: initialDomain });
+ res.status(201).json({ success: true, vps: newVps });
 });
 
 // Rename VPS
@@ -995,7 +897,136 @@ app.post('/api/vps/:vps_id/files/clear-all', authRequired, vpsOwnerRequired, (re
  }
 });
 
-// ---------------------- BOT FILE UPLOADS (FAST & RELIABLE) ----------------------
+// ---------------------- BOT FILE UPLOADS (AUTO ZIP EXTRACT) ----------------------
+
+// Pure-JS ZIP reader: parses the End Of Central Directory + central directory
+// records and returns [{name, buffer}] for stored (0) and deflated (8) entries.
+// No external binary required, so zip auto-extraction always works.
+function readZipEntries(zipBuffer) {
+  const EOCD_SIG = 0x06054b50;
+  const CDIR_SIG = 0x02014b50;
+  const LOCAL_SIG = 0x04034b50;
+
+  // Locate the EOCD record (scan the tail of the file backwards)
+  let eocdOffset = -1;
+  const scanStart = Math.max(0, zipBuffer.length - (65535 + 22));
+  for (let i = zipBuffer.length - 22; i >= scanStart; i--) {
+    if (zipBuffer.readUInt32LE(i) === EOCD_SIG) { eocdOffset = i; break; }
+  }
+  if (eocdOffset === -1) { throw new Error('Invalid zip archive (no end-of-central-directory record)'); }
+
+  const totalEntries = zipBuffer.readUInt16LE(eocdOffset + 10);
+  let cdirOffset = zipBuffer.readUInt32LE(eocdOffset + 16);
+  const entries = [];
+
+  for (let n = 0; n < totalEntries; n++) {
+    if (zipBuffer.readUInt32LE(cdirOffset) !== CDIR_SIG) { break; }
+    const flags = zipBuffer.readUInt16LE(cdirOffset + 8);
+    const method = zipBuffer.readUInt16LE(cdirOffset + 10);
+    const compressedSize = zipBuffer.readUInt32LE(cdirOffset + 20);
+    const nameLen = zipBuffer.readUInt16LE(cdirOffset + 28);
+    const extraLen = zipBuffer.readUInt16LE(cdirOffset + 30);
+    const commentLen = zipBuffer.readUInt16LE(cdirOffset + 32);
+    const localOffset = zipBuffer.readUInt32LE(cdirOffset + 42);
+    const rawName = zipBuffer.subarray(cdirOffset + 46, cdirOffset + 46 + nameLen);
+    const name = (flags & 0x0800) ? rawName.toString('utf8') : rawName.toString('latin1');
+
+    // Read file data from the local file header (its name/extra may differ
+    // in length from the central record, so re-derive the data offset).
+    let data = null;
+    if (!name.endsWith('/')) {
+      if (zipBuffer.readUInt32LE(localOffset) !== LOCAL_SIG) { throw new Error(`Corrupt zip entry: ${name}`); }
+      if (flags & 0x01) { throw new Error(`Encrypted zip entries are not supported: ${name}`); }
+      const localNameLen = zipBuffer.readUInt16LE(localOffset + 26);
+      const localExtraLen = zipBuffer.readUInt16LE(localOffset + 28);
+      const dataStart = localOffset + 30 + localNameLen + localExtraLen;
+      const compressed = zipBuffer.subarray(dataStart, dataStart + compressedSize);
+      if (method === 0) {
+        data = Buffer.from(compressed);
+      } else if (method === 8) {
+        data = zlib.inflateRawSync(compressed);
+      } else {
+        throw new Error(`Unsupported compression method ${method} for: ${name}`);
+      }
+    }
+
+    entries.push({ name, data });
+    cdirOffset += 46 + nameLen + extraLen + commentLen;
+  }
+  return entries;
+}
+
+// Extract a zip buffer into destDir with zip-slip protection. Falls back to
+// the system `unzip` binary for exotic archives (zip64, bzip2, etc.).
+// Returns the list of extracted file relative paths.
+function extractZipToDir(zipBuffer, zipName, destDir) {
+  const base = path.resolve(destDir);
+  const written = [];
+
+  try {
+    const entries = readZipEntries(zipBuffer);
+    for (const entry of entries) {
+      if (entry.data === null) { continue; } // directory record
+      const cleanRel = entry.name.replace(/\\/g, '/').replace(/^\/+/, '');
+      if (!cleanRel || cleanRel.split('/').some(seg => seg === '..')) { continue; } // zip-slip guard
+      if (cleanRel.startsWith('__MACOSX/') || path.basename(cleanRel) === '.DS_Store') { continue; }
+      const target = path.resolve(base, cleanRel);
+      if (!target.startsWith(base + path.sep)) { continue; }
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, entry.data);
+      written.push(cleanRel.split('/').map(s => s.replace(/[^a-zA-Z0-9._-]/g, '_')).join('/'));
+    }
+    if (written.length === 0) { throw new Error('Zip archive contained no extractable files'); }
+  } catch (parseErr) {
+    // Fallback: system unzip handles zip64 and other exotic formats.
+    const tmpZip = path.join(base, zipName);
+    fs.writeFileSync(tmpZip, zipBuffer);
+    child_process.execSync(`unzip -o -q "${tmpZip}" -d "${base}"`, { timeout: 60000 });
+    const after = getFileList(base).filter(f => !f.isDirectory).map(f => f.name);
+    return { files: after, usedFallback: true };
+  }
+
+  return { files: written, usedFallback: false };
+}
+
+// Scan a workspace for the most likely bot entrypoint, preferring shallow
+// paths and well-known names. Returns { filename, runtime, cwd } or null.
+function detectBotEntrypoint(rootDir, maxDepth = 4) {
+  const candidates = [];
+  const SKIP = new Set(['node_modules', '.git', '__pycache__', '.venv', 'venv']);
+
+  function walk(dir, depth) {
+    if (depth > maxDepth) { return; }
+    let ents;
+    try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
+    for (const ent of ents) {
+      if (SKIP.has(ent.name)) { continue; }
+      const full = path.join(dir, ent.name);
+      if (ent.isDirectory()) {
+        walk(full, depth + 1);
+      } else {
+        const lower = ent.name.toLowerCase();
+        const rel = path.relative(rootDir, full).split(path.sep).join('/');
+        let rank = -1;
+        let runtime = null;
+        if (['bot.py', 'main.py', 'app.py', 'selfbot.py'].includes(lower)) { rank = 100; runtime = 'python'; }
+        else if (['index.js', 'bot.js', 'main.js', 'selfbot.js', 'app.js'].includes(lower)) { rank = 95; runtime = 'node'; }
+        else if (lower.endsWith('.py')) { rank = 50; runtime = 'python'; }
+        else if (lower.endsWith('.js') || lower.endsWith('.mjs')) { rank = 45; runtime = 'node'; }
+        else if (lower === 'main.luau' || lower.endsWith('.luau') || lower.endsWith('.lua')) { rank = 40; runtime = 'lune'; }
+        if (rank > 0) {
+          candidates.push({ rel, dir: path.dirname(full), rank: rank - depth, runtime });
+        }
+      }
+    }
+  }
+  walk(rootDir, 0);
+
+  candidates.sort((a, b) => b.rank - a.rank);
+  if (candidates.length === 0) { return null; }
+  const best = candidates[0];
+  return { filename: best.rel, runtime: best.runtime, cwd: best.dir };
+}
 
 app.post('/api/vps/:vps_id/bot/upload', authRequired, vpsOwnerRequired, upload.any(), async (req, res) => {
  const vpsId = req.params.vps_id;
@@ -1008,8 +1039,9 @@ app.post('/api/vps/:vps_id/bot/upload', authRequired, vpsOwnerRequired, upload.a
  }
 
  const uploaded = [];
- let detectedEntry = null;
- let detectedRuntime = null;
+ const extracted = [];
+ let firstExtractDir = null;
+ let hadZipError = false;
 
  for (const f of files) {
  const rawName = f.originalname || 'uploaded_file';
@@ -1017,57 +1049,70 @@ app.post('/api/vps/:vps_id/bot/upload', authRequired, vpsOwnerRequired, upload.a
  const targetPath = path.join(wsDir, cleanName);
 
  try {
- fs.writeFileSync(targetPath, f.buffer);
- uploaded.push(cleanName);
-
- // Handle zip extraction
+ // Zip bundles are AUTO-EXTRACTED into the workspace and the archive
+ // itself is removed, so the workspace only holds real project files.
  if (cleanName.toLowerCase().endsWith('.zip')) {
  try {
- child_process.execSync(`unzip -o -q "${targetPath}" -d "${wsDir}"`, { timeout: 15000 });
- uploaded.push(`Extracted ${cleanName}`);
+ const result = extractZipToDir(f.buffer, cleanName, wsDir);
+ uploaded.push(cleanName);
+ extracted.push(...result.files);
+ try { fs.unlinkSync(targetPath); } catch (e) {}
+ appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Extract] ${cleanName} extracted (${result.files.length} files) and archive removed.`);
  } catch (zipErr) {
- console.warn('[Zip Extraction]:', zipErr.message);
+ hadZipError = true;
+ fs.writeFileSync(targetPath, f.buffer);
+ uploaded.push(cleanName);
+ appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Extract Error] Could not extract ${cleanName}: ${zipErr.message}`);
  }
+ continue;
  }
 
- // Detect entrypoint
- const lower = cleanName.toLowerCase();
- if ((lower === 'bot.py' || lower === 'main.py' || lower === 'app.py') && !detectedEntry) {
- detectedEntry = cleanName;
- detectedRuntime = 'python';
- } else if ((lower === 'index.js' || lower === 'bot.js' || lower === 'main.js') && !detectedEntry) {
- detectedEntry = cleanName;
- detectedRuntime = 'node';
- } else if ((lower.endsWith('.luau') || lower.endsWith('.lua')) && !detectedEntry) {
- detectedEntry = cleanName;
- detectedRuntime = 'lune';
- }
+ fs.writeFileSync(targetPath, f.buffer);
+ uploaded.push(cleanName);
  } catch (writeErr) {
  console.error('[Upload Write Error]:', writeErr.message);
  }
  }
 
- // Update bot supervisor if entrypoint detected
- if (db.bots[vpsId]) {
- if (detectedEntry) {db.bots[vpsId].filename = detectedEntry;}
- if (detectedRuntime) {db.bots[vpsId].runtime = detectedRuntime;}
- saveDb();
+ // Detect the bot entrypoint across everything now in the workspace
+ // (including files that just came out of an extracted zip bundle).
+ let detectedEntry = null;
+ let detectedRuntime = null;
+ const detected = detectBotEntrypoint(wsDir);
+ if (detected) {
+ detectedEntry = detected.filename;
+ detectedRuntime = detected.runtime;
  }
 
+ // Update bot supervisor if entrypoint detected
+ if (!db.bots[vpsId]) { db.bots[vpsId] = { logs: [] }; }
+ if (detectedEntry) { db.bots[vpsId].filename = detectedEntry; }
+ if (detectedRuntime) { db.bots[vpsId].runtime = detectedRuntime; }
+ saveDb();
+
  const currentFiles = getFileList(wsDir);
- const botState = db.bots[vpsId] || { status: 'running', running: true, filename: detectedEntry || 'bot.py' };
+ const botState = db.bots[vpsId] || { status: 'stopped', running: false, filename: detectedEntry || 'bot.py' };
+
+ let message = `Uploaded ${uploaded.length} file(s) successfully!`;
+ if (extracted.length > 0) {
+ message = `Uploaded & auto-extracted ${extracted.length} file(s) from zip archive!`;
+ }
+ if (detectedEntry) {
+ message += ` Entry point detected: ${detectedEntry} (${detectedRuntime}).`;
+ }
 
  res.json({
  success: true,
- message: `Uploaded ${uploaded.length} file(s) successfully! `,
+ message,
  uploaded,
+ extracted,
  files: currentFiles,
  bot_status: botState,
  detected_entry: detectedEntry,
- detected_runtime: detectedRuntime
+ detected_runtime: detectedRuntime,
+ zip_error: hadZipError || undefined
  });
 });
-
 // ---------------------- BOT SUPERVISOR CONTROLS ----------------------
 
 // Get Bot Status
@@ -2088,10 +2133,12 @@ app.post('/api/hardware/cgnat-tunnel', authRequired, (req, res) => {
 
 // ---------------------- GITHUB INTEGRATION ----------------------
 
-// Clone GitHub repository into VPS workspace or site folder
+// Clone a GitHub repository into the VPS workspace so the user can run their
+// own bot/project files. No demo templates are scaffolded and no domains are
+// allocated — just a clean git clone + optional dependency install.
 app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async (req, res) => {
  const vpsId = req.params.vps_id;
- const { repo_url, target_folder = 'site', branch = '', auto_install = true, auto_host = true } = req.body || {};
+ const { repo_url, target_folder = 'root', branch = '', auto_install = true } = req.body || {};
  if (!repo_url || !repo_url.trim()) {
  return res.status(400).json({ success: false, error: 'GitHub repository URL or name (e.g. user/repo) is required' });
  }
@@ -2134,21 +2181,6 @@ app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async 
  env: { ...process.env, GIT_TERMINAL_PROMPT: '0' }
  });
  } catch (cloneErr) {
- if (cleanUrl.includes('starter-site') || cleanUrl.includes('guide') || cleanUrl.includes('discord.py')) {
- if (cleanUrl.includes('discord.py')) {
- fs.writeFileSync(path.join(targetDir, 'bot.py'), `# 24/7 Discord.py Bot\nimport os, discord\nfrom discord.ext import commands\n\nbot = commands.Bot(command_prefix='!', intents=discord.Intents.all())\n\n@bot.event\nasync def on_ready():\n print(f'Logged in as {bot.user} (ID: {bot.user.id}) - Cloud VPS Watchdog Active [ONLINE]')\n\n@bot.command()\nasync def ping(ctx):\n await ctx.send('Pong! Cloud VPS Python Bot is online ')\n\n# bot.run(os.getenv("DISCORD_BOT_TOKEN"))\n`);
- fs.writeFileSync(path.join(targetDir, 'requirements.txt'), 'discord.py>=2.3.0\n');
- } else if (cleanUrl.includes('guide')) {
- fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({ name: "discord-bot", version: "1.0.0", main: "index.js", dependencies: { "discord.js": "^14.14.1" } }, null, 2));
- fs.writeFileSync(path.join(targetDir, 'index.js'), `const { Client, GatewayIntentBits } = require('discord.js');\nconst client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });\n\nclient.once('ready', () => {\n console.log(\`Logged in as \${client.user.tag}! 24/7 Supervisor Active [ONLINE]\`);\n});\n\nclient.on('messageCreate', msg => {\n if (msg.content === '!ping') msg.reply('Pong from Cloud VPS! ');\n});\n\n// client.login(process.env.DISCORD_BOT_TOKEN);\n`);
- } else {
- fs.writeFileSync(path.join(targetDir, 'index.html'), `<!DOCTYPE html>\n<html lang="en">\n<head>\n <meta charset="UTF-8">\n <title>Cloud VPS Starter Web App</title>\n <script src="https://cdn.tailwindcss.com"></script>\n</head>\n<body class="bg-zinc-950 text-zinc-100 min-h-screen flex items-center justify-center p-6">\n <div class="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center shadow-xl">\n <div class="text-4xl mb-3"></div>\n <h1 class="text-2xl font-bold text-white mb-2">My Cloud VPS Web Application</h1>\n <p class="text-zinc-400 text-sm mb-6">Cloned from GitHub & hosted with free SSL certificate.</p>\n <div class="bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs font-mono text-cyan-400">\n TLS 1.3 Active &bull; 100% Uptime\n </div>\n </div>\n</body>\n</html>`);
- }
- try {
- child_process.execSync(`git init -b main && git config user.name "CloudVPS" && git config user.email "bot@cloudvps.app" && git remote add origin "${cleanUrl}" && git add . && git commit -m "Initial commit from template"`, { cwd: targetDir, stdio: 'ignore' });
- } catch (e) {}
- cloneOutput = 'Scaffolded starter repository template directly into container filesystem.';
- } else {
  const errOut = (cloneErr.stdout || '') + (cloneErr.stderr || cloneErr.message);
  return res.status(400).json({
  success: false,
@@ -2156,10 +2188,9 @@ app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async 
  details: errOut
  });
  }
- }
 
  // Inspect cloned directory to detect project archetype
- let detectedType = 'static_web';
+ let detectedType = 'generic_project';
  let startCommand = '';
  const hasPackageJson = fs.existsSync(path.join(targetDir, 'package.json'));
  const hasReqs = fs.existsSync(path.join(targetDir, 'requirements.txt'));
@@ -2171,15 +2202,15 @@ app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async 
  try {
  const pkgData = JSON.parse(fs.readFileSync(path.join(targetDir, 'package.json'), 'utf8'));
  const deps = { ...(pkgData.dependencies || {}), ...(pkgData.devDependencies || {}) };
- if (deps['discord.js'] || deps['eris'] || deps['oceanic.js']) {
+ if (deps['discord.js'] || deps['eris'] || deps['oceanic.js'] || deps['discord.js-selfbot-v13']) {
  detectedType = 'discord_bot_node';
  startCommand = `node ${  pkgData.main || 'index.js'}`;
  } else if (deps['express'] || deps['fastify'] || deps['koa'] || deps['hono']) {
  detectedType = 'node_server';
  startCommand = 'npm start';
- } else if (deps['vite'] || deps['react'] || deps['vue'] || deps['next']) {
- detectedType = 'modern_frontend';
- startCommand = 'npm run build';
+ } else {
+ detectedType = 'node_project';
+ startCommand = `node ${  pkgData.main || 'index.js'}`;
  }
  } catch (e) {}
 
@@ -2195,7 +2226,7 @@ app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async 
  }
  }
  } else if (hasReqs || hasBotPy) {
- detectedType = 'discord_bot_python';
+ detectedType = hasBotPy ? 'discord_bot_python' : 'python_project';
  startCommand = `python3 ${  fs.existsSync(path.join(targetDir, 'bot.py')) ? 'bot.py' : 'main.py'}`;
  if (auto_install && hasReqs) {
  try {
@@ -2213,39 +2244,16 @@ app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async 
  startCommand = 'lune run main.luau';
  }
 
- // Auto-allocate or update free domain if site or auto_host enabled
- let domainInfo = null;
- if (auto_host) {
- const cleanSubdomain = repoName.toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 24) || `site-${vpsId}`;
- const suffix = '.cloudvps.site';
- const fullDomain = `${cleanSubdomain}${suffix}`;
-
- if (!db.vps[vpsId].domains) {db.vps[vpsId].domains = [];}
- const domObj = {
- subdomain: cleanSubdomain,
- suffix,
- full_domain: fullDomain,
- target_path: target_folder,
- detected_type: detectedType,
- ssl: 'Active (TLS 1.3 Let’s Encrypt)',
- status: 'online',
- created_at: new Date().toISOString()
- };
-
- const existingIdx = db.vps[vpsId].domains.findIndex(d => d.subdomain === cleanSubdomain);
- if (existingIdx >= 0) {
- db.vps[vpsId].domains[existingIdx] = domObj;
- } else {
- db.vps[vpsId].domains.unshift(domObj);
- }
- db.vps[vpsId].primary_domain = fullDomain;
- db.vps[vpsId].subdomain = cleanSubdomain;
+ // After cloning into the workspace root, auto-detect the bot entrypoint so
+ // the 24/7 supervisor can immediately run the user's own files.
+ const entry = target_folder === 'root' ? detectBotEntrypoint(wsDir) : null;
+ if (entry) {
+ if (!db.bots[vpsId]) {db.bots[vpsId] = { logs: [] };}
+ db.bots[vpsId].filename = entry.filename;
+ db.bots[vpsId].runtime = entry.runtime;
+ db.bots[vpsId].watchdog = true;
  saveDb();
- domainInfo = domObj;
- }
-
- // Auto configure Discord bot if detected
- if (detectedType.startsWith('discord_bot')) {
+ } else if (detectedType.startsWith('discord_bot')) {
  if (!db.bots[vpsId]) {db.bots[vpsId] = {};}
  db.bots[vpsId].filename = hasBotPy ? (fs.existsSync(path.join(targetDir, 'bot.py')) ? 'bot.py' : 'main.py') : 'index.js';
  db.bots[vpsId].runtime = detectedType === 'discord_bot_python' ? 'python' : 'node';
@@ -2271,9 +2279,9 @@ app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async 
  start_command: startCommand,
  last_commit: lastCommit,
  install_output: installOutput,
- domain: domainInfo,
- site_preview_url: `/sites/${vpsId}`,
- message: `Successfully cloned ${repoName} from GitHub!`
+ detected_entry: entry ? entry.filename : null,
+ detected_runtime: entry ? entry.runtime : null,
+ message: `Successfully cloned ${repoName} from GitHub into your VPS workspace!`
  });
  } catch (err) {
  res.status(500).json({
@@ -2349,664 +2357,6 @@ app.get('/api/vps/:vps_id/github/info', authRequired, vpsOwnerRequired, (req, re
  } catch (err) {
  res.json({ success: true, has_repo: true, error: err.message });
  }
-});
-
-// ---------------------- FREE DOMAINS & WEB HOSTING ----------------------
-
-// List domains and SSL certificates for VPS
-app.get('/api/vps/:vps_id/domains', authRequired, vpsOwnerRequired, (req, res) => {
- const vpsId = req.params.vps_id;
- const vps = db.vps[vpsId];
- if (!vps.domains || vps.domains.length === 0) {
- const defaultSub = `vps-${vpsId.slice(-6)}`;
- vps.domains = [
- {
- subdomain: defaultSub,
- suffix: '.cloudvps.site',
- full_domain: `${defaultSub}.cloudvps.site`,
- target_path: 'site',
- ssl: 'Active (TLS 1.3 Let’s Encrypt)',
- status: 'online',
- created_at: new Date().toISOString()
- }
- ];
- vps.primary_domain = vps.domains[0].full_domain;
- vps.subdomain = defaultSub;
- saveDb();
- }
-
- res.json({
- success: true,
- domains: vps.domains,
- primary_domain: vps.primary_domain,
- available_suffixes: [
- '.cloudvps.site',
- '.is-a.dev',
- '.cybercloud.host',
- '.vpsbot.me',
- '.preview.app',
- '.onrender.cloud',
- '.botgateway.dev'
- ],
- live_site_url: `/sites/${vpsId}`,
- ssl_provider: 'Let’s Encrypt Cloud Wildcard Automated TLS 1.3'
- });
-});
-
-// Real-time Domain Diagnostic & SSL Verification
-app.get('/api/vps/:vps_id/domains/verify', authRequired, vpsOwnerRequired, (req, res) => {
- const vpsId = req.params.vps_id;
- const vps = db.vps[vpsId];
- if (!vps) {return res.status(404).json({ error: 'VPS not found' });}
-
- const domain = vps.primary_domain || `${vpsId}.cloudvps.site`;
- const ip = vps.ip || '172.20.0.45';
- const pingMs = Math.floor(Math.random() * 8) + 5; // 5-13ms
-
- res.json({
- success: true,
- diagnostics: {
- domain,
- status: 'ONLINE',
- http_code: 200,
- http_status: '200 OK',
- latency_ms: pingMs,
- resolved_ip: ip,
- dns: {
- status: 'PROPAGATED',
- records: {
- A: ip,
- CNAME: 'cname.cloudvps.site',
- TXT: `cloudvps-verify=${vpsId}`,
- NS: ['ns1.cloudvps.site', 'ns2.cloudvps.site']
- }
- },
- ssl: {
- status: 'VALID & ACTIVE',
- issuer: "Let's Encrypt Authority X3 / R3",
- protocol: 'TLS 1.3',
- cipher: 'TLS_AES_256_GCM_SHA384',
- days_remaining: 89
- },
- ddos_mitigation: 'VirtIO Cloud Armor Layer-7 Active',
- direct_url: `/sites/${vpsId}`,
- verified_at: new Date().toISOString()
- }
- });
-});
-
-// Allocate custom free domain & activate SSL
-app.post('/api/vps/:vps_id/domains/allocate', authRequired, vpsOwnerRequired, (req, res) => {
- const vpsId = req.params.vps_id;
- const { subdomain, suffix = '.cloudvps.site', target_path = 'site' } = req.body || {};
- if (!subdomain) {
- return res.status(400).json({ success: false, error: 'Subdomain prefix is required' });
- }
-
- const cleanSub = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
- if (cleanSub.length < 2) {
- return res.status(400).json({ success: false, error: 'Subdomain must be at least 2 characters' });
- }
-
- const fullDomain = `${cleanSub}${suffix}`;
- const vps = db.vps[vpsId];
- if (!vps.domains) {vps.domains = [];}
-
- const existing = vps.domains.find(d => d.subdomain === cleanSub && d.suffix === suffix);
- if (existing) {
- existing.target_path = target_path;
- } else {
- vps.domains.unshift({
- subdomain: cleanSub,
- suffix,
- full_domain: fullDomain,
- target_path,
- ssl: 'Active (TLS 1.3 Let’s Encrypt)',
- status: 'online',
- created_at: new Date().toISOString()
- });
- }
-
- vps.primary_domain = fullDomain;
- vps.subdomain = cleanSub;
- saveDb();
-
- res.json({
- success: true,
- domain: {
- subdomain: cleanSub,
- full_domain: fullDomain,
- ssl: 'Active (TLS 1.3)',
- site_preview_url: `/sites/${vpsId}`
- },
- message: `Allocated free domain https://${fullDomain} with automatic TLS 1.3 SSL!`
- });
-});
-
-// Delete custom domain
-app.delete('/api/vps/:vps_id/domains/:subdomain', authRequired, vpsOwnerRequired, (req, res) => {
- const vpsId = req.params.vps_id;
- const targetSub = req.params.subdomain.toLowerCase();
- const vps = db.vps[vpsId];
- if (vps.domains) {
- vps.domains = vps.domains.filter(d => d.subdomain !== targetSub);
- if (vps.domains.length > 0) {
- vps.primary_domain = vps.domains[0].full_domain;
- vps.subdomain = vps.domains[0].subdomain;
- }
- saveDb();
- }
- res.json({ success: true, message: 'Domain removed' });
-});
-
-// ---------------------- MANUS.IM AI AGENT ENGINE ----------------------
-
-let genaiClient = null;
-async function getGenAI() {
- const key = process.env.GEMINI_API_KEY;
- if (!key) {return null;}
- if (!genaiClient) {
- try {
- // ESM-safe dynamic import (require() is not available in ES modules)
- const { GoogleGenAI } = await import('@google/genai');
- genaiClient = new GoogleGenAI({ apiKey: key });
- } catch (e) {
- logger.warn({ err: e }, '[CloudVPS AI] Could not load @google/genai');
- }
- }
- return genaiClient;
-}
-
-app.post('/api/ai/agent', authRequired, async (req, res) => {
- const { prompt, vps_id, history = [] } = req.body || {};
- if (!prompt || !prompt.trim()) {
- return res.status(400).json({ success: false, error: 'Prompt is required' });
- }
-
- const userVpsIds = Object.keys(db.vps).filter(id => db.vps[id].user_id === req.user.id);
- const vpsId = (vps_id && userVpsIds.includes(vps_id)) ? vps_id : (userVpsIds[0] || null);
- if (!vpsId) {
- return res.status(400).json({ success: false, error: 'No VPS deployed yet. Create a VPS first, then ask Manus AI to work on it.' });
- }
- const vps = db.vps[vpsId];
- const wsDir = path.join(INSTANCES_DIR, vpsId);
- initVpsWorkspace(vpsId);
-
- const cleanPrompt = prompt.trim();
- const isGithubRequest = /(github\.com|clone|git\s+clone|repo)/i.test(cleanPrompt);
- const isDiscordBotRequest = /(discord|bot|token|cogs|slash\s+commands|watchdog)/i.test(cleanPrompt);
- const isWebDeployRequest = /(website|host|deploy|html|frontend|subdomain|domain|ssl|portfolio)/i.test(cleanPrompt);
- const isTerminalRequest = /(terminal|command|bash|shell|ps|exec|kill|run|cpu|ram)/i.test(cleanPrompt);
-
- const actions = [];
- let thinkingSteps = [];
- let markdownReply = '';
- let artifact = null;
-
- const startTime = Date.now();
-
- // Check if Gemini API is available
- const ai = await getGenAI();
- if (ai) {
- try {
- const systemInstruction = `You are Manus AI, an autonomous full-stack cloud engineer embedded into Cloud VPS.
-The user is operating a cloud VPS instance (${vps.name}, ID: ${vpsId}).
-You reason step-by-step with deep precision.
-Return a structured JSON object with these exact keys:
-{
- "thinking": "Step-by-step reasoning trace explaining what you analyzed, discovered, planned, and executed.",
- "actions": [
- {
- "id": "action_1",
- "type": "shell_exec" | "git_clone" | "deploy_domain" | "start_bot" | "write_file",
- "title": "Clear action title",
- "detail": "Description of the operation",
- "command": "executable command or parameters"
- }
- ],
- "reply": "Polished markdown answer summarizing what was achieved and giving direct links or status.",
- "suggested_subdomain": "optional-subdomain"
-}`;
-
- const response = await ai.models.generateContent({
- model: 'gemini-3.8-flash',
- contents: [
- { role: 'user', parts: [{ text: `${systemInstruction}\n\nUser request: ${cleanPrompt}` }] }
- ],
- config: {
- responseMimeType: 'application/json'
- }
- });
-
- const responseText = response.text || '';
- const parsed = JSON.parse(responseText);
-
- thinkingSteps = parsed.thinking ? parsed.thinking.split('\n').filter(Boolean) : [];
- markdownReply = parsed.reply || '';
-
- // Execute AI actions autonomously
- if (Array.isArray(parsed.actions)) {
- for (const act of parsed.actions) {
- const actionRecord = {
- id: act.id || `act_${Date.now()}`,
- type: act.type,
- title: act.title,
- detail: act.detail,
- status: 'success',
- output: ''
- };
-
- try {
- if (act.type === 'shell_exec' && act.command) {
- const out = child_process.execSync(act.command, {
- cwd: wsDir,
- timeout: 15000,
- encoding: 'utf8'
- });
- actionRecord.output = out || '[Command completed with code 0]';
- } else if (act.type === 'git_clone' && act.command) {
- const cloneOut = child_process.execSync(act.command, {
- cwd: wsDir,
- timeout: 30000,
- encoding: 'utf8'
- });
- actionRecord.output = cloneOut || '[Repository cloned successfully]';
- } else if (act.type === 'deploy_domain') {
- const sub = parsed.suggested_subdomain || `app-${vpsId.slice(-6)}`;
- const fullDomain = `${sub}.cloudvps.site`;
- vps.primary_domain = fullDomain;
- vps.subdomain = sub;
- saveDb();
- actionRecord.output = `Allocated https://${fullDomain} with TLS 1.3 wildcard certificate.`;
- } else if (act.type === 'start_bot') {
- startBotProcess(vpsId, 'bot.py', 'python');
- actionRecord.output = `24/7 Discord bot supervisor active (watchdog enabled).`;
- }
- } catch (execErr) {
- actionRecord.status = 'warning';
- actionRecord.output = execErr.message || 'Execution notice';
- }
-
- actions.push(actionRecord);
- }
- }
- } catch (aiErr) {
- console.warn('[Manus AI] Gemini API call fallback triggered:', aiErr.message);
- }
- }
-
- // Fallback to built-in autonomous Manus engine if Gemini was not configured or skipped
- if (actions.length === 0) {
- if (isGithubRequest) {
- // Extract github URL from prompt
- const urlMatch = cleanPrompt.match(/(https?:\/\/github\.com\/[^\s\)\'\"]+|[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+)/i);
- const repoUrl = urlMatch ? urlMatch[0] : 'https://github.com/cloudvps/starter-site.git';
- const repoName = repoUrl.split('/').pop().replace(/\.git$/, '');
- const cleanSub = repoName.toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 20) || 'cloud-app';
- const fullDomain = `${cleanSub}.cloudvps.site`;
-
- thinkingSteps = [
- `Identified GitHub repository deployment request: ${repoUrl}`,
- `Inspecting Cloud VPS ${vps.name} VirtIO container sandbox environment`,
- `Synthesizing autonomous pipeline: git clone -> dependency audit -> free SSL domain provisioning`,
- `Binding instant edge routing to ${fullDomain} with TLS 1.3 Let’s Encrypt wildcard encryption`
- ];
-
- // Step 1: Git clone
- const siteDir = path.join(wsDir, 'site');
- fs.mkdirSync(siteDir, { recursive: true });
-
- let cloneSuccess = false;
- let cloneLog = '';
- try {
- const branchCmd = `git clone --depth 1 "${repoUrl.startsWith('http') ? repoUrl : `https://github.com/${  repoUrl}`}" "${siteDir}"`;
- cloneLog = child_process.execSync(branchCmd, { cwd: wsDir, timeout: 35000, encoding: 'utf8', env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
- cloneSuccess = true;
- } catch (err) {
- cloneLog = `Repository clone initialized in /site directory (${err.message || 'Ready'}).`;
- }
-
- actions.push({
- id: 'act_git_clone',
- type: 'git_clone',
- title: `Cloned ${repoName} from GitHub`,
- detail: `Target directory: /vps_instances/${vpsId}/site`,
- status: 'success',
- output: cloneLog || `Successfully cloned ${repoUrl} to /site.`
- });
-
- // Step 2: Auto allocate free domain
- if (!vps.domains) {vps.domains = [];}
- const newDomain = {
- subdomain: cleanSub,
- suffix: '.cloudvps.site',
- full_domain: fullDomain,
- target_path: 'site',
- ssl: 'Active (TLS 1.3 Let’s Encrypt)',
- status: 'online',
- created_at: new Date().toISOString()
- };
- vps.domains.unshift(newDomain);
- vps.primary_domain = fullDomain;
- vps.subdomain = cleanSub;
- saveDb();
-
- actions.push({
- id: 'act_domain_alloc',
- type: 'deploy_domain',
- title: `Allocated Free SSL Domain: ${fullDomain}`,
- detail: `Edge CDN route activated with automated Let's Encrypt TLS 1.3`,
- status: 'success',
- output: `Online: https://${fullDomain} -> maps to /site/index.html`
- });
-
- markdownReply = `### Repository Cloned & Website Hosted!
-
-I have executed your request on **${vps.name}**:
-- **Repository:** \`${repoUrl}\` cloned into \`/site\`
-- **Free Domain Allocated:** [https://${fullDomain}](/sites/${vpsId})
-- **SSL Status:** Active (Let's Encrypt Wildcard TLS 1.3)
-- **Container Sandbox:** VirtIO KVM sandbox with zero external lag
-
-You can view the live website in the **GitHub & Domains** tab or open [Live Preview](/sites/${vpsId}).`;
-
- artifact = {
- type: 'website_preview',
- url: `/sites/${vpsId}`,
- domain: fullDomain
- };
-
- } else if (isDiscordBotRequest) {
- thinkingSteps = [
- `Analyzing Discord Bot hosting request on Cloud VPS ${vps.name}`,
- `Verifying runtime availability: Python 3.11, discord.py, Node.js 22, discord.js v14, Lune Luau`,
- `Configuring 24/7 watchdog supervisor with automatic crash recovery`,
- `Deploying bot supervisor daemon process into container background`
- ];
-
- // Prepare starter bot file if not present
- const botPyPath = path.join(wsDir, 'bot.py');
- if (!fs.existsSync(botPyPath)) {
- fs.writeFileSync(botPyPath, `# CloudVPS 24/7 Discord Bot Supervisor
-import os
-import time
-
-print("=== CloudVPS 24/7 Discord Bot Supervisor Online ===")
-print("Watchdog Active: Auto-restart enabled upon disconnection.")
-print("Gateway Status: Ready for bot token.")
-
-while True:
- time.sleep(30)
-`, 'utf8');
- }
-
- if (!db.bots[vpsId]) {db.bots[vpsId] = {};}
- db.bots[vpsId].filename = 'bot.py';
- db.bots[vpsId].runtime = 'python';
- db.bots[vpsId].watchdog = true;
- db.bots[vpsId].status = 'running';
- db.bots[vpsId].running = true;
- db.bots[vpsId].started_at = Date.now();
- saveDb();
-
- actions.push({
- id: 'act_bot_supervisor',
- type: 'start_bot',
- title: 'Initialized 24/7 Discord Bot Watchdog',
- detail: 'Runtime: Python 3.11 / discord.py supervisor',
- status: 'success',
- output: 'Bot daemon registered. Auto-restart watchdog enabled [ONLINE]'
- });
-
- markdownReply = `### 24/7 Discord Bot Cloud Supervisor Active!
-
-Your Discord bot environment is fully configured in the Cloud VPS container:
-- **Supervisor Status:** \`RUNNING [ONLINE]\` (24/7 Always-On)
-- **Auto-Restart Watchdog:** Enabled (automatically reboots if disconnected)
-- **Runtime:** Python 3.11 & Node.js discord.js v14 supported
-- **Management:** View live logs and set your Bot Token in the **Discord Bot** tab.`;
-
- artifact = {
- type: 'bot_status',
- status: 'running',
- runtime: 'python',
- filename: 'bot.py'
- };
-
- } else if (isWebDeployRequest) {
- const cleanSub = `web-${Math.random().toString(36).substring(2, 7)}`;
- const fullDomain = `${cleanSub}.cloudvps.site`;
-
- thinkingSteps = [
- `Analyzing website creation & hosting request`,
- `Synthesizing modern glassmorphism web layout with responsive styling`,
- `Writing production assets to /site/index.html`,
- `Binding custom free domain ${fullDomain} with free TLS 1.3 certificate`
- ];
-
- const siteDir = path.join(wsDir, 'site');
- fs.mkdirSync(siteDir, { recursive: true });
- const siteHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>${vps.name} - Hosted Website</title>
- <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col items-center justify-center p-6">
- <div class="max-w-xl w-full bg-zinc-900/90 border border-zinc-800 rounded-3xl p-8 backdrop-blur shadow-2xl text-center">
- <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold mb-6">
- <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
- Hosted on Cloud VPS &bull; Free SSL Active
- </div>
- <h1 class="text-3xl font-extrabold text-white mb-2">Welcome to My Cloud VPS Site</h1>
- <p class="text-zinc-400 text-sm mb-6">Live at <code class="text-cyan-400 bg-zinc-800 px-2 py-1 rounded font-mono text-xs">https://${fullDomain}</code></p>
- <div class="grid grid-cols-2 gap-3 text-left font-mono text-xs text-zinc-300 mb-6">
- <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/80">
- <span class="text-zinc-500">Host:</span> ${vps.name}
- </div>
- <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/80">
- <span class="text-zinc-500">Status:</span> 24/7 Online [ONLINE]
- </div>
- </div>
- <p class="text-xs text-zinc-500">Created by Manus AI Agent Engineer on Cloud VPS.</p>
- </div>
-</body>
-</html>`;
- fs.writeFileSync(path.join(siteDir, 'index.html'), siteHtml, 'utf8');
-
- if (!vps.domains) {vps.domains = [];}
- vps.domains.unshift({
- subdomain: cleanSub,
- suffix: '.cloudvps.site',
- full_domain: fullDomain,
- target_path: 'site',
- ssl: 'Active (TLS 1.3 Let’s Encrypt)',
- status: 'online',
- created_at: new Date().toISOString()
- });
- vps.primary_domain = fullDomain;
- vps.subdomain = cleanSub;
- saveDb();
-
- actions.push({
- id: 'act_web_create',
- type: 'write_file',
- title: 'Generated Web Application',
- detail: 'Created /site/index.html with modern responsive interface',
- status: 'success',
- output: 'File written successfully (1.4 KB).'
- });
-
- actions.push({
- id: 'act_web_domain',
- type: 'deploy_domain',
- title: `Allocated Domain: ${fullDomain}`,
- detail: 'Wildcard Let\'s Encrypt SSL certificate active',
- status: 'success',
- output: `Live site mapped: https://${fullDomain}`
- });
-
- markdownReply = `### Website Deployed & Free Domain Activated!
-
-- **Domain:** [https://${fullDomain}](/sites/${vpsId})
-- **Location:** \`/site/index.html\`
-- **SSL:** TLS 1.3 Active
-- **Preview:** Click below to view live in browser!`;
-
- artifact = {
- type: 'website_preview',
- url: `/sites/${vpsId}`,
- domain: fullDomain
- };
-
- } else {
- thinkingSteps = [
- `Processing general VPS engineering prompt: "${cleanPrompt.slice(0, 60)}..."`,
- `Querying VPS status: ID ${vpsId}, CPU 8.0 Cores, 8GB RAM, NVMe`,
- `Analyzing instance file tree and active supervisor processes`
- ];
-
- // Run status command
- let cmdOut = '';
- try {
- cmdOut = child_process.execSync('uptime && free -m && uname -a', { cwd: wsDir, encoding: 'utf8' }).trim();
- } catch (e) {
- cmdOut = 'System load nominal. Zero memory pressure.';
- }
-
- actions.push({
- id: 'act_sys_inspect',
- type: 'shell_exec',
- title: 'Inspected Cloud VPS Metrics',
- detail: 'Kernel telemetry and memory allocation',
- status: 'success',
- output: cmdOut
- });
-
- markdownReply = `### Manus AI Agent Ready
-
-I have verified your **${vps.name}** instance:
-- **Uptime & Core Health:** Healthy [ONLINE]
-- **GitHub Integration:** Ready to clone repositories directly into your workspace
-- **Web Hosting:** Free subdomains available (\`.cloudvps.site\`, \`.preview.app\`, \`.onrender.cloud\`)
-- **Discord Bot:** 24/7 watchdog ready
-
-You can ask me to:
-1. **Clone a GitHub repo** and deploy it to a free SSL domain
-2. **Setup a 24/7 Discord bot** with auto-restart
-3. **Generate a full web application** and publish it online!`;
- }
- }
-
- const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
-
- res.json({
- success: true,
- thinking: thinkingSteps.join('\n'),
- duration_seconds: durationSec,
- actions,
- reply: markdownReply,
- artifact
- });
-});
-
-// ---------------------- WEBSITE HOSTING ----------------------
-
-app.use('/sites/:vps_id', (req, res, next) => {
- const vpsId = req.params.vps_id;
- const wsDir = path.join(INSTANCES_DIR, vpsId);
- const siteDir = path.join(wsDir, 'site');
-
- // Candidate paths to search for web roots
- const candidateDirs = [
- path.join(siteDir, 'dist'),
- path.join(siteDir, 'build'),
- path.join(siteDir, 'public'),
- siteDir,
- path.join(wsDir, 'dist'),
- path.join(wsDir, 'public'),
- wsDir
- ];
-
- let activeWebDir = candidateDirs.find(d => fs.existsSync(path.join(d, 'index.html')));
- if (!activeWebDir) {
- activeWebDir = fs.existsSync(siteDir) ? siteDir : wsDir;
- }
-
- // Ensure index.html exists
- const indexPath = path.join(activeWebDir, 'index.html');
- if (!fs.existsSync(indexPath)) {
- const vps = db.vps[vpsId] || { name: 'Cloud-VPS-01' };
- const domain = vps.primary_domain || `${vpsId}.cloudvps.site`;
- const defaultHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>${vps.name} - Free Cloud VPS Site</title>
- <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col items-center justify-center p-6 font-sans">
- <div class="max-w-xl w-full bg-zinc-900/90 border border-zinc-800 rounded-3xl p-8 backdrop-blur shadow-2xl text-center">
- <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-6">
- <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
- LIVE & SECURE &bull; TLS 1.3 SSL ACTIVE
- </div>
- <h1 class="text-3xl font-extrabold tracking-tight mb-2 text-white">${vps.name}</h1>
- <p class="text-zinc-400 text-sm mb-6">Hosted on free domain <code class="text-cyan-400 bg-zinc-800/80 px-2.5 py-1 rounded font-mono text-xs">https://${domain}</code></p>
- <div class="bg-zinc-950 border border-zinc-800/80 rounded-2xl p-5 text-left font-mono text-xs text-zinc-300 mb-6 space-y-2">
- <div class="text-zinc-500">// Cloud Container VirtIO Hypervisor</div>
- <div>Instance: <span class="text-cyan-400">${vpsId}</span></div>
- <div>Storage: <span class="text-emerald-400">NVMe High Speed</span></div>
- <div>Web Root: <span class="text-amber-400">/site/index.html</span></div>
- <div>Status: <span class="text-emerald-400">24/7 ONLINE [ONLINE]</span></div>
- </div>
- <p class="text-xs text-zinc-400">Ready to publish? Clone any GitHub repo in the <b>GitHub & Hosting</b> tab, or ask <b>Manus AI</b> to build and publish your web app automatically!</p>
- </div>
-</body>
-</html>`;
- try {
- fs.mkdirSync(path.dirname(indexPath), { recursive: true });
- fs.writeFileSync(indexPath, defaultHtml, 'utf8');
- } catch (e) {}
- }
-
- express.static(activeWebDir)(req, res, () => {
- if (fs.existsSync(indexPath)) {
- return res.sendFile(indexPath);
- }
- res.status(404).send('<h3>Cloud VPS Web Server Online - Ready for files</h3>');
- });
-});
-
-app.use('/domains/:subdomain', (req, res) => {
- const sub = req.params.subdomain.toLowerCase();
- const vps = Object.values(db.vps).find(v => {
- if (v.subdomain === sub) {return true;}
- if (v.domains && v.domains.some(d => d.subdomain === sub)) {return true;}
- return false;
- });
-
- const vpsId = vps ? vps.id : Object.keys(db.vps)[0] || 'vps-free-01';
- res.redirect(`/sites/${vpsId}`);
-});
-
-// Direct domain resolver: /d/:domain or /d/:domain/*
-app.use('/d/:domain', (req, res) => {
- const raw = (req.params.domain || '').toLowerCase().trim();
- const clean = raw.replace(/^https?:\/\//, '').split('/')[0];
- const vps = Object.values(db.vps).find(v => {
- if (v.id.toLowerCase() === clean) {return true;}
- if (v.subdomain && v.subdomain.toLowerCase() === clean) {return true;}
- if (v.primary_domain && (v.primary_domain.toLowerCase() === clean || v.primary_domain.toLowerCase().startsWith(`${clean  }.`))) {return true;}
- if (v.domains && v.domains.some(d => d.subdomain.toLowerCase() === clean || d.full_domain.toLowerCase() === clean)) {return true;}
- return false;
- });
-
- const vpsId = vps ? vps.id : Object.keys(db.vps)[0] || 'vps-free-01';
- res.redirect(`/sites/${vpsId}`);
 });
 
 import swaggerUi from 'swagger-ui-express';

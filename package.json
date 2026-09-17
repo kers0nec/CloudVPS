@@ -27,7 +27,6 @@
   "author": "CloudVPS",
   "license": "MIT",
   "dependencies": {
-    "@google/genai": "^2.22.0",
     "axios": "^1.20.0",
     "cors": "^2.8.5",
     "discord.js": "^14.27.0",

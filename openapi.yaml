@@ -39,10 +39,6 @@ tags:
     description: Command execution in VPS
   - name: GitHub
     description: GitHub repository integration
-  - name: Domains
-    description: Free domain allocation and SSL
-  - name: AI Agent
-    description: Manus AI agent integration
   - name: Hardware
     description: Hardware info and benchmarks
 paths:
@@ -554,69 +550,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GitHubCloneResponse'
-  /api/vps/{vps_id}/domains:
-    get:
-      tags: [Domains]
-      summary: List domains for VPS
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: vps_id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of domains
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DomainsResponse'
-  /api/vps/{vps_id}/domains/allocate:
-    post:
-      tags: [Domains]
-      summary: Allocate free domain
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: vps_id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DomainAllocateRequest'
-      responses:
-        '200':
-          description: Domain allocated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DomainAllocateResponse'
-  /api/ai/agent:
-    post:
-      tags: [AI Agent]
-      summary: Run Manus AI agent
-      security:
-        - ApiKeyAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AiAgentRequest'
-      responses:
-        '200':
-          description: Agent response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AiAgentResponse'
   /api/hardware:
     get:
       tags: [Hardware]
@@ -857,12 +790,6 @@ components:
         os:
           type: string
           default: ubuntu
-        starter:
-          type: string
-          default: blank
-        subdomain:
-          type: string
-          maxLength: 63
     VpsStatsResponse:
       type: object
       properties:
@@ -1053,13 +980,10 @@ components:
           type: string
         target_folder:
           type: string
-          default: site
+          default: root
         branch:
           type: string
         auto_install:
-          type: boolean
-          default: true
-        auto_host:
           type: boolean
           default: true
     GitHubCloneResponse:
@@ -1082,134 +1006,12 @@ components:
           type: string
         install_output:
           type: string
-        domain:
-          type: object
-        site_preview_url:
+        detected_entry:
+          type: string
+        detected_runtime:
           type: string
         message:
           type: string
-    DomainsResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          enum: [true]
-        domains:
-          type: array
-          items:
-            $ref: '#/components/schemas/Domain'
-        primary_domain:
-          type: string
-        available_suffixes:
-          type: array
-          items:
-            type: string
-        live_site_url:
-          type: string
-        ssl_provider:
-          type: string
-    Domain:
-      type: object
-      properties:
-        subdomain:
-          type: string
-        suffix:
-          type: string
-        full_domain:
-          type: string
-        target_path:
-          type: string
-        ssl:
-          type: string
-        status:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-    DomainAllocateRequest:
-      type: object
-      required:
-        - subdomain
-      properties:
-        subdomain:
-          type: string
-          minLength: 2
-          maxLength: 63
-        suffix:
-          type: string
-          default: .cloudvps.site
-        target_path:
-          type: string
-          default: site
-    DomainAllocateResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          enum: [true]
-        domain:
-          type: object
-          properties:
-            subdomain:
-              type: string
-            full_domain:
-              type: string
-            ssl:
-              type: string
-            site_preview_url:
-              type: string
-        message:
-          type: string
-    AiAgentRequest:
-      type: object
-      required:
-        - prompt
-      properties:
-        prompt:
-          type: string
-        vps_id:
-          type: string
-        history:
-          type: array
-          items:
-            type: object
-            properties:
-              role:
-                type: string
-                enum: [user, assistant]
-              content:
-                type: string
-    AiAgentResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          enum: [true]
-        thinking:
-          type: string
-        duration_seconds:
-          type: string
-        actions:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-              type:
-                type: string
-              title:
-                type: string
-              detail:
-                type: string
-              status:
-                type: string
-              output:
-                type: string
-        reply:
-          type: string
-        artifact:
-          type: object
     HardwareResponse:
       type: object
       properties:

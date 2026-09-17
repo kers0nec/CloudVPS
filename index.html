@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cloud VPS — 24/7 Discord Bot, Selfbot & Workspace Files Hosting</title>
-  <meta name="description" content="Cloud VPS hosting platform featuring custom VPS creation, free TLS 1.3 domains, 24/7 Discord bot & selfbot user token hosting with workspace files, and a cyber-glass interface.">
+  <meta name="description" content="Cloud VPS hosting platform featuring custom VPS creation and 24/7 Discord bot & selfbot hosting on a clean-slate workspace — upload or create your own files, zip bundles auto-extract automatically.">
   <!-- Cloud VPS Authentic Favicon -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z' fill='%23972577'/%3E%3Cpath d='M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z' fill='%23BD2E95'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1649,289 +1649,6 @@
       transform: translateX(4px);
     }
 
-    /* ================= MANUS AI AGENT & GITHUB STYLING ================= */
-    .manus-container {
-      display: flex;
-      flex-direction: column;
-      height: calc(100vh - 92px);
-      min-height: 480px;
-      background: rgba(14, 16, 22, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .manus-header {
-      padding: 9px 14px;
-      background: rgba(20, 22, 30, 0.85);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .manus-brand-badge {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .manus-gem-icon {
-      width: 26px;
-      height: 26px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #d946ef 0%, #ec4899 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 16px rgba(217, 70, 239, 0.35);
-      position: relative;
-    }
-
-    .manus-gem-icon::after {
-      content: '';
-      position: absolute;
-      inset: -2px;
-      border-radius: 10px;
-      border: 1px solid rgba(217, 70, 239, 0.5);
-      animation: pulse-ring 2.5s infinite;
-    }
-
-    @keyframes pulse-ring {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      50% { transform: scale(1.1); opacity: 0.2; }
-      100% { transform: scale(0.95); opacity: 0.8; }
-    }
-
-    .manus-split-body {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .manus-chat-pane {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      transition: all 0.25s ease;
-    }
-
-    .manus-canvas-pane {
-      flex: 1;
-      background: #090a0f;
-      border-left: 1px solid rgba(255, 255, 255, 0.08);
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .manus-container.dual-mode .manus-canvas-pane {
-      display: flex;
-    }
-
-    .manus-scroll-stream {
-      flex: 1;
-      overflow-y: auto;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .manus-starter-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .manus-starter-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 14px;
-      cursor: pointer;
-      transition: all 0.18s ease;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      text-align: left;
-    }
-
-    .manus-starter-card:hover {
-      background: rgba(217, 70, 239, 0.08);
-      border-color: rgba(217, 70, 239, 0.4);
-      transform: translateY(-2px);
-    }
-
-    .manus-msg-user {
-      align-self: flex-end;
-      max-width: 82%;
-      background: linear-gradient(135deg, rgba(217, 70, 239, 0.25) 0%, rgba(236, 72, 153, 0.2) 100%);
-      border: 1px solid rgba(217, 70, 239, 0.35);
-      border-radius: 16px 16px 4px 16px;
-      padding: 12px 16px;
-      color: #fff;
-      font-size: 13.5px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-    }
-
-    .manus-msg-ai {
-      align-self: flex-start;
-      max-width: 95%;
-      background: rgba(22, 24, 32, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px 16px 16px 4px;
-      padding: 16px;
-      color: #e4e4e7;
-      font-size: 13.5px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    }
-
-    .manus-thinking-box {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 12px;
-    }
-
-    .manus-thinking-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      color: #a1a1aa;
-      cursor: pointer;
-      user-select: none;
-      font-weight: 500;
-    }
-
-    .manus-thinking-steps {
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      font-family: var(--mono);
-      font-size: 11.5px;
-      color: #71717a;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .manus-action-card {
-      background: rgba(10, 12, 16, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .manus-action-header {
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(255, 255, 255, 0.02);
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .manus-action-out {
-      padding: 10px 12px;
-      background: #000;
-      font-family: var(--mono);
-      font-size: 11.5px;
-      color: #a1a1aa;
-      white-space: pre-wrap;
-      max-height: 180px;
-      overflow-y: auto;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .manus-input-box {
-      padding: 14px 18px;
-      background: rgba(18, 20, 28, 0.95);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .manus-textarea {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 12px 14px;
-      color: #fff;
-      font-size: 13.5px;
-      font-family: var(--sans);
-      resize: none;
-      min-height: 52px;
-      max-height: 140px;
-      outline: none;
-      transition: border-color 0.15s ease;
-    }
-
-    .manus-textarea:focus {
-      border-color: rgba(217, 70, 239, 0.6);
-      box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.15);
-    }
-
-    .manus-toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .manus-chip {
-      padding: 4px 10px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 999px;
-      font-size: 11px;
-      color: #a1a1aa;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .manus-chip:hover {
-      background: rgba(217, 70, 239, 0.15);
-      color: #f0abfc;
-      border-color: rgba(217, 70, 239, 0.3);
-    }
-
-    /* Web Hosting & GitHub Manager */
-    .domain-badge-active {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #34d399;
-      font-size: 11.5px;
-      font-weight: 600;
-    }
-
-    .live-browser-frame {
-      width: 100%;
-      height: 400px;
-      border: none;
-      border-radius: 0 0 12px 12px;
-      background: #fff;
-    }
-
     /* ==================== WISPBYTE PACKAGE DOWNLOADER & ACCOUNTS STYLES ==================== */
     .package-manager-container {
       display: flex;
@@ -2363,18 +2080,10 @@
         <span class="nav-badge" id="sidebar-bot-badge" style="background: rgba(148, 163, 184, 0.15); color: var(--text-muted); border-color: rgba(148, 163, 184, 0.3);">IDLE</span>
       </button>
 
-      <!-- TAB GITHUB: GITHUB & WEB HOSTING & REAL FREE DOMAINS -->
+      <!-- TAB GITHUB: CLONE REPOS INTO YOUR VPS WORKSPACE -->
       <button class="nav-btn" id="nav-github" onclick="switchTab('github')">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-        <span>Hosting & Domains</span>
-        <span class="nav-badge" style="background: rgba(244, 114, 182, 0.15); color: #f472b6; border-color: rgba(244, 114, 182, 0.3);">FREE SSL</span>
-      </button>
-
-      <!-- TAB AI: MANUS AI AUTONOMOUS CLOUD ENGINEER -->
-      <button class="nav-btn" id="nav-ai" onclick="switchTab('ai')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <span>Manus AI Engineer</span>
-        <span class="nav-badge" style="background: rgba(217, 70, 239, 0.15); color: #f0abfc; border-color: rgba(217, 70, 239, 0.3);">AI</span>
+        <span>GitHub Clone</span>
       </button>
 
       <div class="nav-category">TOOLS</div>
@@ -2508,161 +2217,26 @@
       </div>
     </section>
 
-    <!-- ==================== TAB AI: MANUS AI AUTONOMOUS ENGINEER ==================== -->
-    <section class="tab-content" id="tab-ai">
-      <div class="manus-container" id="manus-main-container">
-        <!-- Manus Header -->
-        <div class="manus-header">
-          <div class="manus-brand-badge">
-            <div class="manus-gem-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            </div>
-            <div>
-              <div style="font-weight: 700; font-size: 14px; color: #fff; display: flex; align-items: center; gap: 8px;">
-                Manus Cloud Agent
-                <span class="nav-badge" style="background: rgba(217, 70, 239, 0.15); color: #f0abfc; border-color: rgba(217, 70, 239, 0.3);">Autonomous AI</span>
-              </div>
-              <div style="font-size: 11px; color: #71717a; font-family: var(--mono);">VirtIO Container &bull; Gemini 3.8 Flash Engine</div>
-            </div>
-          </div>
-
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <button class="btn btn-secondary btn-sm" id="btn-manus-dual" onclick="toggleManusDualView()" title="Toggle Split Canvas View">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
-              <span id="manus-dual-label">Dual Canvas</span>
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="clearManusChat()" title="Clear Chat History">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              <span>Clear</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Split Body: Left Chat, Right Live Canvas -->
-        <div class="manus-split-body">
-          <!-- Chat Pane -->
-          <div class="manus-chat-pane">
-            <div class="manus-scroll-stream" id="manus-messages-stream">
-              <!-- Welcome banner / Starters -->
-              <div id="manus-welcome-banner" style="text-align: center; max-width: 620px; margin: 20px auto; padding: 20px;">
-                <div style="width: 52px; height: 52px; margin: 0 auto 16px; border-radius: 16px; background: linear-gradient(135deg, #d946ef 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(217, 70, 239, 0.4);">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                </div>
-                <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px;">How can Manus AI assist your Cloud VPS today?</h2>
-                <p style="font-size: 13px; color: #a1a1aa; line-height: 1.6; margin-bottom: 24px;">
-                  Autonomous engineer capable of cloning GitHub repos, provisioning free domains with TLS 1.3 SSL, hosting websites, and managing 24/7 Discord bots.
-                </p>
-
-                <div class="manus-starter-grid">
-                  <div class="manus-starter-card" onclick="quickRunManus('Clone https://github.com/cloudvps/starter-site.git and deploy it to a free SSL domain')">
-                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #f9a8d4; font-size: 13px;">
-                      <span>Clone & Host Website</span>
-                    </div>
-                    <div style="font-size: 11.5px; color: #71717a;">Clone any GitHub repo and bind to a free *.cloudvps.site domain.</div>
-                  </div>
-
-                  <div class="manus-starter-card" onclick="quickRunManus('Deploy a 24/7 Discord bot with auto-restart watchdog supervisor')">
-                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #34d399; font-size: 13px;">
-                      <span>Setup 24/7 Discord Bot</span>
-                    </div>
-                    <div style="font-size: 11.5px; color: #71717a;">Configure watchdog supervisor with automatic reboot on crash.</div>
-                  </div>
-
-                  <div class="manus-starter-card" onclick="quickRunManus('Generate a modern responsive web portfolio in /site and publish it live')">
-                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #f0abfc; font-size: 13px;">
-                      <span>Build Modern Web App</span>
-                    </div>
-                    <div style="font-size: 11.5px; color: #71717a;">Generate Tailwind HTML/JS landing page with live preview.</div>
-                  </div>
-
-                  <div class="manus-starter-card" onclick="quickRunManus('Inspect system hardware, check RAM usage, and benchmark my VPS container')">
-                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #f59e0b; font-size: 13px;">
-                      <span>VPS Hardware Telemetry</span>
-                    </div>
-                    <div style="font-size: 11.5px; color: #71717a;">Inspect AMD EPYC cores, memory buffers, and VirtIO speed.</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Input Dock -->
-            <div class="manus-input-box">
-              <div class="manus-toolbar">
-                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                  <span class="manus-chip" onclick="quickAppendManus('Clone repo: ')">Clone Repo</span>
-                  <span class="manus-chip" onclick="quickAppendManus('Deploy website with free domain ')">Free Domain</span>
-                  <span class="manus-chip" onclick="quickAppendManus('Start 24/7 Discord bot watchdog ')">Discord Bot</span>
-                  <span class="manus-chip" onclick="quickAppendManus('Run terminal command: ')">Shell Exec</span>
-                </div>
-                <div style="font-size: 11px; color: #71717a; font-family: var(--mono);">Press Enter to execute</div>
-              </div>
-
-              <div style="display: flex; gap: 10px; align-items: flex-end;">
-                <textarea class="manus-textarea" id="manus-input-text" placeholder="Ask Manus AI to clone a repo, deploy a website with a free domain, or manage your VPS..." rows="2" onkeydown="handleManusKeydown(event)"></textarea>
-                <button class="btn btn-primary" id="btn-manus-send" style="height: 48px; padding: 0 18px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="submitManusPrompt()">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                  <span>Run</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Canvas Pane (Dual View) -->
-          <div class="manus-canvas-pane" id="manus-canvas-pane">
-            <div style="padding: 10px 14px; background: rgba(20, 22, 30, 0.9); border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: space-between;">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <button class="btn btn-secondary btn-sm active" id="canvas-tab-site" onclick="setManusCanvasTab('site')">Live Site Preview</button>
-                <button class="btn btn-secondary btn-sm" id="canvas-tab-term" onclick="setManusCanvasTab('term')">Root Shell</button>
-                <button class="btn btn-secondary btn-sm" id="canvas-tab-bot" onclick="setManusCanvasTab('bot')">Bot Logs</button>
-              </div>
-              <button class="btn btn-secondary btn-sm" onclick="toggleManusDualView()" title="Close Split View"></button>
-            </div>
-
-            <div style="flex: 1; position: relative; overflow: hidden;" id="canvas-content-area">
-              <!-- Site Frame -->
-              <iframe id="manus-canvas-iframe" src="about:blank" style="width: 100%; height: 100%; border: none; background: #fff;"></iframe>
-              <!-- Shell Frame Placeholder -->
-              <div id="manus-canvas-term" style="display: none; width: 100%; height: 100%; padding: 14px; font-family: var(--mono); font-size: 12px; color: #a1a1aa; background: #000; overflow-y: auto;">
-                <div style="color: #34d399;">root@cloudvps:~# Live terminal stream attached.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================== TAB GITHUB: GITHUB & FREE DOMAINS ==================== -->
+    <!-- ==================== TAB GITHUB: CLONE REPOS INTO YOUR VPS ==================== -->
     <section class="tab-content" id="tab-github">
       <div style="display: flex; flex-direction: column; gap: 16px;">
-        
+
         <!-- Top Status Banner -->
         <div class="card cyber-glow">
-          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
-            <div style="display: flex; align-items: center; gap: 14px;">
-              <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(244, 114, 182, 0.15); border: 1px solid rgba(244, 114, 182, 0.3); display: flex; align-items: center; justify-content: center; font-size: 22px;">
-                
-              </div>
-              <div>
-                <div style="font-weight: 700; font-size: 15px; color: #fff; display: flex; align-items: center; gap: 8px;">
-                  GitHub Repository Cloner & Free Domain Web Hosting
-                  <span class="domain-badge-active">TLS 1.3 Active</span>
-                </div>
-                <div style="font-size: 12px; color: #a1a1aa;">Clone any public/private GitHub repo directly into your container and host it instantly on free cloud domains.</div>
-              </div>
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(244, 114, 182, 0.15); border: 1px solid rgba(244, 114, 182, 0.3); display: flex; align-items: center; justify-content: center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
             </div>
-            
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <a href="#" id="github-primary-live-link" target="_blank" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
-                <span>Visit Live Site</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              </a>
+            <div>
+              <div style="font-weight: 700; font-size: 15px; color: #fff;">GitHub Repository Cloner</div>
+              <div style="font-size: 12px; color: #a1a1aa;">Clone any GitHub repo straight into your VPS workspace — your own files, auto-detected and ready to run with the 24/7 bot supervisor.</div>
             </div>
           </div>
         </div>
 
         <!-- 2-Column Grid: Clone Tool + Active Repository Info -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px;">
-          
+
           <!-- Column 1: Clone Form -->
           <div class="card">
             <div class="card-header" style="margin-bottom: 12px;">
@@ -2671,13 +2245,13 @@
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
                   Clone Repository
                 </div>
-                <div class="card-desc">Download project source code into your isolated VPS filesystem.</div>
+                <div class="card-desc">Download your project source code into your isolated VPS filesystem.</div>
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Repository URL or Username/Repo</label>
-              <input type="text" class="form-input" id="github-repo-url" placeholder="e.g. https://github.com/user/my-cool-site or user/repo">
+              <input type="text" class="form-input" id="github-repo-url" placeholder="e.g. https://github.com/user/my-discord-bot or user/repo">
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -2688,8 +2262,8 @@
               <div class="form-group">
                 <label class="form-label">Destination Folder</label>
                 <select class="form-input" id="github-target-folder">
-                  <option value="site">/site (Hosted Web Root)</option>
-                  <option value="root">/ (VPS Workspace Root)</option>
+                  <option value="root">/ (Workspace Root)</option>
+                  <option value="site">/site (Subfolder)</option>
                 </select>
               </div>
             </div>
@@ -2699,26 +2273,13 @@
                 <input type="checkbox" id="github-auto-install" checked>
                 <span>Auto-install dependencies (<code class="text-amber-400 font-mono text-xs">npm install</code> or <code class="text-amber-400 font-mono text-xs">pip install</code>)</span>
               </label>
-              <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #a1a1aa; cursor: pointer;">
-                <input type="checkbox" id="github-auto-host" checked>
-                <span>Auto-allocate free <code class="text-cyan-400 font-mono text-xs">*.cloudvps.site</code> domain with SSL</span>
-              </label>
+              <div style="font-size: 11px; color: #71717a;">Bot entry point (bot.py, index.js, ...) is auto-detected after cloning into the workspace root.</div>
             </div>
 
             <button class="btn btn-primary" id="btn-clone-repo" style="width: 100%;" onclick="submitGitHubClone()">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>Clone & Host Now</span>
+              <span>Clone Into VPS</span>
             </button>
-
-            <!-- Quick Starters -->
-            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
-              <div style="font-size: 11px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; font-weight: 600;">1-Click Open Source Starters</div>
-              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                <button class="btn btn-secondary btn-sm" onclick="setCloneStarter('https://github.com/cloudvps/starter-site.git')">Modern Web App</button>
-                <button class="btn btn-secondary btn-sm" onclick="setCloneStarter('https://github.com/discordjs/guide.git')"> Discord.js Bot</button>
-                <button class="btn btn-secondary btn-sm" onclick="setCloneStarter('https://github.com/Rapptz/discord.py.git')">Python Bot</button>
-              </div>
-            </div>
           </div>
 
           <!-- Column 2: Active Repository Status & Sync -->
@@ -2729,7 +2290,7 @@
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg>
                   Current Repository State
                 </div>
-                <div class="card-desc">Connected Git repository in /site directory.</div>
+                <div class="card-desc">Connected Git repository in your VPS workspace.</div>
               </div>
               <button class="btn btn-secondary btn-sm" onclick="pullGitHubUpdates()">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -2739,71 +2300,8 @@
 
             <div id="github-repo-info-container">
               <div style="padding: 20px; text-align: center; color: #71717a; font-size: 13px;">
-                Checking repository status in <code class="text-cyan-400">/site</code>...
+                Checking repository status in your workspace...
               </div>
-            </div>
-
-            <!-- Free Domain Configuration -->
-            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
-              <div style="font-weight: 600; font-size: 13px; color: #fff; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-                <span>Free Custom Subdomain</span>
-                <span class="nav-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">FREE SSL</span>
-              </div>
-              
-              <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-                <input type="text" class="form-input" id="custom-subdomain-input" placeholder="my-custom-name" style="flex: 1; min-width: 140px; font-family: var(--mono); font-size: 12px;">
-                <select class="form-input" id="custom-domain-suffix" style="max-width: 150px; font-family: var(--mono); font-size: 12px;">
-                  <option value=".cloudvps.site">.cloudvps.site</option>
-                  <option value=".preview.app">.preview.app</option>
-                  <option value=".onrender.cloud">.onrender.cloud</option>
-                  <option value=".botgateway.dev">.botgateway.dev</option>
-                </select>
-                <button class="btn btn-primary btn-sm" onclick="allocateCustomDomain()">+ Bind Domain</button>
-                <button class="btn btn-secondary btn-sm" onclick="runDomainDiagnostics()" title="Run real-time TLS 1.3 & DNS diagnosis">Verify SSL</button>
-              </div>
-
-              <div id="domain-diag-result" style="display: none; margin-bottom: 10px;"></div>
-
-              <div id="vps-domains-list" style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px;">
-                <!-- Filled dynamically -->
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 3: Embedded Live Website Browser Preview -->
-        <div class="card cyber-glow" style="padding: 0; overflow: hidden;">
-          <!-- Browser Mock Bar -->
-          <div style="background: rgba(18, 20, 26, 0.95); padding: 10px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
-              <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
-              <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
-              
-              <button class="btn-icon-sidebar" onclick="reloadPreviewFrame()" title="Reload Frame" style="margin-left: 8px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              </button>
-            </div>
-
-            <!-- URL Bar Mock -->
-            <div style="flex: 1; max-width: 540px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11.5px; color: #a1a1aa;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <span id="preview-url-display" style="color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">https://app.cloudvps.site</span>
-            </div>
-
-            <!-- Viewport Resizing Controls -->
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <button class="btn btn-secondary btn-sm active" id="btn-device-desktop" onclick="setPreviewDevice('desktop')">Desktop</button>
-              <button class="btn btn-secondary btn-sm" id="btn-device-tablet" onclick="setPreviewDevice('tablet')">Tablet</button>
-              <button class="btn btn-secondary btn-sm" id="btn-device-mobile" onclick="setPreviewDevice('mobile')">Mobile</button>
-              <button class="btn btn-secondary btn-sm" onclick="openPreviewNewTab()" title="Open in New Tab">↗</button>
-            </div>
-          </div>
-
-          <!-- Preview Frame Stage -->
-          <div style="background: #090a0f; display: flex; justify-content: center; padding: 12px 0; overflow-x: auto;">
-            <div id="preview-wrapper" style="width: 100%; transition: width 0.25s ease;">
-              <iframe id="main-site-preview-frame" class="live-browser-frame" src="about:blank"></iframe>
             </div>
           </div>
         </div>
@@ -2844,7 +2342,7 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               Step 2: Upload Files to Your Bot
             </div>
-            <div class="card-desc">Upload your bot files directly to your VPS. Supports Python (`bot.py`), Node.js (`index.js`), Lune/Lua, requirements, or a full `.zip` bundle!</div>
+            <div class="card-desc">Upload your own files directly to your VPS — Python (`bot.py`), Node.js (`index.js`), Lune/Lua, requirements, or a full `.zip` bundle that <strong style="color:#f472b6;">auto-extracts instantly on upload</strong>!</div>
           </div>
           <label class="btn btn-primary btn-sm" style="cursor: pointer;">
             <span>Select Files to Upload</span>
@@ -2868,9 +2366,6 @@
             <button class="btn btn-secondary btn-sm" style="border-color: rgba(190, 24, 93,0.35); color: #f9a8d4;" onclick="loadBotTemplate('discord_js')">
                Node.js Discord.js Bot
             </button>
-            <button class="btn btn-secondary btn-sm" style="border-color: rgba(189,46,149,0.35); color: #f472b6;" onclick="loadBotTemplate('media_logger')">
-               OnlyFans & Media Suite (ofscraper + yt-dlp)
-            </button>
             <button class="btn btn-secondary btn-sm" style="border-color: rgba(37,217,130,0.35); color: #34d399;" onclick="loadBotTemplate('vps_monitor')">
                VPS & SSH Monitor
             </button>
@@ -2884,7 +2379,7 @@
         <div class="upload-dropzone" id="bot-dropzone" onclick="document.getElementById('bot-file-input').click()">
           <div class="upload-icon"></div>
           <div class="upload-title">Drop your bot files here or click to browse</div>
-          <div class="upload-subtitle">Accepts bot.py, index.js, .env, requirements.txt, package.json, or complete .ZIP archives</div>
+          <div class="upload-subtitle">Accepts your own .py, .js, .env, requirements.txt, package.json, or complete .ZIP archives (auto-extracted on upload)</div>
           <span class="btn btn-primary btn-sm">Browse Files</span>
         </div>
 
@@ -3174,7 +2669,7 @@ client.login(process.env.DISCORD_USER_TOKEN || process.env.TOKEN);</pre>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <div style="display: flex; gap: 4px;">
-                <input type="text" id="custom-pkg-input" placeholder="pkg e.g. ofscraper, yt-dlp..." class="form-input" style="padding: 4px 10px; font-size: 11.5px; width: 180px; height: 30px;">
+                <input type="text" id="custom-pkg-input" placeholder="pkg e.g. discord.py, yt-dlp..." class="form-input" style="padding: 4px 10px; font-size: 11.5px; width: 180px; height: 30px;">
                 <button type="button" class="btn btn-secondary btn-sm" onclick="installCustomPackage()" style="height: 30px; font-size: 11px;">+ Install</button>
               </div>
               <button type="button" class="btn btn-secondary btn-sm" id="btn-install-all-pkgs" onclick="installAllBotPackages()" style="height: 30px; font-size: 11px; font-weight: 700; color: var(--primary-light); border-color: rgba(189, 46, 149, 0.4);">
@@ -3185,7 +2680,6 @@ client.login(process.env.DISCORD_USER_TOKEN || process.env.TOKEN);</pre>
           <div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px; font-family: var(--mono);">
             <span style="padding: 2px 8px; background: rgba(190, 24, 93, 0.12); border: 1px solid rgba(190, 24, 93, 0.25); border-radius: 4px; color: #f9a8d4;">discord.py</span>
             <span style="padding: 2px 8px; background: rgba(190, 24, 93, 0.12); border: 1px solid rgba(190, 24, 93, 0.25); border-radius: 4px; color: #f9a8d4;">python-dotenv</span>
-            <span style="padding: 2px 8px; background: rgba(189, 46, 149, 0.15); border: 1px solid rgba(189, 46, 149, 0.35); border-radius: 4px; color: #f472b6; font-weight: 700;">ofscraper (OnlyFans)</span>
             <span style="padding: 2px 8px; background: rgba(217, 210, 37, 0.12); border: 1px solid rgba(217, 210, 37, 0.3); border-radius: 4px; color: #facc15;">yt-dlp</span>
             <span style="padding: 2px 8px; background: rgba(37, 217, 130, 0.1); border: 1px solid rgba(37, 217, 130, 0.25); border-radius: 4px; color: #34d399;">cloudscraper</span>
             <span style="padding: 2px 8px; background: rgba(37, 217, 130, 0.1); border: 1px solid rgba(37, 217, 130, 0.25); border-radius: 4px; color: #34d399;">beautifulsoup4</span>
@@ -4576,10 +4070,10 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
   </div>
 </div>
 
-<!-- CREATE VPS MODAL (CUSTOM NAME, SUBDOMAIN, SPECS & OS) -->
+<!-- CREATE VPS MODAL (CUSTOM NAME, SPECS & OS) -->
 <div id="create-vps-modal" style="display: none; position: fixed; inset: 0; background: rgba(2, 4, 8, 0.9); backdrop-filter: blur(16px); z-index: 10000; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;">
   <div class="card cyber-glow" style="width: 100%; max-width: 520px; margin: auto; background: rgba(13, 16, 26, 0.94); border: 1px solid rgba(217, 70, 239, 0.45); box-shadow: 0 28px 60px rgba(0,0,0,0.9), 0 0 40px rgba(217, 70, 239, 0.22); max-height: 90vh; overflow-y: auto;">
-    
+
     <!-- Modal Header -->
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
       <div style="display: flex; align-items: center; gap: 12px;">
@@ -4591,7 +4085,7 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
             Deploy New Cloud VPS
             <span class="nav-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">100% FREE</span>
           </div>
-          <div style="font-size: 12px; color: var(--text-dim);">Pick your custom name, container specs & instant free domain with SSL</div>
+          <div style="font-size: 12px; color: var(--text-dim);">Pick your custom name, container specs & OS — workspace starts empty, ready for your files</div>
         </div>
       </div>
       <button type="button" onclick="closeCreateVpsModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; padding: 4px;" title="Close"></button>
@@ -4601,41 +4095,18 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
     <div id="create-vps-error" style="display: none; background: rgba(244, 63, 94, 0.15); border: 1px solid var(--danger); color: #fecdd3; border-radius: var(--radius-sm); padding: 9px 12px; font-size: 12px; margin-bottom: 14px; font-weight: 600;"></div>
 
     <form id="create-vps-form" onsubmit="handleCreateVpsSubmit(event)">
-      
-      <!-- 1. Custom VPS Name & Free Domain Preview -->
+
+      <!-- 1. Custom VPS Name -->
       <div class="form-group" style="margin-bottom: 14px;">
         <label class="form-label" style="display: flex; justify-content: space-between;">
           <span>VPS Container Name</span>
           <span style="color: var(--primary-light); font-weight: 600;">Make Your Own Name</span>
         </label>
-        <input type="text" id="modal-vps-name" class="form-input" style="font-family: var(--sans); font-weight: 700; font-size: 14px;" placeholder="e.g. My-Discord-Bot, Selfbot-Runner, Cloud-Runner" required autocomplete="off" oninput="updateVpsNamePreview(this.value)">
-        
-        <!-- Live Domain Preview Box -->
-        <div style="margin-top: 8px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px; font-family: var(--mono);">
-          <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
-            <span style="color: #34d399;"></span>
-            <span style="color: var(--text-dim);">Live Domain:</span>
-            <span id="modal-vps-domain-preview" style="color: #f472b6; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">https://my-discord-bot.cloudvps.site</span>
-          </div>
-          <span class="nav-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">TLS 1.3</span>
-        </div>
+        <input type="text" id="modal-vps-name" class="form-input" style="font-family: var(--sans); font-weight: 700; font-size: 14px;" placeholder="e.g. My-Discord-Bot, Selfbot-Runner, Cloud-Runner" required autocomplete="off">
+        <div style="margin-top: 6px; font-size: 11px; color: var(--text-dim);">Clean-slate workspace — no demo files. Create or upload your own, zip bundles auto-extract.</div>
       </div>
 
-      <!-- 2. Free Domain Suffix Selector -->
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label class="form-label">Free Domain Extension</label>
-        <select id="modal-vps-domain-suffix" class="form-input" style="font-family: var(--mono); font-size: 12.5px;" onchange="updateVpsNamePreview(document.getElementById('modal-vps-name').value)">
-          <option value=".cloudvps.site">.cloudvps.site (Official 24/7 Cloud Host - Free SSL)</option>
-          <option value=".is-a.dev">.is-a.dev (Official Developer Free Domain)</option>
-          <option value=".cybercloud.host">.cybercloud.host (High-Speed Cyber Host)</option>
-          <option value=".vpsbot.me">.vpsbot.me (Discord Bot Gateway)</option>
-          <option value=".preview.app">.preview.app (Live Web Staging)</option>
-          <option value=".onrender.cloud">.onrender.cloud (Edge CDN Cloud)</option>
-          <option value=".botgateway.dev">.botgateway.dev (Microservice Gateway)</option>
-        </select>
-      </div>
-
-      <!-- 3. Hardware Specs Tier -->
+      <!-- 2. Hardware Specs Tier -->
       <div class="form-group" style="margin-bottom: 14px;">
         <label class="form-label">Compute Hardware Tier</label>
         <div class="selection-grid">
@@ -4660,8 +4131,8 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
         </div>
       </div>
 
-      <!-- 4. Operating System & Runtime -->
-      <div class="form-group" style="margin-bottom: 14px;">
+      <!-- 3. Operating System & Runtime -->
+      <div class="form-group" style="margin-bottom: 18px;">
         <label class="form-label">Linux OS Environment</label>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
           <label class="tier-select-card selected" id="os-card-ubuntu" onclick="selectOsCard('ubuntu')">
@@ -4683,33 +4154,6 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
             <input type="radio" name="vps-os" value="lune" style="display: none;">
             <div style="font-weight: 700; font-size: 12px; color: #fff;"> Lune Luau Runtime</div>
             <div style="font-size: 10.5px; color: var(--text-dim);">Roblox & Luau scripts</div>
-          </label>
-        </div>
-      </div>
-
-      <!-- 5. Initial Workspace Starter Template -->
-      <div class="form-group" style="margin-bottom: 18px;">
-        <label class="form-label">Initial Workspace Starter</label>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <label class="tier-select-card selected" id="starter-card-blank" onclick="selectStarterCard('blank')">
-            <input type="radio" name="vps-starter" value="blank" checked style="display: none;">
-            <div style="font-weight: 700; font-size: 12px; color: #fff;">Blank Workspace (Recommended)</div>
-            <div style="font-size: 10.5px; color: #34d399;">Clean slate &bull; Create your own files</div>
-          </label>
-          <label class="tier-select-card" id="starter-card-discord_py" onclick="selectStarterCard('discord_py')">
-            <input type="radio" name="vps-starter" value="discord_py" style="display: none;">
-            <div style="font-weight: 700; font-size: 12px; color: #fff;">Python  Discord.py Bot</div>
-            <div style="font-size: 10.5px; color: var(--text-dim);">Slash commands & watchdog</div>
-          </label>
-          <label class="tier-select-card" id="starter-card-discord_js" onclick="selectStarterCard('discord_js')">
-            <input type="radio" name="vps-starter" value="discord_js" style="display: none;">
-            <div style="font-weight: 700; font-size: 12px; color: #fff;"> Discord.js v14</div>
-            <div style="font-size: 10.5px; color: var(--text-dim);">Node.js gateway client</div>
-          </label>
-          <label class="tier-select-card" id="starter-card-website" onclick="selectStarterCard('website')">
-            <input type="radio" name="vps-starter" value="website" style="display: none;">
-            <div style="font-weight: 700; font-size: 12px; color: #fff;">Web Hosting</div>
-            <div style="font-size: 10.5px; color: var(--text-dim);">HTML/CSS live website</div>
           </label>
         </div>
       </div>
@@ -5153,8 +4597,7 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
     const titles = {
       'vps': 'Cloud VPS Instances',
       'packages': 'Package Downloader',
-      'ai': 'Manus AI Autonomous Cloud Engineer',
-      'github': 'GitHub Repository & Free Domain Hosting',
+      'github': 'GitHub Clone — Repos Into Your VPS',
       'bot': 'Discord Bot (24/7 Always-On)',
       'ssh': 'Root SSH & Termux Remote',
       'terminal': 'Root Terminal Shell',
@@ -5167,7 +4610,6 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
 
     if (tabId === 'vps') { loadVpsList(); loadHardwareBar(); }
     if (tabId === 'packages') initPackageDownloaderTab();
-    if (tabId === 'ai') initManusAiTab();
     if (tabId === 'github') initGitHubTab();
     if (tabId === 'bot') updateBotTabUi();
     if (tabId === 'files') {
@@ -5225,7 +4667,7 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
         <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); background: var(--bg-subtle); border-radius: var(--radius-sm); border: 1px dashed var(--surface-border);">
           <div style="font-size: 36px; margin-bottom: 12px;"></div>
           <div style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px;">No VPS Containers Yet</div>
-          <div style="font-size: 13px; margin-bottom: 18px;">Deploy your 100% forever free high-performance container with custom name and free SSL domain.</div>
+          <div style="font-size: 13px; margin-bottom: 18px;">Deploy your 100% forever free high-performance container with a custom name and a clean workspace for your own files.</div>
           <button class="btn btn-primary btn-create-vps-glow" onclick="openCreateVpsModal()">+ Create VPS (Make Your Own Name)</button>
         </div>
       `;
@@ -5237,7 +4679,6 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
       const ramText = v.plan === 'turbo' ? '16 GB DDR4 RAM' : (v.plan === 'performance' ? '4 GB DDR4 RAM' : '2048 MB RAM');
       const coreText = v.plan === 'turbo' ? '8 vCPU Cores' : (v.plan === 'performance' ? '4 vCPU Cores' : '2 vCPU Cores');
       const osText = v.os === 'debian' ? 'Debian 12' : (v.os === 'alpine' ? 'Alpine Linux' : (v.os === 'lune' ? 'Lune Luau' : 'Ubuntu 24.04 LTS'));
-      const domainName = (v.subdomain || v.name || v.id).toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '') + '.cloudvps.site';
 
       return `
         <div style="background: ${isSelected ? 'rgba(217, 70, 239, 0.12)' : 'var(--bg-subtle)'}; border: 1px solid ${isSelected ? 'var(--primary)' : 'var(--surface-border)'}; border-radius: var(--radius-sm); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; transition: all 0.15s ease; position: relative;">
@@ -5250,15 +4691,10 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
                 <span>${escapeHtml(v.name)}</span>
                 <button class="btn-icon-subtle" onclick="openRenameVpsModal('${v.id}')" title="Rename VPS container" style="font-size: 12px; opacity: 0.85;"></button>
                 <span class="badge-cyber" style="color: var(--primary-light); font-size: 10px;">${escapeHtml(v.plan || 'Standard').toUpperCase()}</span>
-                ${isSelected ? '<span class="domain-badge-active" style="padding: 2px 8px; font-size: 10px;"><span class="pulse-dot"></span> ACTIVE</span>' : ''}
+                ${isSelected ? '<span class="badge-cyber" style="padding: 2px 8px; font-size: 10px; color: var(--success); border-color: rgba(37,217,130,0.35);"><span class="pulse-dot"></span> ACTIVE</span>' : ''}
               </div>
               <div style="font-size: 11.5px; color: var(--text-muted); font-family: var(--mono); margin-top: 3px;">
                 ${coreText} &bull; ${ramText} &bull; ${osText} &bull; ID: ${v.id}
-              </div>
-              <div style="font-size: 11px; color: #f472b6; font-family: var(--mono); margin-top: 3px; display: flex; align-items: center; gap: 6px;">
-                <span> https://${escapeHtml(domainName)}</span>
-                <a href="/sites/${v.id}" target="_blank" style="color: var(--primary-light); text-decoration: underline; font-size: 10.5px; font-weight: 600;">[Open Site ↗]</a>
-                <button onclick="runDomainDiagnostics('${escapeHtml(domainName)}')" class="btn-icon-subtle" style="font-size: 10px; padding: 1px 4px; color: #34d399;" title="Run live SSL and latency test"> Ping</button>
               </div>
             </div>
           </div>
@@ -5282,7 +4718,7 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
                 </button>
                 <button class="vps-dropdown-item" onclick="switchTab('github'); setActiveVps('${v.id}');">
                   <span></span>
-                  <span>Free Domains & SSL</span>
+                  <span>Clone from GitHub</span>
                 </button>
                 <button class="vps-dropdown-item" onclick="openSshModal('${v.id}')">
                   <span></span>
@@ -5419,11 +4855,10 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
   }
 
   // =========================================================================
-  // VPS CREATION MODAL & LIFECYCLE (MAKE YOUR OWN NAME, SUBDOMAIN & SPECS)
+  // VPS CREATION MODAL & LIFECYCLE (MAKE YOUR OWN NAME, SPECS & OS)
   // =========================================================================
   let selectedTier = 'performance';
   let selectedOs = 'ubuntu';
-  let selectedStarter = 'blank';
   let targetRenameVpsId = null;
 
   function deployNewVps() {
@@ -5446,7 +4881,6 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
     if (input) {
       const defaultName = `bot-node-${Math.random().toString(36).substring(2, 6)}`;
       input.value = defaultName;
-      updateVpsNamePreview(defaultName);
       setTimeout(() => { input.focus(); input.select(); }, 50);
     }
   }
@@ -5454,15 +4888,6 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
   function closeCreateVpsModal() {
     const modal = document.getElementById('create-vps-modal');
     if (modal) modal.style.display = 'none';
-  }
-
-  function updateVpsNamePreview(val) {
-    const preview = document.getElementById('modal-vps-domain-preview');
-    const suffixSelect = document.getElementById('modal-vps-domain-suffix');
-    if (!preview) return;
-    const sanitized = (val || 'my-app').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '') || 'my-app';
-    const suffix = suffixSelect ? suffixSelect.value : '.cloudvps.site';
-    preview.textContent = `https://${sanitized}${suffix}`;
   }
 
   function selectTierCard(tier) {
@@ -5481,18 +4906,9 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
     });
   }
 
-  function selectStarterCard(starter) {
-    selectedStarter = starter;
-    ['discord_py', 'discord_js', 'website', 'blank'].forEach(s => {
-      const card = document.getElementById(`starter-card-${s}`);
-      if (card) card.classList.toggle('selected', s === starter);
-    });
-  }
-
   async function handleCreateVpsSubmit(e) {
     if (e) e.preventDefault();
     const input = document.getElementById('modal-vps-name');
-    const suffixSelect = document.getElementById('modal-vps-domain-suffix');
     const err = document.getElementById('create-vps-error');
     const submitBtn = document.getElementById('btn-submit-create-vps');
 
@@ -5505,9 +4921,6 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
       return;
     }
 
-    const subdomain = name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
-    const suffix = suffixSelect?.value || '.cloudvps.site';
-
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.textContent = ' Provisioning Container...';
@@ -5519,9 +4932,7 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
         body: JSON.stringify({
           name: name,
           plan: selectedTier,
-          os: selectedOs,
-          starter: selectedStarter,
-          subdomain: subdomain
+          os: selectedOs
         })
       });
 
@@ -5529,28 +4940,11 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
         const createdVps = res.data.vps;
         STATE.activeVpsId = createdVps.id;
         closeCreateVpsModal();
-        showToast(` VPS container "${name}" created with free SSL domain!`);
+        showToast(` VPS container "${name}" created with a clean workspace — ready for your files!`);
         await loadVpsList();
         updateBotVpsStatusCard();
         updateAuthUI();
-
-        // Also bind the domain with the chosen suffix
-        try {
-          await api(`/api/vps/${createdVps.id}/domains/allocate`, {
-            method: 'POST',
-            body: JSON.stringify({
-              subdomain: subdomain,
-              suffix: suffix,
-              target_path: 'site'
-            })
-          });
-        } catch (domainErr) {}
-
-        if (selectedStarter === 'website') {
-          switchTab('github');
-        } else {
-          switchTab('vps');
-        }
+        switchTab('vps');
       } else {
         if (err) {
           err.textContent = res.data?.error || res.error || 'Failed to create VPS container';
@@ -5616,54 +5010,6 @@ Select a script and click 'Run Lune Engine' to execute Luau bytecode analysis or
       }
     } catch (err) {
       showToast(err.message || 'Network error');
-    }
-  }
-
-  // =========================================================================
-  // LIVE REAL-TIME DOMAIN DIAGNOSTICS & VERIFICATION
-  // =========================================================================
-  async function runDomainDiagnostics(domainToCheck) {
-    const vpsId = getActiveVpsId();
-    if (!vpsId) { showToast('Please create or select a VPS container first.'); return; }
-    const domain = domainToCheck || (document.getElementById('custom-subdomain-input')?.value || '') + (document.getElementById('custom-domain-suffix')?.value || '.cloudvps.site');
-    showToast(`Checking SSL certificate & DNS for ${domain}...`);
-
-    try {
-      const res = await api(`/api/vps/${vpsId}/domains/verify?domain=${encodeURIComponent(domain)}`);
-      if (res.ok && res.data.diagnostics) {
-        const diag = res.data.diagnostics;
-        const latency = diag.latency_ms ?? diag.ping_latency_ms ?? 12;
-        const sslText = diag.ssl?.protocol ? `${diag.ssl.protocol} (${diag.ssl.issuer})` : (diag.ssl_cert || 'TLS 1.3 Active');
-        const edgeIp = diag.resolved_ip || diag.edge_node_ip || '172.20.0.1';
-        const ddosText = diag.ddos_mitigation || diag.ddos_protection || 'VirtIO Cloud Armor Layer-7 Active';
-
-        showToast(` ${domain}: HTTP ${diag.http_status} OK, TLS 1.3 Active, Ping: ${latency}ms!`);
-        
-        const diagBox = document.getElementById('domain-diag-result');
-        if (diagBox) {
-          diagBox.style.display = 'block';
-          diagBox.innerHTML = `
-            <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 10px; padding: 12px 16px; margin-top: 12px; font-family: var(--mono); font-size: 12px;">
-              <div style="font-weight: 800; color: #34d399; font-size: 13px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
-                <span> ${escapeHtml(diag.domain)} Verified & Active</span>
-                <span class="nav-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">HTTP ${diag.http_status}</span>
-              </div>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; color: #cbd5e1; font-size: 11px;">
-                <div> <strong>SSL:</strong> ${escapeHtml(sslText)}</div>
-                <div> <strong>Latency:</strong> ${latency}ms</div>
-                <div>️ <strong>Protection:</strong> ${escapeHtml(ddosText)}</div>
-                <div> <strong>Edge IP:</strong> ${escapeHtml(edgeIp)}</div>
-              </div>
-              <div style="margin-top: 10px; display: flex; gap: 8px;">
-                <a href="/d/${escapeHtml(diag.domain)}" target="_blank" class="btn btn-secondary btn-sm" style="font-family: var(--sans); font-size: 11px;">Direct Domain Route ↗</a>
-                <a href="/sites/${vpsId}" target="_blank" class="btn btn-primary btn-sm btn-create-vps-glow" style="font-family: var(--sans); font-size: 11px;">Live Site Preview ↗</a>
-              </div>
-            </div>
-          `;
-        }
-      }
-    } catch (e) {
-      showToast('Diagnostic verification completed.');
     }
   }
 
@@ -6872,7 +6218,7 @@ if (!userToken) {
       btn.disabled = true;
       btn.textContent = ' Installing Packages...';
     }
-    showToast('Installing all Python & Node packages (ofscraper, yt-dlp, dotenv, discord.py, discord.py-self, etc.)...');
+    showToast('Installing all Python & Node packages (discord.py, discord.py-self, yt-dlp, dotenv, etc.)...');
     const res = await api(`/api/vps/${STATE.activeVpsId}/bot/packages/install`, {
       method: 'POST',
       body: {}
@@ -7557,38 +6903,6 @@ if (!token) {
 } else {
   client.login(token);
 }
-`
-    },
-    media_logger: {
-      filename: 'bot.py',
-      runtime: 'python',
-      content: `import os
-import asyncio
-import dotenv
-import yt_dlp
-import requests
-import aiohttp
-import ofscraper
-
-dotenv.load_dotenv()
-print("==================================================")
-print(" Cloud VPS Multi-Language Scraper & Media Suite")
-print(" Pre-loaded: ofscraper, yt-dlp, dotenv, aiohttp, requests")
-print("==================================================")
-
-TOKEN = os.getenv("DISCORD_BOT_TOKEN") or os.getenv("TOKEN")
-print(f"[*] Environment Token Status: {'CONFIGURED ' if TOKEN else 'NOT SET'}")
-
-async def worker():
-    print("[*] Media scraper & downloader worker running 24/7...")
-    print(f"[*] yt-dlp version: {yt_dlp.version.__version__}")
-    print("[*] ofscraper engine ready for authenticated requests.")
-    while True:
-        await asyncio.sleep(45)
-        print("[Heartbeat] Media worker healthy & active in 24/7 supervisor.")
-
-if __name__ == "__main__":
-    asyncio.run(worker())
 `
     },
     vps_monitor: {
@@ -8629,298 +7943,13 @@ if __name__ == "__main__":
   }
 
   // ==========================================
-  // MANUS AI AUTONOMOUS AGENT CONTROLLER
-  // ==========================================
-
-  const MANUS_STATE = {
-    dualView: false,
-    activeCanvasTab: 'site',
-    messages: []
-  };
-
-  function initManusAiTab() {
-    if (!STATE.activeVpsId && STATE.vpsList && STATE.vpsList.length > 0) {
-      STATE.activeVpsId = STATE.vpsList[0].id;
-    }
-  }
-
-  function toggleManusDualView() {
-    MANUS_STATE.dualView = !MANUS_STATE.dualView;
-    const container = document.getElementById('manus-main-container');
-    const label = document.getElementById('manus-dual-label');
-    const btn = document.getElementById('btn-manus-dual');
-
-    if (MANUS_STATE.dualView) {
-      container.classList.add('dual-mode');
-      if (btn) btn.classList.add('active');
-      if (label) label.textContent = 'Single Chat';
-      loadManusCanvasContent();
-    } else {
-      container.classList.remove('dual-mode');
-      if (btn) btn.classList.remove('active');
-      if (label) label.textContent = 'Dual Canvas';
-    }
-  }
-
-  function setManusCanvasTab(tab) {
-    MANUS_STATE.activeCanvasTab = tab;
-    ['site', 'term', 'bot'].forEach(t => {
-      const b = document.getElementById(`canvas-tab-${t}`);
-      if (b) b.classList.toggle('active', t === tab);
-    });
-
-    const iframe = document.getElementById('manus-canvas-iframe');
-    const termArea = document.getElementById('manus-canvas-term');
-
-    if (tab === 'site') {
-      iframe.style.display = 'block';
-      termArea.style.display = 'none';
-      const vpsId = getActiveVpsId();
-    if (!vpsId) { showToast('Please create or select a VPS container first.'); return; }
-      iframe.src = `/sites/${vpsId}`;
-    } else if (tab === 'term') {
-      iframe.style.display = 'none';
-      termArea.style.display = 'block';
-      const pcTermVps = getActiveVpsId();
-      termArea.innerHTML = `<div style="color: #34d399;">root@cloudvps:~# Terminal stream active for ${pcTermVps || 'your VPS container'}</div>
-<div style="color: #f9a8d4; margin-top: 4px;">Type commands in Root Terminal tab or ask Manus AI to execute bash commands autonomously.</div>`;
-    } else if (tab === 'bot') {
-      iframe.style.display = 'none';
-      termArea.style.display = 'block';
-      termArea.innerHTML = `<div style="color: #d946ef;">[Bot Watchdog Daemon] Attached to container supervisor.</div>
-<div style="color: #e4e4e7; margin-top: 4px;">Status: ACTIVE <span class="status-dot-green"></span> (Auto-restart on disconnection enabled)</div>`;
-    }
-  }
-
-  function loadManusCanvasContent() {
-    setManusCanvasTab(MANUS_STATE.activeCanvasTab || 'site');
-  }
-
-  function quickRunManus(promptText) {
-    const input = document.getElementById('manus-input-text');
-    if (input) input.value = promptText;
-    submitManusPrompt();
-  }
-
-  function quickAppendManus(text) {
-    const input = document.getElementById('manus-input-text');
-    if (input) {
-      input.value = text;
-      input.focus();
-    }
-  }
-
-  function handleManusKeydown(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      submitManusPrompt();
-    }
-  }
-
-  function clearManusChat() {
-    const stream = document.getElementById('manus-messages-stream');
-    if (!stream) return;
-    stream.innerHTML = `
-      <div id="manus-welcome-banner" style="text-align: center; max-width: 620px; margin: 20px auto; padding: 20px;">
-        <div style="width: 52px; height: 52px; margin: 0 auto 16px; border-radius: 16px; background: linear-gradient(135deg, #d946ef 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(217, 70, 239, 0.4);">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        </div>
-        <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px;">How can Manus AI assist your Cloud VPS today?</h2>
-        <p style="font-size: 13px; color: #a1a1aa; line-height: 1.6; margin-bottom: 24px;">
-          Autonomous engineer capable of cloning GitHub repos, provisioning free domains with TLS 1.3 SSL, hosting websites, and managing 24/7 Discord bots.
-        </p>
-
-        <div class="manus-starter-grid">
-          <div class="manus-starter-card" onclick="quickRunManus('Clone https://github.com/cloudvps/starter-site.git and deploy it to a free SSL domain')">
-            <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #f9a8d4; font-size: 13px;">
-              <span>Clone & Host Website</span>
-            </div>
-            <div style="font-size: 11.5px; color: #71717a;">Clone any GitHub repo and bind to a free *.cloudvps.site domain.</div>
-          </div>
-
-          <div class="manus-starter-card" onclick="quickRunManus('Deploy a 24/7 Discord bot with auto-restart watchdog supervisor')">
-            <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #34d399; font-size: 13px;">
-              <span>Setup 24/7 Discord Bot</span>
-            </div>
-            <div style="font-size: 11.5px; color: #71717a;">Configure watchdog supervisor with automatic reboot on crash.</div>
-          </div>
-
-          <div class="manus-starter-card" onclick="quickRunManus('Generate a modern responsive web portfolio in /site and publish it live')">
-            <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #f0abfc; font-size: 13px;">
-              <span>Build Modern Web App</span>
-            </div>
-            <div style="font-size: 11.5px; color: #71717a;">Generate Tailwind HTML/JS landing page with live preview.</div>
-          </div>
-
-          <div class="manus-starter-card" onclick="quickRunManus('Inspect system hardware, check RAM usage, and benchmark my VPS container')">
-            <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #f59e0b; font-size: 13px;">
-              <span>VPS Hardware Telemetry</span>
-            </div>
-            <div style="font-size: 11.5px; color: #71717a;">Inspect AMD EPYC cores, memory buffers, and VirtIO speed.</div>
-          </div>
-        </div>
-      </div>
-    `;
-    MANUS_STATE.messages = [];
-  }
-
-  async function submitManusPrompt() {
-    const input = document.getElementById('manus-input-text');
-    const sendBtn = document.getElementById('btn-manus-send');
-    const promptText = (input?.value || '').trim();
-    if (!promptText) return;
-
-    // Clear welcome banner if visible
-    const welcome = document.getElementById('manus-welcome-banner');
-    if (welcome) welcome.style.display = 'none';
-
-    const stream = document.getElementById('manus-messages-stream');
-
-    // Append User message
-    const userDiv = document.createElement('div');
-    userDiv.className = 'manus-msg-user';
-    userDiv.textContent = promptText;
-    stream.appendChild(userDiv);
-
-    // Clear input & disable button
-    input.value = '';
-    input.style.height = 'auto';
-    sendBtn.disabled = true;
-
-    // Append AI placeholder
-    const aiDiv = document.createElement('div');
-    aiDiv.className = 'manus-msg-ai';
-    const placeholderId = `ai_pending_${Date.now()}`;
-    aiDiv.id = placeholderId;
-    aiDiv.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 10px; color: #f0abfc; font-size: 13px; font-weight: 600;">
-        <span class="manus-gem-icon" style="width: 22px; height: 22px; font-size: 10px;"></span>
-        <span>Manus is analyzing request & synthesizing cloud execution steps...</span>
-      </div>
-      <div style="font-family: var(--mono); font-size: 11px; color: #71717a; padding-left: 32px;">
-        Executing VirtIO container inspection & agent reasoning pipeline
-      </div>
-    `;
-    stream.appendChild(aiDiv);
-    stream.scrollTop = stream.scrollHeight;
-
-    const vpsId = getActiveVpsId();
-    if (!vpsId) { showToast('Please create or select a VPS container first.'); return; }
-
-    try {
-      const res = await api('/api/ai/agent', {
-        method: 'POST',
-        body: JSON.stringify({
-          prompt: promptText,
-          vps_id: vpsId
-        })
-      });
-
-      sendBtn.disabled = false;
-
-      if (!res.ok) {
-        aiDiv.innerHTML = `
-          <div style="color: var(--danger); font-weight: 600;">Agent Error: ${escapeHtml(res.error || 'Request failed')}</div>
-        `;
-        return;
-      }
-
-      const data = res.data;
-
-      // Format thinking steps
-      const thinkingHtml = data.thinking ? `
-        <div class="manus-thinking-box">
-          <div class="manus-thinking-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span> Thinking Process</span>
-              <span style="font-family: var(--mono); font-size: 10.5px; color: #f9a8d4;">(${data.duration_seconds || '1.2'}s)</span>
-            </div>
-            <span style="font-size: 10px; color: #71717a;">[toggle]</span>
-          </div>
-          <div class="manus-thinking-steps">
-            ${data.thinking.split('\n').filter(Boolean).map((step, idx) => `<div><span style="color: #d946ef;">${idx + 1}.</span> ${escapeHtml(step)}</div>`).join('')}
-          </div>
-        </div>
-      ` : '';
-
-      // Format actions
-      let actionsHtml = '';
-      if (Array.isArray(data.actions) && data.actions.length > 0) {
-        actionsHtml = data.actions.map(act => `
-          <div class="manus-action-card">
-            <div class="manus-action-header">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="color: #34d399;"></span>
-                <span style="color: #fff;">${escapeHtml(act.title || act.type)}</span>
-              </div>
-              <span class="nav-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">EXECUTED</span>
-            </div>
-            ${act.output ? `<div class="manus-action-out">${escapeHtml(act.output)}</div>` : ''}
-          </div>
-        `).join('');
-      }
-
-      // Convert simple markdown to HTML
-      let replyHtml = (data.reply || '')
-        .replace(/### (.*?)\n/g, '<div style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px;">$1</div>')
-        .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #fff;">$1</strong>')
-        .replace(/`([^`]+)`/g, '<code class="text-cyan-400 bg-zinc-800 px-1.5 py-0.5 rounded font-mono text-xs">$1</code>')
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: #f472b6; text-decoration: underline;">$1</a>')
-        .replace(/\n/g, '<br>');
-
-      // Action buttons
-      const actionButtonsHtml = `
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
-          <a href="/sites/${vpsId}" target="_blank" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
-            <span>Open Live Site ↗</span>
-          </a>
-          <button class="btn btn-secondary btn-sm" onclick="switchTab('github')">
-            GitHub & Domains
-          </button>
-          <button class="btn btn-secondary btn-sm" onclick="switchTab('bot')">
-            Discord Bot
-          </button>
-          <button class="btn btn-secondary btn-sm" onclick="switchTab('terminal')">
-            Root Terminal
-          </button>
-        </div>
-      `;
-
-      aiDiv.innerHTML = `
-        ${thinkingHtml}
-        ${actionsHtml}
-        <div style="line-height: 1.6; color: #e4e4e7; font-size: 13.5px;">${replyHtml}</div>
-        ${actionButtonsHtml}
-      `;
-
-      // Update right canvas if open or if website was generated
-      if (data.artifact && data.artifact.type === 'website_preview') {
-        const iframe = document.getElementById('manus-canvas-iframe');
-        if (iframe) iframe.src = `/sites/${vpsId}?t=${Date.now()}`;
-      }
-
-      stream.scrollTop = stream.scrollHeight;
-    } catch (err) {
-      sendBtn.disabled = false;
-      aiDiv.innerHTML = `<div style="color: var(--danger);">Connection error: ${escapeHtml(err.message)}</div>`;
-    }
-  }
-
-  // ==========================================
-  // GITHUB & FREE WEB HOSTING CONTROLLER
+  // GITHUB CLONE CONTROLLER (your own files, straight into the VPS workspace)
   // ==========================================
 
   function initGitHubTab() {
     const vpsId = getActiveVpsId();
     if (!vpsId) { showToast('Please create or select a VPS container first.'); return; }
     loadGitHubInfo();
-    loadDomainsList();
-    reloadPreviewFrame();
-  }
-
-  function setCloneStarter(url) {
-    const input = document.getElementById('github-repo-url');
-    if (input) input.value = url;
   }
 
   async function submitGitHubClone() {
@@ -8928,7 +7957,6 @@ if __name__ == "__main__":
     const branchInput = document.getElementById('github-repo-branch');
     const targetFolderSelect = document.getElementById('github-target-folder');
     const autoInstallCheck = document.getElementById('github-auto-install');
-    const autoHostCheck = document.getElementById('github-auto-host');
     const cloneBtn = document.getElementById('btn-clone-repo');
 
     const repoUrl = (urlInput?.value || '').trim();
@@ -8942,8 +7970,16 @@ if __name__ == "__main__":
     cloneBtn.disabled = true;
     cloneBtn.innerHTML = `
       <span class="spinner" style="width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>
-      <span>Cloning Repository & Setting Up...</span>
+      <span>Cloning Repository...</span>
     `;
+
+    const restoreBtn = () => {
+      cloneBtn.disabled = false;
+      cloneBtn.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Clone Into VPS</span>
+      `;
+    };
 
     try {
       const res = await api(`/api/vps/${vpsId}/github/clone`, {
@@ -8951,30 +7987,31 @@ if __name__ == "__main__":
         body: JSON.stringify({
           repo_url: repoUrl,
           branch: branchInput?.value?.trim() || '',
-          target_folder: targetFolderSelect?.value || 'site',
-          auto_install: autoInstallCheck?.checked ?? true,
-          auto_host: autoHostCheck?.checked ?? true
+          target_folder: targetFolderSelect?.value || 'root',
+          auto_install: autoInstallCheck?.checked ?? true
         })
       });
 
-      cloneBtn.disabled = false;
-      cloneBtn.innerHTML = `
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Clone & Host Now</span>
-      `;
+      restoreBtn();
 
       if (!res.ok) {
-        showToast(`Git clone failed: ${res.error || 'Error'}`, true);
+        showToast(`Git clone failed: ${res.error || res.data?.error || 'Error'}`, true);
         return;
       }
 
-      showToast(`Successfully cloned ${res.data.repo_name}! Domain online.`);
+      showToast(res.data.message || `Successfully cloned ${res.data.repo_name}!`);
+      if (res.data.detected_entry) {
+        const scriptInput = document.getElementById('bot-script-file');
+        if (scriptInput) scriptInput.value = res.data.detected_entry;
+      }
+      if (res.data.detected_runtime) {
+        const rtSelect = document.getElementById('bot-runtime-select');
+        if (rtSelect) rtSelect.value = res.data.detected_runtime;
+      }
       loadGitHubInfo();
-      loadDomainsList();
-      reloadPreviewFrame();
+      fetchBotFiles();
     } catch (err) {
-      cloneBtn.disabled = false;
-      cloneBtn.innerHTML = `<span>Clone & Host Now</span>`;
+      restoreBtn();
       showToast(`Error: ${err.message}`, true);
     }
   }
@@ -8986,12 +8023,12 @@ if __name__ == "__main__":
     try {
       const res = await api(`/api/vps/${vpsId}/github/pull`, {
         method: 'POST',
-        body: JSON.stringify({ folder: 'site' })
+        body: JSON.stringify({ folder: 'root' })
       });
       if (res.ok) {
         showToast(res.data.output || 'Already up to date!');
         loadGitHubInfo();
-        reloadPreviewFrame();
+        fetchBotFiles();
       } else {
         showToast(`Git pull error: ${res.error || 'Failed'}`, true);
       }
@@ -9007,7 +8044,7 @@ if __name__ == "__main__":
     if (!container) return;
 
     try {
-      const res = await api(`/api/vps/${vpsId}/github/info?folder=site`);
+      const res = await api(`/api/vps/${vpsId}/github/info?folder=root`);
       if (res.ok && res.data.has_repo) {
         const d = res.data;
         container.innerHTML = `
@@ -9034,126 +8071,14 @@ if __name__ == "__main__":
         container.innerHTML = `
           <div style="background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 24px; text-align: center;">
             <div style="font-size: 24px; margin-bottom: 8px;"></div>
-            <div style="font-weight: 600; font-size: 13px; color: #fff; margin-bottom: 4px;">No Git Repository Cloned in /site</div>
-            <div style="font-size: 12px; color: #71717a; margin-bottom: 12px;">Clone any public repo above or let Manus AI scaffold your web app.</div>
+            <div style="font-weight: 600; font-size: 13px; color: #fff; margin-bottom: 4px;">No Git Repository Cloned Yet</div>
+            <div style="font-size: 12px; color: #71717a;">Clone any repo above to pull your own bot files into this VPS workspace.</div>
           </div>
         `;
       }
     } catch (e) {
       container.innerHTML = `<div style="color: #71717a; font-size: 12px;">Ready for repository clone.</div>`;
     }
-  }
-
-  async function loadDomainsList() {
-    const vpsId = getActiveVpsId();
-    if (!vpsId) { showToast('Please create or select a VPS container first.'); return; }
-    const container = document.getElementById('vps-domains-list');
-    const liveLink = document.getElementById('github-primary-live-link');
-    const urlDisplay = document.getElementById('preview-url-display');
-
-    try {
-      const res = await api(`/api/vps/${vpsId}/domains`);
-      if (res.ok && res.data.domains) {
-        const doms = res.data.domains;
-        const primary = res.data.primary_domain || `${vpsId}.cloudvps.site`;
-
-        if (liveLink) liveLink.href = `/sites/${vpsId}`;
-        if (urlDisplay) urlDisplay.textContent = `https://${primary}`;
-
-        if (container) {
-          container.innerHTML = doms.map(d => `
-            <div style="background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; transition: all 0.2s ease;">
-              <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
-                <span style="color: #34d399;"></span>
-                <a href="/sites/${vpsId}" target="_blank" style="color: #fff; font-family: var(--mono); font-weight: 700; text-decoration: underline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">https://${escapeHtml(d.full_domain)}</a>
-              </div>
-              <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                <button class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px; font-family: var(--mono); color: #34d399;" onclick="runDomainDiagnostics('${escapeHtml(d.full_domain)}')"> Test SSL</button>
-                <a href="/d/${escapeHtml(d.full_domain)}" target="_blank" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;">Open ↗</a>
-                <span class="nav-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">TLS 1.3</span>
-                <button class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 11px; color: var(--danger);" onclick="deleteCustomDomain('${escapeHtml(d.subdomain)}')"></button>
-              </div>
-            </div>
-          `).join('');
-        }
-      }
-    } catch (e) {}
-  }
-
-  async function allocateCustomDomain() {
-    const subInput = document.getElementById('custom-subdomain-input');
-    const sufSelect = document.getElementById('custom-domain-suffix');
-    const sub = (subInput?.value || '').trim();
-    if (!sub) {
-      showToast('Please enter a subdomain prefix (e.g. my-app)');
-      return;
-    }
-
-    const vpsId = getActiveVpsId();
-    if (!vpsId) { showToast('Please create or select a VPS container first.'); return; }
-    try {
-      const res = await api(`/api/vps/${vpsId}/domains/allocate`, {
-        method: 'POST',
-        body: JSON.stringify({
-          subdomain: sub,
-          suffix: sufSelect?.value || '.cloudvps.site',
-          target_path: 'site'
-        })
-      });
-
-      if (res.ok) {
-        showToast(res.data.message || 'Free domain allocated with SSL!');
-        if (subInput) subInput.value = '';
-        loadDomainsList();
-      } else {
-        showToast(res.error || 'Failed to allocate domain', true);
-      }
-    } catch (e) {
-      showToast(e.message, true);
-    }
-  }
-
-  async function deleteCustomDomain(sub) {
-    const vpsId = getActiveVpsId();
-    if (!vpsId) { showToast('Please create or select a VPS container first.'); return; }
-    try {
-      await api(`/api/vps/${vpsId}/domains/${sub}`, { method: 'DELETE' });
-      showToast('Domain removed');
-      loadDomainsList();
-    } catch (e) {}
-  }
-
-  function reloadPreviewFrame() {
-    const frame = document.getElementById('main-site-preview-frame');
-    const vpsId = getActiveVpsId();
-    if (!vpsId) { showToast('Please create or select a VPS container first.'); return; }
-    if (frame) {
-      frame.src = `/sites/${vpsId}?t=${Date.now()}`;
-    }
-  }
-
-  function setPreviewDevice(device) {
-    ['desktop', 'tablet', 'mobile'].forEach(d => {
-      const btn = document.getElementById(`btn-device-${d}`);
-      if (btn) btn.classList.toggle('active', d === device);
-    });
-
-    const wrapper = document.getElementById('preview-wrapper');
-    if (!wrapper) return;
-
-    if (device === 'desktop') {
-      wrapper.style.width = '100%';
-    } else if (device === 'tablet') {
-      wrapper.style.width = '768px';
-    } else if (device === 'mobile') {
-      wrapper.style.width = '375px';
-    }
-  }
-
-  function openPreviewNewTab() {
-    const vpsId = getActiveVpsId();
-    if (!vpsId) { showToast('Please create or select a VPS container first.'); return; }
-    window.open(`/sites/${vpsId}`, '_blank');
   }
 
   // ==================== PACKAGE DOWNLOADER (WISPBYTE ENGINE) ====================

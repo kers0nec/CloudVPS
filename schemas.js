@@ -14,7 +14,6 @@ export const createVpsSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   plan: z.enum(['starter', 'standard', 'performance', 'ultra']).default('performance'),
   os: z.string().default('ubuntu'),
-  starter: z.string().default('blank'),
   subdomain: z.string().max(63).optional(),
 });
 
@@ -66,25 +65,9 @@ export const terminalExecSchema = z.object({
 
 export const githubCloneSchema = z.object({
   repo_url: z.string().min(1, 'GitHub repository URL or name (e.g. user/repo) is required'),
-  target_folder: z.string().default('site'),
+  target_folder: z.string().default('root'),
   branch: z.string().optional(),
   auto_install: z.boolean().default(true),
-  auto_host: z.boolean().default(true),
-});
-
-export const domainAllocateSchema = z.object({
-  subdomain: z.string().min(2, 'Subdomain must be at least 2 characters').max(63),
-  suffix: z.string().default('.cloudvps.site'),
-  target_path: z.string().default('site'),
-});
-
-export const aiAgentSchema = z.object({
-  prompt: z.string().min(1, 'Prompt is required'),
-  vps_id: z.string().optional(),
-  history: z.array(z.object({
-    role: z.enum(['user', 'assistant']),
-    content: z.string(),
-  })).default([]),
 });
 
 export const bundleInstallSchema = z.object({

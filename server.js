@@ -84,6 +84,14 @@ const PLANS = {
  ultra: { cpu: '8.0 Cores', memory: '8GB RAM', storage: '160GB NVMe', price: 'FREE', tier: 'Free Ultra Dedicated' },
 };
 
+// Discord + common package stack that is installed AUTOMATICALLY into every
+// new VPS workspace (and re-healed on boot until it succeeds). Python side
+// covers discord.py bots, Node side covers discord.js bots, plus the utility
+// libraries nearly every bot/script needs.
+const AUTO_INSTALL_PYTHON = ['discord.py', 'python-dotenv', 'aiohttp', 'requests', 'psutil', 'colorama'];
+const AUTO_INSTALL_NODE = ['discord.js', 'dotenv'];
+const AUTO_INSTALL_TIMEOUT_MS = 300000;
+
 // In-Memory Database with JSON Persistence & Atomic Flushes
 const DB_FILE = path.join(DATA_DIR, 'cloudvps_db.json');
 const DB_BACKUP_FILE = path.join(DATA_DIR, 'cloudvps_db.backup.json');
@@ -192,6 +200,8 @@ function loadDb() {
     delete v.domain;
     delete v.site_url;
     initVpsWorkspace(vpsId);
+    // Restore/repair the persisted package ledger for every saved VPS.
+    ensurePackageState(vpsId);
   }
 
   saveDb();
@@ -205,6 +215,305 @@ function initVpsWorkspace(vpsId) {
   if (!existsSync(wsDir)) {
     mkdirSync(wsDir, { recursive: true });
   }
+}
+
+// ---------------------- PACKAGE LEDGER & AUTO-INSTALLER ----------------------
+// Every VPS keeps a persisted package ledger in the DB (db.vps[id].packages):
+// which python/node packages are installed, plus the state of the automatic
+// Discord-stack installer. The ledger is saved to disk on every change, so
+// VPS package state survives restarts, and any install that was interrupted
+// (server reboot mid-install, network blip) is automatically retried on boot.
+
+function ensurePackageState(vpsId) {
+  const vps = db.vps[vpsId];
+  if (!vps) {return null;}
+  if (!vps.packages || typeof vps.packages !== 'object') {vps.packages = {};}
+  const state = vps.packages;
+  if (!state.python || typeof state.python !== 'object') {state.python = {};}
+  if (!state.node || typeof state.node !== 'object') {state.node = {};}
+  if (!state.auto_install || typeof state.auto_install !== 'object') {
+    state.auto_install = {
+      status: 'pending', // pending | running | done | failed | disabled
+      queued_at: new Date().toISOString(),
+      started_at: null,
+      finished_at: null,
+      error: null,
+      stack: { python: AUTO_INSTALL_PYTHON, node: AUTO_INSTALL_NODE }
+    };
+  }
+  return state;
+}
+
+// Record packages in the persisted ledger. Accepts "a b c" or "a, b@1.2".
+function recordPackages(vpsId, runtime, pkgs, version = 'installed') {
+  const state = ensurePackageState(vpsId);
+  if (!state) {return;}
+  const bucket = runtime === 'node' ? state.node : state.python;
+  const now = new Date().toISOString();
+  for (const token of String(pkgs).split(/[\s,]+/)) {
+    const t = token.trim();
+    if (!t || t.startsWith('-')) {continue;}
+    const at = t.lastIndexOf('@');
+    const name = at > 0 ? t.slice(0, at) : t;
+    const ver = at > 0 ? t.slice(at + 1) : version;
+    bucket[name] = { version: ver, installed_at: now };
+  }
+  saveDb();
+}
+
+function unrecordPackage(vpsId, runtime, name) {
+  const state = ensurePackageState(vpsId);
+  if (!state) {return;}
+  const bucket = runtime === 'node' ? state.node : state.python;
+  delete bucket[String(name).trim()];
+  saveDb();
+}
+
+// Merge package names into the workspace requirements.txt without duplicates.
+function mergeRequirementsFile(wsDir, pkgs) {
+  const reqPath = path.join(wsDir, 'requirements.txt');
+  try {
+    let cur = fs.existsSync(reqPath) ? fs.readFileSync(reqPath, 'utf8') : '';
+    const lower = cur.toLowerCase();
+    for (const p of pkgs) {
+      if (p && !lower.includes(p.toLowerCase())) {cur += `${cur && !cur.endsWith('\n') ? '\n' : ''}${p}\n`;}
+    }
+    fs.writeFileSync(reqPath, cur, 'utf8');
+  } catch (e) {}
+}
+
+// Ensure the workspace has a package.json so `npm install --save` can record
+// node dependencies for this VPS.
+function ensureWorkspacePackageJson(wsDir, vpsId) {
+  const pkgPath = path.join(wsDir, 'package.json');
+  if (!fs.existsSync(pkgPath)) {
+    try {
+      fs.writeFileSync(pkgPath, `${JSON.stringify({
+        name: `vps-${String(vpsId).toLowerCase().replace(/[^a-z0-9-]/g, '')}`,
+        version: '1.0.0',
+        description: 'CloudVPS workspace — auto-provisioned node environment',
+        main: 'index.js',
+        dependencies: {}
+      }, null, 2)}\n`, 'utf8');
+    } catch (e) {}
+  }
+}
+
+// Parse "Successfully installed aiohttp-3.9.5 discord.py-2.4.0 ..." output.
+function parsePipVersions(output) {
+  const versions = {};
+  const m = String(output).match(/Successfully installed (.+)$/m);
+  if (m) {
+    for (const token of m[1].split(/\s+/)) {
+      const idx = token.lastIndexOf('-');
+      if (idx > 0 && /\d/.test(token.slice(idx + 1, idx + 2))) {
+        versions[token.slice(0, idx)] = token.slice(idx + 1);
+      }
+    }
+  }
+  return versions;
+}
+
+function findPipBin() {
+  try {
+    // POSIX `command -v` via the default /bin/sh — works on Alpine containers
+    // (no bash) as well as full Debian hosts.
+    const out = child_process.execSync('command -v pip3 || command -v pip', { timeout: 3000, encoding: 'utf8' });
+    return out.trim().split('\n')[0] || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function pipInstall(vpsId, wsDir, pipBin, pkgs, onDone) {
+  const baseArgs = pkgs.join(' ');
+  const run = (extraFlag, isRetry) => {
+    const cmd = `${pipBin} install ${extraFlag}${baseArgs}`;
+    child_process.exec(cmd, { cwd: wsDir, timeout: AUTO_INSTALL_TIMEOUT_MS }, (err, stdout, stderr) => {
+      const out = `${stdout || ''}${stderr || ''}`;
+      // Older pip versions don't know --break-system-packages; retry without it.
+      if (err && !isRetry && /no such option|unrecognized arguments/i.test(out)) {
+        return run('', true);
+      }
+      onDone(err, out);
+    });
+  };
+  run('--break-system-packages ', false);
+}
+
+// The automatic Discord-stack installer: installs AUTO_INSTALL_PYTHON via pip
+// (and pins them into requirements.txt) and AUTO_INSTALL_NODE via npm into the
+// VPS workspace, records everything in the persisted ledger, and streams
+// progress into the bot logs. Runs fully in the background — never blocks the
+// API response. Idempotent: already-installed packages are skipped by pip/npm.
+// Concurrency is guarded in memory (activeAutoInstalls) — NOT by the persisted
+// status, because a 'running' status left behind by a server crash must be
+// re-runnable on boot.
+const activeAutoInstalls = new Set();
+function runAutoInstall(vpsId, { force = false } = {}) {
+  const vps = db.vps[vpsId];
+  if (!vps || shuttingDown) {return;}
+  const state = ensurePackageState(vpsId);
+  if (activeAutoInstalls.has(vpsId)) {return;}
+  if (!force && state.auto_install.status === 'done') {return;}
+
+  initVpsWorkspace(vpsId);
+  const wsDir = path.join(INSTANCES_DIR, vpsId);
+
+  activeAutoInstalls.add(vpsId);
+  state.auto_install.status = 'running';
+  state.auto_install.started_at = new Date().toISOString();
+  state.auto_install.finished_at = null;
+  state.auto_install.error = null;
+  saveDb();
+
+  appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] Installing Discord package stack — python: ${AUTO_INSTALL_PYTHON.join(', ')} | node: ${AUTO_INSTALL_NODE.join(', ')}...`);
+
+  let pendingOps = 2;
+  let failed = false;
+  const finish = () => {
+    pendingOps -= 1;
+    if (pendingOps > 0) {return;}
+    activeAutoInstalls.delete(vpsId);
+    state.auto_install.finished_at = new Date().toISOString();
+    if (failed) {
+      state.auto_install.status = 'failed';
+      appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] Install finished with errors — the package ledger was saved and the installer will retry automatically on next boot (or press "Install Discord Stack").`);
+    } else {
+      state.auto_install.status = 'done';
+      appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] Discord stack ready [ONLINE] — ${Object.keys(state.python).length} python + ${Object.keys(state.node).length} node packages installed and saved for ${vps.name}.`);
+    }
+    saveDb();
+  };
+
+  // ---- Python side: discord.py + friends ----
+  mergeRequirementsFile(wsDir, AUTO_INSTALL_PYTHON);
+  for (const name of AUTO_INSTALL_PYTHON) {
+    if (!state.python[name] || state.python[name].version === 'pending') {
+      state.python[name] = { version: 'pending', installed_at: new Date().toISOString() };
+    }
+  }
+  saveDb();
+
+  const pipBin = findPipBin();
+  if (pipBin) {
+    pipInstall(vpsId, wsDir, pipBin, AUTO_INSTALL_PYTHON, (err, out) => {
+      if (out) {appendBotLog(vpsId, out.trim().slice(-2000));}
+      if (err) {
+        failed = true;
+        state.auto_install.error = `python: ${err.message}`;
+        appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] Python install error: ${err.message} — packages stay pinned in requirements.txt and will retry on boot.`);
+      } else {
+        const versions = parsePipVersions(out);
+        for (const name of AUTO_INSTALL_PYTHON) {
+          state.python[name] = { version: versions[name] || 'installed', installed_at: new Date().toISOString() };
+        }
+        saveDb();
+      }
+      finish();
+    });
+  } else {
+    appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] pip not available on this host — python stack saved to requirements.txt (marked pending) and will install automatically once pip is present.`);
+    finish();
+  }
+
+  // ---- Node side: discord.js + dotenv ----
+  ensureWorkspacePackageJson(wsDir, vpsId);
+  for (const name of AUTO_INSTALL_NODE) {
+    if (!state.node[name] || state.node[name].version === 'pending') {
+      state.node[name] = { version: 'pending', installed_at: new Date().toISOString() };
+    }
+  }
+  saveDb();
+
+  child_process.exec(`npm install --save --no-audit --no-fund ${AUTO_INSTALL_NODE.join(' ')}`, { cwd: wsDir, timeout: AUTO_INSTALL_TIMEOUT_MS }, (err, stdout, stderr) => {
+    const out = `${stdout || ''}${stderr || ''}`;
+    if (out.trim()) {appendBotLog(vpsId, out.trim().slice(-2000));}
+    if (err) {
+      failed = true;
+      state.auto_install.error = `node: ${err.message}`;
+      appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] Node install error: ${err.message} — will retry on next boot.`);
+    } else {
+      let deps = {};
+      try {
+        deps = JSON.parse(fs.readFileSync(path.join(wsDir, 'package.json'), 'utf8')).dependencies || {};
+      } catch (e) {}
+      for (const name of AUTO_INSTALL_NODE) {
+        state.node[name] = { version: deps[name] || 'installed', installed_at: new Date().toISOString() };
+      }
+      saveDb();
+    }
+    finish();
+  });
+}
+
+// Boot self-heal: any VPS whose Discord-stack install never completed
+// (pending/queued/running = interrupted by a reboot, failed = retry once per
+// boot) is re-installed automatically after the server comes up.
+function recoverPendingInstalls() {
+  const targets = Object.keys(db.vps).filter((vpsId) => {
+    const state = ensurePackageState(vpsId);
+    return ['pending', 'queued', 'running', 'failed'].includes(state.auto_install.status);
+  });
+  if (targets.length === 0) {return;}
+  logger.info({ count: targets.length }, '[CloudVPS Auto-Installer] Resuming unfinished Discord-stack installs from saved VPS state');
+  targets.forEach((vpsId, i) => {
+    setTimeout(() => runAutoInstall(vpsId), 2000 + i * 4000);
+  });
+}
+
+// Install anything pinned in the workspace requirements.txt that isn't in the
+// ledger yet (background, non-blocking). Called before starting python bots
+// and after uploads so "more packages" the user adds are installed for them.
+function ensureRequirementsInstalled(vpsId) {
+  const wsDir = path.join(INSTANCES_DIR, vpsId);
+  const reqPath = path.join(wsDir, 'requirements.txt');
+  if (!fs.existsSync(reqPath)) {return;}
+  const state = ensurePackageState(vpsId);
+  const names = fs.readFileSync(reqPath, 'utf8')
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l && !l.startsWith('#') && !l.startsWith('-'))
+    .map(l => l.split(/[>=<~;\[]/)[0].trim())
+    .filter(Boolean);
+  const missing = names.filter(n => !state.python[n] || state.python[n].version === 'pending');
+  if (missing.length === 0) {return;}
+  const pipBin = findPipBin();
+  if (!pipBin) {return;}
+  appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] Installing missing requirements: ${missing.join(', ')}...`);
+  pipInstall(vpsId, wsDir, pipBin, ['-r requirements.txt'], (err, out) => {
+    if (out) {appendBotLog(vpsId, out.trim().slice(-1500));}
+    if (err) {
+      appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] requirements.txt install error: ${err.message}`);
+    } else {
+      recordPackages(vpsId, 'python', missing.join(' '));
+      appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] requirements.txt satisfied [ONLINE]`);
+    }
+  });
+}
+
+// If the workspace has a package.json with dependencies but no node_modules
+// (fresh upload / clone / restored VPS), npm-install them in the background.
+function ensureNodeModulesInstalled(vpsId) {
+  const wsDir = path.join(INSTANCES_DIR, vpsId);
+  const pkgPath = path.join(wsDir, 'package.json');
+  if (!fs.existsSync(pkgPath) || fs.existsSync(path.join(wsDir, 'node_modules'))) {return;}
+  let deps = {};
+  try {
+    deps = JSON.parse(fs.readFileSync(pkgPath, 'utf8')).dependencies || {};
+  } catch (e) {return;}
+  if (Object.keys(deps).length === 0) {return;}
+  appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] Installing node dependencies from package.json: ${Object.keys(deps).join(', ')}...`);
+  child_process.exec('npm install --no-audit --no-fund', { cwd: wsDir, timeout: AUTO_INSTALL_TIMEOUT_MS }, (err, stdout, stderr) => {
+    const out = `${stdout || ''}${stderr || ''}`;
+    if (out.trim()) {appendBotLog(vpsId, out.trim().slice(-1500));}
+    if (err) {
+      appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] npm install error: ${err.message}`);
+    } else {
+      recordPackages(vpsId, 'node', Object.keys(deps).join(' '));
+      appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Auto-Installer] node dependencies ready [ONLINE]`);
+    }
+  });
 }
 
 // Helper: Get user from request with persistent session recovery.
@@ -369,6 +678,10 @@ app.post('/api/register', (req, res) => {
  db.vps[vpsId] = userVps;
  initVpsWorkspace(vpsId);
 
+ // Persisted package ledger + automatic Discord stack install for the starter VPS
+ const starterPkgState = ensurePackageState(vpsId);
+ starterPkgState.auto_install.status = 'queued';
+
  db.bots[vpsId] = {
  status: 'stopped',
  running: false,
@@ -380,11 +693,15 @@ app.post('/api/register', (req, res) => {
  started_at: null,
  logs: [
  `[CloudVPS Watchdog] Provisioned isolated container sandbox for ${username}...`,
- `[CloudVPS Supervisor] Workspace ready at /root/workspace/`
+ `[CloudVPS Supervisor] Workspace ready at /root/workspace/`,
+ `[CloudVPS Auto-Installer] Discord package stack queued (discord.py, discord.js, python-dotenv, dotenv, aiohttp, requests, psutil, colorama) — installing in the background...`
  ]
  };
 
  saveDb();
+
+ // Kick off the background install after the response is sent
+ setTimeout(() => runAutoInstall(vpsId), 500);
 
  res.cookie('api_key', apiKey, { maxAge: 30 * 24 * 3600 * 1000, httpOnly: false, sameSite: 'Lax' });
  res.json({
@@ -482,11 +799,14 @@ app.get('/api/vps', authRequired, (req, res) => {
  res.json({ success: true, vps: userVps });
 });
 
-// Create VPS with custom name, plan and OS. The workspace starts completely
-// EMPTY — no demo/starter files are seeded, so the user can create or upload
-// their own files without fighting files they cannot delete.
+// Create VPS with custom name, plan and OS. The workspace starts with no
+// demo/starter files, but the Discord package stack (discord.py, discord.js
+// and common libraries) is installed automatically in the background and the
+// resulting package ledger is persisted with the VPS. Pass auto_install:false
+// to skip the automatic install.
 app.post('/api/vps', authRequired, (req, res) => {
  const { plan = 'performance', name, os = 'ubuntu' } = req.body || {};
+ const autoInstall = req.body?.auto_install !== false && req.body?.auto_install !== 'false';
  const planInfo = PLANS[plan] || PLANS.performance;
 
  const vpsId = `vps-${  crypto.randomBytes(4).toString('hex')}`;
@@ -514,6 +834,10 @@ app.post('/api/vps', authRequired, (req, res) => {
  db.vps[vpsId] = newVps;
  initVpsWorkspace(vpsId);
 
+ // Persisted package ledger — starts queued (or disabled), saved with the VPS
+ const pkgState = ensurePackageState(vpsId);
+ pkgState.auto_install.status = autoInstall ? 'queued' : 'disabled';
+
  // Initialize bot supervisor for this VPS
  db.bots[vpsId] = {
  status: 'stopped',
@@ -528,12 +852,22 @@ app.post('/api/vps', authRequired, (req, res) => {
  `[CloudVPS Watchdog] Provisioned isolated root container "${newVps.name}" (${newVps.id})...`,
  `[CloudVPS Watchdog] Hardware assigned: ${newVps.cpu} | ${newVps.memory} | ${newVps.storage} NVMe`,
  `[CloudVPS Watchdog] IPv4 assigned: ${newVps.ip}`,
- `[CloudVPS 24/7 Supervisor] Clean-slate workspace ready. Create or upload your own files (zip bundles auto-extract), set your token, then press "Start Bot" to go 24/7.`
+ `[CloudVPS 24/7 Supervisor] Clean-slate workspace ready. Create or upload your own files (zip bundles auto-extract), set your token, then press "Start Bot" to go 24/7.`,
+ ...(autoInstall
+ ? [`[CloudVPS Auto-Installer] Discord package stack queued (discord.py, discord.js, python-dotenv, dotenv, aiohttp, requests, psutil, colorama) — installing in the background...`]
+ : [])
  ]
  };
 
  saveDb();
- res.status(201).json({ success: true, vps: newVps });
+
+ if (autoInstall) {
+ // Background install — the API responds immediately, progress streams to
+ // the bot logs and the ledger is saved to the DB as packages land.
+ setTimeout(() => runAutoInstall(vpsId), 500);
+ }
+
+ res.status(201).json({ success: true, vps: newVps, auto_install: pkgState.auto_install });
 });
 
 // Rename VPS
@@ -1046,7 +1380,6 @@ app.post('/api/vps/:vps_id/bot/upload', authRequired, vpsOwnerRequired, upload.a
 
  const uploaded = [];
  const extracted = [];
- let firstExtractDir = null;
  let hadZipError = false;
 
  for (const f of files) {
@@ -1095,6 +1428,11 @@ app.post('/api/vps/:vps_id/bot/upload', authRequired, vpsOwnerRequired, upload.a
  if (detectedEntry) { db.bots[vpsId].filename = detectedEntry; }
  if (detectedRuntime) { db.bots[vpsId].runtime = detectedRuntime; }
  saveDb();
+
+ // Newly uploaded/extracted dependency manifests are installed automatically
+ // in the background (python requirements.txt / node package.json).
+ if (fs.existsSync(path.join(wsDir, 'requirements.txt'))) {ensureRequirementsInstalled(vpsId);}
+ if (fs.existsSync(path.join(wsDir, 'package.json'))) {ensureNodeModulesInstalled(vpsId);}
 
  const currentFiles = getFileList(wsDir);
  const botState = db.bots[vpsId] || { status: 'stopped', running: false, filename: detectedEntry || 'bot.py' };
@@ -1294,6 +1632,13 @@ function startBotProcess(vpsId, filename, runtime) {
  execCmd = 'bash';
  execArgs = [targetFile];
  }
+
+ // Auto-install missing dependencies in the background (requirements.txt for
+ // python, package.json for node) so bots that import discord.py / discord.js
+ // or any freshly-added package come up without a manual install step. The
+ // watchdog's auto-restart covers the bot if it boots before deps land.
+ if (targetRuntime === 'python') {ensureRequirementsInstalled(vpsId);}
+ else if (targetRuntime === 'node') {ensureNodeModulesInstalled(vpsId);}
 
  const timestamp = new Date().toLocaleTimeString();
  appendBotLog(vpsId, `[${timestamp}] [24/7 Watchdog] Spawning real process: ${execCmd} ${targetFile}...`);
@@ -1564,17 +1909,25 @@ app.post('/api/vps/:vps_id/bot/token', authRequired, vpsOwnerRequired, (req, res
 
 // ---------------------- PACKAGE DOWNLOADER & DEPENDENCY MANAGER ----------------------
 
-// List installed packages for VPS (Python pip + Node npm)
+// List installed packages for VPS (persisted ledger + live pip/npm fallback)
 app.get('/api/vps/:vps_id/packages/list', authRequired, vpsOwnerRequired, (req, res) => {
  const vpsId = req.params.vps_id;
  const wsDir = path.join(INSTANCES_DIR, vpsId);
  initVpsWorkspace(vpsId);
+ const state = ensurePackageState(vpsId);
 
- let pythonPackages = [];
- try {
- const raw = child_process.execSync('pip list --format=json', { timeout: 4000, encoding: 'utf8' });
- pythonPackages = JSON.parse(raw);
- } catch (e) {
+ // Python: prefer the persisted per-VPS ledger (survives restarts); fall back
+ // to requirements.txt, then to the host pip list for legacy VPS records.
+ let pythonPackages = Object.entries(state.python).map(([name, info]) => ({
+ name,
+ version: info.version || 'installed',
+ auto: AUTO_INSTALL_PYTHON.includes(name)
+ }));
+
+ // Fallback for VPS records predating the ledger: read requirements.txt.
+ // (The host-wide `pip list` is intentionally NOT used — it is not per-VPS
+ // state and would show packages this VPS never installed.)
+ if (pythonPackages.length === 0) {
  const reqPath = path.join(wsDir, 'requirements.txt');
  if (fs.existsSync(reqPath)) {
  pythonPackages = fs.readFileSync(reqPath, 'utf8')
@@ -1583,25 +1936,36 @@ app.get('/api/vps/:vps_id/packages/list', authRequired, vpsOwnerRequired, (req, 
  .filter(l => l && !l.startsWith('#'))
  .map(line => {
  const parts = line.split(/[>=<]/);
- return { name: parts[0].trim(), version: line.includes('==') ? line.split('==')[1].trim() : 'active' };
+ return { name: parts[0].trim(), version: line.includes('==') ? line.split('==')[1].trim() : 'active', auto: AUTO_INSTALL_PYTHON.includes(parts[0].trim()) };
  });
  }
  }
 
- let nodePackages = [];
+ // Node: ledger + the workspace package.json (kept in sync by npm --save)
+ const nodePackages = [];
+ const seenNode = new Set();
  try {
  const pkgPath = path.join(wsDir, 'package.json');
  if (fs.existsSync(pkgPath)) {
  const parsed = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
  const combined = { ...(parsed.dependencies || {}), ...(parsed.devDependencies || {}) };
- nodePackages = Object.entries(combined).map(([name, version]) => ({ name, version }));
+ for (const [name, version] of Object.entries(combined)) {
+ seenNode.add(name);
+ nodePackages.push({ name, version, auto: AUTO_INSTALL_NODE.includes(name) });
+ }
  }
  } catch (e) {}
+ for (const [name, info] of Object.entries(state.node)) {
+ if (!seenNode.has(name)) {
+ nodePackages.push({ name, version: info.version || 'installed', auto: AUTO_INSTALL_NODE.includes(name) });
+ }
+ }
 
  res.json({
  success: true,
  python: pythonPackages.slice(0, 150),
- node: nodePackages
+ node: nodePackages,
+ auto_install: state.auto_install
  });
 });
 
@@ -1632,6 +1996,16 @@ const handlePackageInstall = (req, res) => {
  return res.status(500).json({ success: false, error: err.message, output, logs: db.bots[vpsId]?.logs });
  }
 
+ // Persist installed packages to the VPS ledger (saved with the DB)
+ let savedVersions = {};
+ try {
+ savedVersions = JSON.parse(fs.readFileSync(path.join(wsDir, 'package.json'), 'utf8')).dependencies || {};
+ } catch (e) {}
+ for (const token of pkgs.split(/[\s,]+/)) {
+ const name = token.includes('@') && token.lastIndexOf('@') > 0 ? token.slice(0, token.lastIndexOf('@')) : token;
+ if (name) {recordPackages(vpsId, 'node', name, savedVersions[name] || 'installed');}
+ }
+
  appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Package Downloader] Successfully installed: ${pkgs}`);
  res.json({ success: true, message: `Installed ${pkgs}`, output: output || `+ ${pkgs}@latest installed in ${vpsId}`, logs: db.bots[vpsId]?.logs });
  });
@@ -1647,24 +2021,31 @@ const handlePackageInstall = (req, res) => {
  fs.writeFileSync(reqPath, `${cur.trim()  }\n`, 'utf8');
  } catch (e) {}
 
- let hasPip = false;
- try {
- child_process.execSync('which pip || which pip3', { timeout: 2000 });
- hasPip = true;
- } catch (e) {
- hasPip = false;
- }
+ const pipBin = findPipBin();
 
- if (hasPip) {
- const pipBin = child_process.execSync('which pip3 || which pip', { encoding: 'utf8' }).trim();
- child_process.exec(`${pipBin} install --break-system-packages ${pkgs}`, { cwd: wsDir, timeout: 90000 }, (err, stdout, stderr) => {
- const output = stdout || stderr || '';
+ if (pipBin) {
+ pipInstall(vpsId, wsDir, pipBin, pkgs.split(/\s+/).filter(Boolean), (err, output) => {
  if (output) {appendBotLog(vpsId, output);}
+ if (err) {
+ appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Install Error] ${err.message} — package pinned in requirements.txt, will retry automatically.`);
+ recordPackages(vpsId, 'python', pkgs, 'pending');
+ return res.status(500).json({ success: false, error: err.message, output, logs: db.bots[vpsId]?.logs });
+ }
+ // Persist installed packages (+ versions) to the VPS ledger
+ const versions = parsePipVersions(output);
+ for (const token of pkgs.split(/[\s,]+/)) {
+ if (!token) {continue;}
+ const name = token.split(/[>=<]/)[0].trim();
+ recordPackages(vpsId, 'python', name, versions[name] || 'installed');
+ }
  appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Package Downloader] Successfully installed: ${pkgs}`);
  res.json({ success: true, message: `Installed ${pkgs}`, output: output || `Successfully installed ${pkgs}`, logs: db.bots[vpsId]?.logs });
  });
  } else {
  const virtualOutput = `Requirement satisfied: ${pkgs} (saved to requirements.txt)\nCollecting ${pkgs}...\nDownloading package binaries to /app/applet/vps_instances/${vpsId}...\nInstalling collected packages: ${pkgs}\nSuccessfully installed ${pkgs}`;
+ // pip missing on host — still persist the intent so the ledger (and the
+ // boot-time auto-installer) pick these packages up as soon as pip exists.
+ recordPackages(vpsId, 'python', pkgs, 'pending');
  appendBotLog(vpsId, virtualOutput);
  appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Package Downloader] Successfully installed: ${pkgs}`);
  res.json({ success: true, message: `Installed ${pkgs}`, output: virtualOutput, logs: db.bots[vpsId]?.logs });
@@ -1704,8 +2085,29 @@ app.post('/api/vps/:vps_id/packages/uninstall', authRequired, vpsOwnerRequired, 
  }
  }
 
+ // Remove the package from the persisted VPS ledger
+ unrecordPackage(vpsId, isNode ? 'node' : 'python', pkgName);
+
  appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Package Downloader] Removed: ${pkgName}`);
  res.json({ success: true, message: `Uninstalled ${pkgName}` });
+ });
+});
+
+// Manually (re)run the automatic Discord package stack installer for a VPS.
+// Runs in the background; progress streams to the bot logs and the persisted
+// package ledger. force=true reinstalls even if a previous run completed.
+app.post('/api/vps/:vps_id/packages/auto-install', authRequired, vpsOwnerRequired, (req, res) => {
+ const vpsId = req.params.vps_id;
+ const force = req.body?.force !== false;
+ const state = ensurePackageState(vpsId);
+ if (state.auto_install.status === 'disabled') {state.auto_install.status = 'pending';}
+ saveDb();
+ runAutoInstall(vpsId, { force });
+ res.json({
+ success: true,
+ message: 'Discord package stack install started in the background — watch the bot logs for progress.',
+ auto_install: state.auto_install,
+ packages: db.vps[vpsId].packages
  });
 });
 
@@ -1772,7 +2174,17 @@ app.get('/api/vps/:vps_id/packages/status', authRequired, vpsOwnerRequired, (req
  curl: curlVer ? `${curlVer.split(' ')[0]  } ${  curlVer.split(' ')[1]}` : 'Installed',
  description: 'System CLI tools (git, curl, wget, unzip, jq)'
  }
- }
+ },
+ // Persisted Discord-stack auto-installer state for this VPS
+ discord_stack: (() => {
+ const state = ensurePackageState(vpsId);
+ return {
+ auto_install: state.auto_install,
+ python: Object.entries(state.python).map(([name, info]) => ({ name, version: info.version })),
+ node: Object.entries(state.node).map(([name, info]) => ({ name, version: info.version })),
+ description: 'Discord packages installed automatically on VPS creation (discord.py, discord.js + common libraries)'
+ };
+ })()
  });
 });
 
@@ -1782,6 +2194,20 @@ app.post('/api/vps/:vps_id/packages/install-bundle', authRequired, vpsOwnerRequi
  const { bundle = 'lune', custom_cmd = '' } = req.body || {};
  const wsDir = path.join(INSTANCES_DIR, vpsId);
  initVpsWorkspace(vpsId);
+
+ // The discord bundle delegates to the persisted auto-installer so the
+ // package ledger (and boot-time self-heal) stays the single source of truth.
+ if (bundle === 'discord') {
+ const state = ensurePackageState(vpsId);
+ if (state.auto_install.status === 'disabled') {state.auto_install.status = 'pending';}
+ saveDb();
+ runAutoInstall(vpsId, { force: true });
+ return res.json({
+ success: true,
+ message: 'Discord Bot Stack (python + node) install started in the background!',
+ auto_install: state.auto_install
+ });
+ }
 
  let script = '';
  let label = '';
@@ -2436,4 +2862,5 @@ app.listen(PORT, '0.0.0.0', () => {
   logger.info(`[CloudVPS] Server listening on http://0.0.0.0:${PORT}`);
   logger.info('[CloudVPS] 24/7 bot watchdog enabled — running bots are resumed automatically on boot');
   recoverRunningBots();
+  recoverPendingInstalls();
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { registerSchema, loginSchema, createVpsSchema, validate } from '../schemas.js';
+import { registerSchema, loginSchema, createVpsSchema, bundleInstallSchema, validate } from '../schemas.js';
 import { AppError, ValidationError, AuthenticationError, AuthorizationError, NotFoundError, ConflictError, errorHandler, asyncHandler } from '../errors.js';
 
 describe('Validation Schemas', () => {
@@ -54,9 +54,36 @@ describe('Validation Schemas', () => {
       expect(result.starter).toBe('blank');
     });
 
+    it('should default auto_install to true so the Discord stack installs automatically', () => {
+      const result = createVpsSchema.parse({});
+      expect(result.auto_install).toBe(true);
+    });
+
+    it('should allow opting out of the automatic Discord package install', () => {
+      const result = createVpsSchema.parse({ auto_install: false });
+      expect(result.auto_install).toBe(false);
+    });
+
     it('should reject invalid plan', () => {
       const data = { plan: 'invalid' };
       expect(() => createVpsSchema.parse(data)).toThrow();
+    });
+  });
+
+  describe('bundleInstallSchema', () => {
+    it('should accept the discord bundle', () => {
+      const result = bundleInstallSchema.parse({ bundle: 'discord' });
+      expect(result.bundle).toBe('discord');
+    });
+
+    it('should accept existing bundles', () => {
+      for (const bundle of ['lune', 'python', 'luau-env', 'system']) {
+        expect(bundleInstallSchema.parse({ bundle }).bundle).toBe(bundle);
+      }
+    });
+
+    it('should reject unknown bundles', () => {
+      expect(() => bundleInstallSchema.parse({ bundle: 'minecraft' })).toThrow();
     });
   });
 });

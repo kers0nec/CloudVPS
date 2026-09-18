@@ -229,6 +229,19 @@
     .vps-name { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
     .vps-specs { font-size: 12.5px; color: var(--muted); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
     .vps-specs .ip { font-family: var(--mono); font-size: 12px; }
+
+    /* ---------- Packages ---------- */
+    .pkg-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pkg-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-family: var(--mono); padding: 3px 9px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel-2); color: var(--muted); }
+    .pkg-chip .pv { color: var(--dim); }
+    .pkg-chip.auto { border-color: rgba(88, 101, 242, .45); color: #9aa6ff; }
+    .pkg-chip.pending { border-color: rgba(240, 178, 50, .4); color: #f0b232; }
+    .pkg-state { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; }
+    .pkg-state.installing { color: #f0b232; }
+    .pkg-state.done { color: var(--green); }
+    .pkg-state.failed { color: var(--red, #f85149); }
+    .spinner { width: 11px; height: 11px; border: 2px solid rgba(240, 178, 50, .25); border-top-color: #f0b232; border-radius: 50%; animation: pkgspin .8s linear infinite; display: inline-block; flex-shrink: 0; }
+    @keyframes pkgspin { to { transform: rotate(360deg); } }
     .vps-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
     @media (max-width: 700px) { .vps-card { flex-direction: column; align-items: stretch; } .vps-actions { justify-content: flex-start; } }
 
@@ -509,6 +522,27 @@
               </div>
             </div>
 
+            <div class="card" style="margin-top:14px;">
+              <div class="card-title">
+                <span>Packages</span>
+                <span style="display:flex; gap:6px; align-items:center;">
+                  <span class="pkg-state" id="pkg-auto-state"></span>
+                  <button class="btn btn-sm" id="btn-discord-stack" onclick="installDiscordStack()" title="Install discord.py + discord.js and common libraries">Install Discord Stack</button>
+                </span>
+              </div>
+              <div class="input-row">
+                <input type="text" class="input" id="pkg-name" placeholder="Package name (e.g. discord.py, axios) — space-separated for multiple" spellcheck="false"
+                  onkeydown="if (event.key === 'Enter') installPackage()">
+                <select class="input" id="pkg-runtime" style="width:110px; flex:none;" title="Runtime">
+                  <option value="python">python</option>
+                  <option value="node">node</option>
+                </select>
+                <button class="btn btn-primary" id="btn-pkg-install" onclick="installPackage()">Install</button>
+              </div>
+              <div class="hint">Discord packages (discord.py, discord.js, dotenv…) install automatically on VPS creation. Anything you add here is saved with the VPS and re-installed if missing when bots start.</div>
+              <div class="pkg-chips" id="pkg-list" style="margin-top:10px;"></div>
+            </div>
+
             <div class="card" id="editor-card" style="display:none;">
               <div class="editor-head">
                 <span class="fname" id="editor-fname"></span>
@@ -630,6 +664,7 @@
       logTimer: null,
       statusTimer: null,
       netFailNotified: false,
+      pkgAutoStatus: '',      // Discord-stack auto-install status of active VPS
     };
 
     const $ = (id) => document.getElementById(id);
@@ -869,6 +904,15 @@
       }
       wrap.innerHTML = STATE.vpsList.map(v => {
         const on = v.status === 'running';
+        const ai = (v.packages && v.packages.auto_install) || null;
+        let pkgBadge = '';
+        if (ai && ['queued', 'pending', 'running'].includes(ai.status)) {
+          pkgBadge = `<span class="pkg-state installing"><span class="spinner"></span>Installing Discord packages…</span>`;
+        } else if (ai && ai.status === 'done') {
+          pkgBadge = `<span class="pkg-state done">Discord stack ✓</span>`;
+        } else if (ai && ai.status === 'failed') {
+          pkgBadge = `<span class="pkg-state failed">Package install failed — retry in Dc Bots</span>`;
+        }
         return `
         <div class="vps-card">
           <div class="vps-main">
@@ -877,6 +921,7 @@
               <span>${esc(v.cpu)} · ${esc(v.memory)} · ${esc(v.storage)}</span>
               <span class="ip">${esc(v.ip)}</span>
               <span>Plan: ${esc(v.plan)}</span>
+              ${pkgBadge}
             </div>
           </div>
           <div class="vps-actions">
@@ -956,8 +1001,19 @@
       btn.disabled = false;
       if (res.ok && res.data.success) {
         closeVpsModal();
-        toast('VPS created', 'ok');
+        const installing = res.data.auto_install && ['queued', 'pending', 'running'].includes(res.data.auto_install.status);
+        toast(installing ? 'VPS created — Discord packages installing…' : 'VPS created', 'ok');
         loadVpsList();
+        if (installing) {
+          // Refresh the list while the background installer runs so the
+          // "Installing Discord packages…" badge flips to "Discord stack ✓".
+          let n = 0;
+          const t = setInterval(() => {
+            n++;
+            loadVpsList();
+            if (n >= 12) clearInterval(t);
+          }, 10000);
+        }
       } else {
         const el = $('vps-error');
         el.textContent = res.data.error || 'Could not create VPS.';
@@ -1019,8 +1075,15 @@
 
       loadBotState();
       loadFiles();
+      loadPackages(true);
       startLogPolling();
-      STATE.statusTimer = setInterval(() => { if (STATE.tab === 'bot') loadBotState(true); }, 5000);
+      STATE.statusTimer = setInterval(() => {
+        if (STATE.tab === 'bot') {
+          loadBotState(true);
+          // Keep polling packages only while the auto-installer is working.
+          if (['queued', 'pending', 'running'].includes(STATE.pkgAutoStatus)) loadPackages(true);
+        }
+      }, 5000);
     }
 
     function setBotVps(id) {
@@ -1029,6 +1092,7 @@
       $('editor-card').style.display = 'none';
       loadBotState();
       loadFiles();
+      loadPackages(true);
     }
 
     async function loadBotState(silent = false) {
@@ -1088,6 +1152,7 @@
         toast('Bot started', 'ok');
         if (tok) $('bot-token').value = '';
         loadBotState();
+        loadPackages(true);
       } else toast(res.data.error || 'Failed to start bot', 'err');
     }
 
@@ -1115,6 +1180,76 @@
       else toast(res.data.error || 'Failed to stop bot', 'err');
     }
 
+    /* ---- Packages (auto-installed Discord stack + manual installs) ---- */
+    async function loadPackages(silent = false) {
+      if (!STATE.activeVpsId) return;
+      const res = await api(`/api/vps/${STATE.activeVpsId}/packages/list`);
+      if (!res.ok) { if (!silent) toast(res.data.error || 'Failed to load packages', 'err'); return; }
+      STATE.pkgAutoStatus = (res.data.auto_install && res.data.auto_install.status) || '';
+      renderPackages(res.data);
+    }
+
+    function renderPackages(d) {
+      const st = $('pkg-auto-state');
+      const s = (d.auto_install && d.auto_install.status) || '';
+      if (['queued', 'pending', 'running'].includes(s)) {
+        st.className = 'pkg-state installing';
+        st.innerHTML = '<span class="spinner"></span>Auto-installing Discord stack…';
+      } else if (s === 'done') {
+        st.className = 'pkg-state done';
+        st.textContent = 'Discord stack installed ✓';
+      } else if (s === 'failed') {
+        st.className = 'pkg-state failed';
+        st.textContent = 'Auto-install failed — press Install Discord Stack to retry';
+      } else {
+        st.className = 'pkg-state';
+        st.textContent = '';
+      }
+      const chips = [];
+      (d.python || []).forEach(p => chips.push(pkgChip(p, 'python')));
+      (d.node || []).forEach(p => chips.push(pkgChip(p, 'node')));
+      $('pkg-list').innerHTML = chips.length ? chips.join('') : '<span class="hint" style="margin:0;">No packages recorded yet.</span>';
+    }
+
+    function pkgChip(p, runtime) {
+      const pending = p.version === 'pending';
+      const cls = 'pkg-chip' + (p.auto ? ' auto' : '') + (pending ? ' pending' : '');
+      const ver = pending ? 'installing…' : (p.version || '');
+      const title = `${runtime} package${p.auto ? ' — part of the automatic Discord stack' : ''}`;
+      return `<span class="${cls}" title="${esc(title)}">${esc(p.name)}${ver ? ` <span class="pv">${esc(ver)}</span>` : ''}</span>`;
+    }
+
+    async function installPackage() {
+      const name = $('pkg-name').value.trim();
+      if (!name) { toast('Enter a package name', 'err'); return; }
+      if (!STATE.activeVpsId) { toast('Create a VPS first.', 'err'); return; }
+      const runtime = $('pkg-runtime').value;
+      const btn = $('btn-pkg-install');
+      btn.disabled = true;
+      toast(`Installing ${name} (${runtime})…`);
+      const res = await api(`/api/vps/${STATE.activeVpsId}/packages/install`, { method: 'POST', body: { packages: name, runtime } });
+      btn.disabled = false;
+      if (res.ok) {
+        $('pkg-name').value = '';
+        toast(res.data.message || `Installed ${name}`, 'ok');
+        loadPackages(true);
+        loadFiles();
+      } else toast(res.data.error || `Failed to install ${name}`, 'err');
+    }
+
+    async function installDiscordStack() {
+      if (!STATE.activeVpsId) { toast('Create a VPS first.', 'err'); return; }
+      const btn = $('btn-discord-stack');
+      btn.disabled = true;
+      const res = await api(`/api/vps/${STATE.activeVpsId}/packages/auto-install`, { method: 'POST', body: { force: true } });
+      setTimeout(() => { btn.disabled = false; }, 3000);
+      if (res.ok) {
+        toast('Discord stack install started — watch the logs below', 'ok');
+        STATE.pkgAutoStatus = 'running';
+        loadPackages(true);
+      } else toast(res.data.error || 'Failed to start install', 'err');
+    }
+
     /* ---- Upload ---- */
     function uploadFiles(fileList) {
       const files = Array.from(fileList || []);
@@ -1140,6 +1275,7 @@
             }
             loadFiles();
             loadBotState(true);
+            loadPackages(true);
           } else {
             toast(res.data.error || 'Upload failed', 'err');
           }

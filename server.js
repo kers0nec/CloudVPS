@@ -979,11 +979,17 @@ function extractZipToDir(zipBuffer, zipName, destDir) {
     if (written.length === 0) { throw new Error('Zip archive contained no extractable files'); }
   } catch (parseErr) {
     // Fallback: system unzip handles zip64 and other exotic formats.
-    const tmpZip = path.join(base, zipName);
+    // Keep the temp archive outside the workspace so a failed/unavailable
+    // unzip can never leave a stray zip in the user's project files.
+    const tmpZip = path.join(os.tmpdir(), `cvps_extract_${Date.now()}_${Math.random().toString(36).slice(2)}.zip`);
     fs.writeFileSync(tmpZip, zipBuffer);
-    child_process.execSync(`unzip -o -q "${tmpZip}" -d "${base}"`, { timeout: 60000 });
-    const after = getFileList(base).filter(f => !f.isDirectory).map(f => f.name);
-    return { files: after, usedFallback: true };
+    try {
+      child_process.execSync(`unzip -o -q "${tmpZip}" -d "${base}"`, { timeout: 60000 });
+      const after = getFileList(base).filter(f => !f.isDirectory).map(f => f.name);
+      return { files: after, usedFallback: true };
+    } finally {
+      try { fs.unlinkSync(tmpZip); } catch (e) {}
+    }
   }
 
   return { files: written, usedFallback: false };

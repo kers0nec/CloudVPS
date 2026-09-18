@@ -15,6 +15,8 @@ export const createVpsSchema = z.object({
   plan: z.enum(['starter', 'standard', 'performance', 'ultra']).default('performance'),
   os: z.string().default('ubuntu'),
   subdomain: z.string().max(63).optional(),
+  starter: z.string().default('blank'),
+  auto_install: z.boolean().default(true),
 });
 
 export const updateVpsSchema = z.object({
@@ -71,7 +73,7 @@ export const githubCloneSchema = z.object({
 });
 
 export const bundleInstallSchema = z.object({
-  bundle: z.enum(['lune', 'python', 'luau-env', 'system', 'custom']),
+  bundle: z.enum(['discord', 'lune', 'python', 'luau-env', 'system', 'custom']),
   custom_cmd: z.string().optional(),
 });
 

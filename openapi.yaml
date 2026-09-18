@@ -166,6 +166,12 @@ paths:
     post:
       tags: [VPS Management]
       summary: Create new VPS
+      description: >-
+        Creates a VPS and saves it to the persistent database. Unless
+        auto_install is false, the Discord package stack (discord.py +
+        common python libraries, discord.js + dotenv) is installed into the
+        workspace automatically in the background; progress streams to the
+        bot logs and the package ledger is persisted with the VPS.
       security:
         - ApiKeyAuth: []
       requestBody:
@@ -550,6 +556,245 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GitHubCloneResponse'
+  /api/vps/{vps_id}/packages/list:
+    get:
+      tags: [Packages]
+      summary: List installed packages (persisted ledger)
+      description: >-
+        Returns the persisted per-VPS package ledger — python packages
+        (pip-installed and requirements.txt entries) and node packages
+        (workspace package.json), plus the Discord-stack auto-install state.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Package ledger
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  python:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: { type: string }
+                        version: { type: string }
+                        auto: { type: boolean, description: Part of the automatic Discord stack }
+                  node:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: { type: string }
+                        version: { type: string }
+                        auto: { type: boolean }
+                  auto_install:
+                    $ref: '#/components/schemas/AutoInstallState'
+  /api/vps/{vps_id}/packages/install:
+    post:
+      tags: [Packages]
+      summary: Install packages (pip or npm)
+      description: >-
+        Installs one or more space-separated packages into the VPS workspace
+        (pip for python, npm --save for node) and records them in the
+        persisted package ledger. Python packages are also pinned into
+        requirements.txt so they are re-installed automatically if missing.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                packages:
+                  type: string
+                  description: Space-separated package names (e.g. "discord.py aiohttp")
+                runtime:
+                  type: string
+                  enum: [python, node]
+                  default: python
+      responses:
+        '200':
+          description: Packages installed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResponse'
+        '400':
+          description: No packages specified
+        '500':
+          description: Install failed
+  /api/vps/{vps_id}/packages/uninstall:
+    post:
+      tags: [Packages]
+      summary: Uninstall a package
+      description: Removes the package from the VPS and from the persisted ledger.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                package:
+                  type: string
+                runtime:
+                  type: string
+                  enum: [python, node]
+                  default: python
+      responses:
+        '200':
+          description: Package removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResponse'
+  /api/vps/{vps_id}/packages/auto-install:
+    post:
+      tags: [Packages]
+      summary: Run the Discord-stack auto-installer
+      description: >-
+        Starts (or re-runs with force=true) the automatic install of the
+        Discord package stack — discord.py, python-dotenv, aiohttp, requests,
+        psutil, colorama (pip) and discord.js, dotenv (npm). Runs in the
+        background; progress streams to the bot logs and the ledger is saved
+        with the VPS. Interrupted installs are retried automatically on boot.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                force:
+                  type: boolean
+                  default: true
+                  description: Reinstall even if a previous run completed
+      responses:
+        '200':
+          description: Install started in the background
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  auto_install:
+                    $ref: '#/components/schemas/AutoInstallState'
+  /api/vps/{vps_id}/packages/install-bundle:
+    post:
+      tags: [Packages]
+      summary: Install a software bundle or runtime
+      description: >-
+        Installs a predefined bundle. The "discord" bundle delegates to the
+        persisted Discord-stack auto-installer (python + node).
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bundle:
+                  type: string
+                  enum: [discord, lune, python, luau-env, system, custom]
+                custom_cmd:
+                  type: string
+                  description: Shell command to run when bundle is "custom"
+      responses:
+        '200':
+          description: Bundle install started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResponse'
+        '400':
+          description: Unknown bundle
+  /api/vps/{vps_id}/packages/status:
+    get:
+      tags: [Packages]
+      summary: Runtimes, tools and Discord-stack status
+      description: >-
+        Reports installed runtimes (lune, python, node), system tools, and
+        the persisted Discord-stack ledger/auto-install state for the VPS.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Runtime and package status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  runtimes:
+                    type: object
+                  discord_stack:
+                    type: object
+                    properties:
+                      auto_install:
+                        $ref: '#/components/schemas/AutoInstallState'
+                      python:
+                        type: array
+                        items:
+                          type: object
+                      node:
+                        type: array
+                        items:
+                          type: object
   /api/hardware:
     get:
       tags: [Hardware]
@@ -790,6 +1035,47 @@ components:
         os:
           type: string
           default: ubuntu
+        auto_install:
+          type: boolean
+          default: true
+          description: >-
+            Automatically install the Discord package stack (discord.py,
+            python-dotenv, aiohttp, requests, psutil, colorama via pip and
+            discord.js, dotenv via npm) into the new VPS workspace in the
+            background. Installed packages are persisted with the VPS.
+    AutoInstallState:
+      type: object
+      description: Persisted state of the automatic Discord-stack installer for a VPS
+      properties:
+        status:
+          type: string
+          enum: [pending, queued, running, done, failed, disabled]
+        queued_at:
+          type: string
+          format: date-time
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        finished_at:
+          type: string
+          format: date-time
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        stack:
+          type: object
+          properties:
+            python:
+              type: array
+              items:
+                type: string
+            node:
+              type: array
+              items:
+                type: string
     VpsStatsResponse:
       type: object
       properties:

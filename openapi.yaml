@@ -148,6 +148,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+  /api/repos/saved:
+    get:
+      tags: [Authentication]
+      summary: List saved repositories (remembered forever)
+      description: >-
+        Returns every repository saved to the persistent database. Pinned
+        entries (kers0ne/1LuhhCrim) are always returned first and can never
+        be removed.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Saved repository list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  repos:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        repo: { type: string }
+                        url: { type: string }
+                        pinned: { type: boolean }
+                        saved_at: { type: string }
+    post:
+      tags: [Authentication]
+      summary: Save a repository forever
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [repo]
+              properties:
+                repo:
+                  type: string
+                  description: 'user/repo or a full GitHub URL'
+      responses:
+        '201':
+          description: Repository saved
+        '400':
+          description: Invalid repository name
+  /api/repos/saved/{repo_id}:
+    delete:
+      tags: [Authentication]
+      summary: Remove a saved repository
+      description: Pinned repositories can never be removed.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: repo_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Removed
+        '403':
+          description: Repository is pinned
+        '404':
+          description: Not found
   /api/vps:
     get:
       tags: [VPS Management]

@@ -3,437 +3,575 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cloud Vps</title>
-  <meta name="description" content="Cloud Vps — Discord bot hosting and VPS workspace.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z' fill='%23972577'/%3E%3Cpath d='M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z' fill='%23BD2E95'/%3E%3C/svg%3E">
+  <title>CloudVps — Forever Cloud</title>
+  <meta name="description" content="CloudVps — glassy VPS & Discord bot hosting. Your account, VPS, files and packages are saved forever.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%238b5cf6'/%3E%3Cstop offset='1' stop-color='%23d946ef'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z' fill='url(%23g)'/%3E%3Cpath d='M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z' fill='url(%23g)' opacity='.75'/%3E%3C/svg%3E">
   <style>
+    /* ================= TOKENS ================= */
     :root {
-      --bg: #0d0f12;
-      --panel: #14171c;
-      --panel-2: #1a1e24;
-      --input-bg: #0f1216;
-      --border: #262c35;
-      --border-soft: #1f242c;
-      --text: #e7eaee;
-      --muted: #99a2ae;
-      --dim: #6b7480;
-      --accent: #5865f2;
-      --accent-hover: #4a56dd;
-      --green: #3fb950;
-      --red: #e5534b;
-      --amber: #d9a23a;
-      --radius: 10px;
-      --radius-sm: 7px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --bg-0: #05060b;
+      --bg-1: #0a0c14;
+      --glass: rgba(255, 255, 255, 0.045);
+      --glass-2: rgba(255, 255, 255, 0.075);
+      --glass-bright: rgba(255, 255, 255, 0.10);
+      --stroke: rgba(255, 255, 255, 0.09);
+      --stroke-soft: rgba(255, 255, 255, 0.06);
+      --text: #eef0f6;
+      --muted: #9aa3b5;
+      --dim: #5d6679;
+      --violet: #8b5cf6;
+      --violet-2: #a78bfa;
+      --fuchsia: #d946ef;
+      --cyan: #22d3ee;
+      --green: #34d399;
+      --red: #fb7185;
+      --amber: #fbbf24;
+      --grad: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+      --grad-soft: linear-gradient(135deg, rgba(139,92,246,.22) 0%, rgba(217,70,239,.22) 100%);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      --glow-violet: 0 0 24px rgba(139, 92, 246, 0.35);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
     body {
-      background: var(--bg);
+      background: var(--bg-0);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       font-size: 14px;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
+      overflow: hidden;
     }
     button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
     input, select, textarea { font: inherit; color: var(--text); }
     ::placeholder { color: var(--dim); }
+    ::selection { background: rgba(139, 92, 246, 0.45); }
 
-    #app { display: flex; height: 100vh; overflow: hidden; }
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 9px; height: 9px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 99px; border: 2px solid transparent; background-clip: content-box; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); border: 2px solid transparent; background-clip: content-box; }
 
-    /* ---------- Sidebar ---------- */
+    /* ================= ANIMATED AURORA BACKGROUND ================= */
+    .aurora { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .aurora::before { content: ""; position: absolute; inset: 0; background: var(--bg-0); }
+    .blob {
+      position: absolute; border-radius: 50%;
+      filter: blur(110px); opacity: 0.55; will-change: transform;
+    }
+    .blob.b1 { width: 560px; height: 560px; top: -180px; left: -120px; background: radial-gradient(circle, rgba(109,40,217,0.55), transparent 65%); animation: drift1 26s ease-in-out infinite alternate; }
+    .blob.b2 { width: 640px; height: 640px; bottom: -240px; right: -160px; background: radial-gradient(circle, rgba(217,70,239,0.38), transparent 65%); animation: drift2 32s ease-in-out infinite alternate; }
+    .blob.b3 { width: 460px; height: 460px; top: 34%; left: 44%; background: radial-gradient(circle, rgba(34,211,238,0.20), transparent 65%); animation: drift3 38s ease-in-out infinite alternate; }
+    @keyframes drift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(120px, 80px) scale(1.15); } }
+    @keyframes drift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-140px,-90px) scale(1.1); } }
+    @keyframes drift3 { from { transform: translate(0,0) scale(1); } to { transform: translate(-90px, 70px) scale(1.2); } }
+    .grid-overlay {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 20%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 20%, transparent 75%);
+    }
+    #app { position: relative; z-index: 1; display: flex; height: 100vh; overflow: hidden; }
+
+    /* ================= GLASS PRIMITIVES ================= */
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(18px) saturate(1.5);
+      -webkit-backdrop-filter: blur(18px) saturate(1.5);
+    }
+
+    /* ================= SIDEBAR ================= */
     #sidebar {
-      width: 212px;
-      min-width: 212px;
-      background: #101318;
-      border-right: 1px solid var(--border-soft);
-      display: flex;
-      flex-direction: column;
+      width: 232px; min-width: 232px;
+      display: flex; flex-direction: column;
+      background: rgba(10, 12, 20, 0.55);
+      border-right: 1px solid var(--stroke-soft);
+      backdrop-filter: blur(24px) saturate(1.5);
+      -webkit-backdrop-filter: blur(24px) saturate(1.5);
     }
     .brand {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 16px 16px 14px;
-      font-weight: 600;
-      font-size: 15px;
-      letter-spacing: -0.01em;
+      display: flex; align-items: center; gap: 10px;
+      padding: 20px 18px 16px;
+      font-weight: 700; font-size: 16.5px; letter-spacing: -0.02em;
     }
-    .brand svg { flex-shrink: 0; }
-    #nav { padding: 4px 10px; display: flex; flex-direction: column; gap: 2px; }
+    .brand .logo { width: 30px; height: 30px; border-radius: 9px; background: var(--grad); display: flex; align-items: center; justify-content: center; box-shadow: var(--glow-violet); flex-shrink: 0; }
+    .brand .logo svg { width: 17px; height: 17px; }
+    .brand .wordmark b { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 800; }
+    .brand .wordmark span { color: var(--text); font-weight: 300; }
+    .brand .tagline { display: block; font-size: 10px; font-weight: 500; color: var(--dim); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 1px; }
+    #nav { padding: 8px 12px; display: flex; flex-direction: column; gap: 4px; }
+    .nav-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); padding: 10px 10px 4px; }
     .nav-btn {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      width: 100%;
-      padding: 8px 10px;
+      display: flex; align-items: center; gap: 11px;
+      width: 100%; padding: 9px 12px;
       border-radius: var(--radius-sm);
-      color: var(--muted);
-      font-size: 13.5px;
-      font-weight: 500;
-      text-align: left;
-    }
-    .nav-btn:hover { background: var(--panel-2); color: var(--text); }
-    .nav-btn.active { background: var(--panel-2); color: var(--text); }
-    .nav-btn svg { flex-shrink: 0; opacity: 0.85; }
-    .sidebar-footer {
-      margin-top: auto;
-      padding: 12px;
-      border-top: 1px solid var(--border-soft);
-    }
-    .user-pill {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 7px 9px;
-      border-radius: var(--radius-sm);
-      background: var(--panel);
-      border: 1px solid var(--border-soft);
-    }
-    .user-avatar {
-      width: 26px; height: 26px;
-      border-radius: 6px;
-      background: var(--accent);
-      color: #fff;
-      font-size: 12px;
-      font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .user-pill .name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .user-pill .sub { font-size: 11px; color: var(--muted); }
-    .footer-actions { display: flex; gap: 8px; }
-
-    /* ---------- Main ---------- */
-    #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-    #topbar {
-      height: 53px;
-      min-height: 53px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 0 20px;
-      border-bottom: 1px solid var(--border-soft);
-      background: rgba(13, 15, 18, 0.6);
-    }
-    #page-title { font-size: 14.5px; font-weight: 600; }
-    #page-actions { display: flex; gap: 8px; align-items: center; }
-    #content { flex: 1; overflow-y: auto; padding: 20px; }
-    .view { display: none; max-width: 1100px; margin: 0 auto; }
-    .view.active { display: block; }
-
-    /* ---------- Cards ---------- */
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius);
-      padding: 16px;
-    }
-    .card + .card { margin-top: 14px; }
-    .card-title {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--muted);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
-    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
-
-    /* ---------- Buttons ---------- */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      height: 32px;
-      padding: 0 13px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--panel-2);
-      font-size: 13px;
-      font-weight: 500;
-      white-space: nowrap;
-      transition: background 0.12s, border-color 0.12s;
-    }
-    .btn:hover { background: #21262e; }
-    .btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
-    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent-hover); }
-    .btn-success { background: #1d6b3c; border-color: #24804a; color: #d7f5e1; }
-    .btn-success:hover { background: #227a45; }
-    .btn-danger { background: transparent; border-color: rgba(229, 83, 75, 0.4); color: var(--red); }
-    .btn-danger:hover { background: rgba(229, 83, 75, 0.1); }
-    .btn-sm { height: 27px; padding: 0 10px; font-size: 12.5px; }
-    .btn-icon {
-      width: 26px; height: 26px; padding: 0;
-      display: inline-flex; align-items: center; justify-content: center;
-      border-radius: 6px; color: var(--muted);
+      color: var(--muted); font-size: 13.5px; font-weight: 500;
+      text-align: left; position: relative;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
       border: 1px solid transparent;
     }
-    .btn-icon:hover { background: var(--panel-2); color: var(--text); border-color: var(--border); }
-
-    /* ---------- Forms ---------- */
-    .field { margin-bottom: 12px; }
-    .field label { display: block; font-size: 12.5px; font-weight: 500; color: var(--muted); margin-bottom: 5px; }
-    .input, select.input, textarea.input {
-      width: 100%;
-      height: 34px;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 0 11px;
-      font-size: 13.5px;
-      outline: none;
+    .nav-btn:hover { background: var(--glass-2); color: var(--text); }
+    .nav-btn.active {
+      background: var(--grad-soft);
+      border-color: rgba(139, 92, 246, 0.35);
+      color: #fff;
+      box-shadow: inset 0 0 18px rgba(139, 92, 246, 0.12), 0 4px 18px rgba(139, 92, 246, 0.12);
     }
-    textarea.input { height: auto; padding: 9px 11px; resize: vertical; }
-    .input:focus, select.input:focus, textarea.input:focus { border-color: var(--accent); }
-    select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 16px) 15px, calc(100% - 11px) 15px; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 28px; }
+    .nav-btn.active::before {
+      content: ""; position: absolute; left: -12px; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 18px; border-radius: 0 3px 3px 0; background: var(--grad); box-shadow: var(--glow-violet);
+    }
+    .nav-btn svg { flex-shrink: 0; opacity: 0.9; }
+    .sidebar-footer { margin-top: auto; padding: 14px; border-top: 1px solid var(--stroke-soft); display: flex; flex-direction: column; gap: 9px; }
+    .save-pill {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 11px; border-radius: var(--radius-sm);
+      background: rgba(52, 211, 153, 0.07);
+      border: 1px solid rgba(52, 211, 153, 0.22);
+      font-size: 11.5px; font-weight: 600; color: #a7f3d0;
+    }
+    .save-pill .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 0 rgba(52,211,153,.6); animation: pulse 2s infinite; flex-shrink: 0; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52,211,153,.55); } 70% { box-shadow: 0 0 0 7px rgba(52,211,153,0); } 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); } }
+    .save-pill .sub { display: block; font-size: 10px; color: rgba(167,243,208,.6); font-weight: 500; }
+    .user-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px; border-radius: var(--radius-sm);
+      background: var(--glass); border: 1px solid var(--stroke);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
+    .user-avatar {
+      width: 30px; height: 30px; border-radius: 9px;
+      background: var(--grad); color: #fff;
+      font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      box-shadow: var(--glow-violet);
+    }
+    .user-pill .name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-pill .sub { font-size: 10.5px; color: var(--green); display: flex; align-items: center; gap: 4px; }
+    .footer-actions { display: flex; gap: 8px; }
+
+    /* ================= MAIN ================= */
+    #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    #topbar {
+      height: 60px; min-height: 60px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--stroke-soft);
+      background: rgba(8, 10, 16, 0.5);
+      backdrop-filter: blur(20px) saturate(1.5);
+      -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    }
+    #page-title-wrap { display: flex; flex-direction: column; }
+    #page-title { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+    #page-sub { font-size: 11.5px; color: var(--dim); }
+    #page-actions { display: flex; gap: 8px; align-items: center; }
+    #content { flex: 1; overflow-y: auto; padding: 24px; scroll-behavior: smooth; }
+    .view { display: none; max-width: 1160px; margin: 0 auto; }
+    .view.active { display: block; animation: viewIn 0.25s ease; }
+    @keyframes viewIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    /* ================= CARDS ================= */
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      padding: 18px;
+      backdrop-filter: blur(18px) saturate(1.5);
+      -webkit-backdrop-filter: blur(18px) saturate(1.5);
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 16px; }
+    .card-title {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .card-title .ct-actions { display: flex; gap: 6px; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+    @media (max-width: 920px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ================= BUTTONS ================= */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      height: 34px; padding: 0 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--stroke);
+      background: var(--glass-2);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      font-size: 13px; font-weight: 600; white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+    }
+    .btn:hover { background: var(--glass-bright); border-color: rgba(255,255,255,0.16); }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+    .btn-primary {
+      background: var(--grad); border-color: transparent; color: #fff;
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.35);
+    }
+    .btn-primary:hover { background: var(--grad); filter: brightness(1.12); box-shadow: 0 4px 28px rgba(139, 92, 246, 0.55); }
+    .btn-success { background: rgba(52, 211, 153, 0.14); border-color: rgba(52, 211, 153, 0.35); color: #a7f3d0; }
+    .btn-success:hover { background: rgba(52, 211, 153, 0.22); box-shadow: 0 0 18px rgba(52,211,153,0.2); }
+    .btn-danger { background: rgba(251, 113, 133, 0.08); border-color: rgba(251, 113, 133, 0.35); color: var(--red); }
+    .btn-danger:hover { background: rgba(251, 113, 133, 0.16); box-shadow: 0 0 18px rgba(251,113,133,0.15); }
+    .btn-sm { height: 29px; padding: 0 11px; font-size: 12.5px; border-radius: 8px; }
+    .btn-icon {
+      width: 28px; height: 28px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 8px; color: var(--muted);
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .btn-icon:hover { background: var(--glass-2); color: var(--text); border-color: var(--stroke); }
+
+    /* ================= FORMS ================= */
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.02em; }
+    .input, select.input, textarea.input {
+      width: 100%; height: 38px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius-sm);
+      padding: 0 12px; font-size: 13.5px; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    }
+    textarea.input { height: auto; padding: 10px 12px; resize: vertical; }
+    .input:focus, select.input:focus, textarea.input:focus { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18); }
+    select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 17px) 16px, calc(100% - 12px) 16px; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 30px; }
+    select.input option { background: #12141f; color: var(--text); }
     .input-row { display: flex; gap: 8px; }
     .input-row .input { flex: 1; min-width: 0; }
-    .hint { font-size: 12px; color: var(--dim); margin-top: 6px; }
+    .hint { font-size: 12px; color: var(--dim); margin-top: 7px; }
 
-    /* ---------- Stat strip ---------- */
-    .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
-    @media (max-width: 800px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } }
+    /* ================= HERO STAT STRIP ================= */
+    .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+    @media (max-width: 860px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } }
     .stat {
-      background: var(--panel);
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius);
-      padding: 11px 14px;
+      position: relative; overflow: hidden;
+      background: var(--glass); border: 1px solid var(--stroke);
+      border-radius: var(--radius); padding: 14px 16px;
+      backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5);
+      box-shadow: var(--shadow);
     }
-    .stat .k { font-size: 11.5px; color: var(--muted); font-weight: 500; }
-    .stat .v { font-size: 13.5px; font-weight: 600; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .stat .s { font-size: 11.5px; color: var(--dim); }
+    .stat::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent); }
+    .stat .k { font-size: 10.5px; color: var(--dim); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; }
+    .stat .v { font-size: 16px; font-weight: 700; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: linear-gradient(90deg, #fff, #c4b5fd); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .stat .s { font-size: 11px; color: var(--dim); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* ---------- VPS list ---------- */
+    /* ================= VPS CARDS ================= */
+    .vps-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
     .vps-card {
-      background: var(--panel);
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
+      position: relative; overflow: hidden;
+      background: var(--glass); border: 1px solid var(--stroke);
+      border-radius: var(--radius); padding: 18px;
+      backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5);
+      box-shadow: var(--shadow);
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
     }
-    .vps-card + .vps-card { margin-top: 10px; }
+    .vps-card:hover { border-color: rgba(139, 92, 246, 0.4); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 24px rgba(139,92,246,0.12); }
+    .vps-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: linear-gradient(90deg, transparent 10%, rgba(139,92,246,0.5) 50%, transparent 90%); opacity: 0; transition: opacity 0.2s; }
+    .vps-card:hover::before { opacity: 1; }
+    .vps-head { display: flex; align-items: center; gap: 13px; }
+    .vps-ico {
+      width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+      background: var(--grad-soft); border: 1px solid rgba(139, 92, 246, 0.35);
+      display: flex; align-items: center; justify-content: center; color: var(--violet-2);
+      box-shadow: inset 0 0 14px rgba(139,92,246,0.15);
+    }
     .vps-main { flex: 1; min-width: 0; }
-    .vps-name { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    .vps-specs { font-size: 12.5px; color: var(--muted); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
-    .vps-specs .ip { font-family: var(--mono); font-size: 12px; }
+    .vps-name { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 9px; letter-spacing: -0.01em; }
+    .vps-specs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .spec-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600; font-family: var(--mono);
+      padding: 4px 9px; border-radius: 7px;
+      background: rgba(0,0,0,0.30); border: 1px solid var(--stroke-soft); color: var(--muted);
+    }
+    .spec-chip svg { opacity: 0.6; }
+    .spec-chip.ip { color: var(--cyan); border-color: rgba(34,211,238,0.25); }
+    .vps-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 9px; font-size: 11.5px; color: var(--dim); align-items: center; }
+    .plan-badge {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 3px 8px; border-radius: 6px;
+      background: var(--grad-soft); border: 1px solid rgba(139,92,246,0.35); color: #c4b5fd;
+    }
+    .vps-actions { display: flex; gap: 7px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+    @media (max-width: 760px) { .vps-head { flex-direction: column; align-items: stretch; } .vps-actions { justify-content: flex-start; } }
+
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 3px 9px; border-radius: 99px; flex-shrink: 0;
+    }
+    .status-pill.on { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.35); color: #6ee7b7; }
+    .status-pill.off { background: rgba(255,255,255,0.05); border: 1px solid var(--stroke); color: var(--dim); }
+    .status-pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .status-pill.on .dot { background: var(--green); animation: pulse 2s infinite; }
+    .status-pill.off .dot { background: var(--dim); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex-shrink: 0; display: inline-block; }
+    .dot.on { background: var(--green); box-shadow: 0 0 8px rgba(52,211,153,0.7); }
+    .dot.err { background: var(--red); box-shadow: 0 0 8px rgba(251,113,133,0.7); }
+    .status-text { font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
 
     /* ---------- Packages ---------- */
-    .pkg-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    .pkg-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-family: var(--mono); padding: 3px 9px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel-2); color: var(--muted); }
+    .pkg-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .pkg-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11.5px; font-weight: 500; font-family: var(--mono);
+      padding: 4px 11px; border-radius: 99px;
+      border: 1px solid var(--stroke); background: rgba(0,0,0,0.30); color: var(--muted);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .pkg-chip:hover { border-color: rgba(139,92,246,0.4); color: var(--text); }
     .pkg-chip .pv { color: var(--dim); }
-    .pkg-chip.auto { border-color: rgba(88, 101, 242, .45); color: #9aa6ff; }
-    .pkg-chip.pending { border-color: rgba(240, 178, 50, .4); color: #f0b232; }
-    .pkg-state { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; }
-    .pkg-state.installing { color: #f0b232; }
+    .pkg-chip.auto { border-color: rgba(139, 92, 246, 0.45); color: #c4b5fd; background: rgba(139,92,246,0.07); }
+    .pkg-chip.pending { border-color: rgba(251, 191, 36, 0.4); color: var(--amber); }
+    .pkg-state { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; }
+    .pkg-state.installing { color: var(--amber); }
     .pkg-state.done { color: var(--green); }
-    .pkg-state.failed { color: var(--red, #f85149); }
-    .spinner { width: 11px; height: 11px; border: 2px solid rgba(240, 178, 50, .25); border-top-color: #f0b232; border-radius: 50%; animation: pkgspin .8s linear infinite; display: inline-block; flex-shrink: 0; }
+    .pkg-state.failed { color: var(--red); }
+    .spinner { width: 12px; height: 12px; border: 2px solid rgba(251, 191, 36, 0.25); border-top-color: var(--amber); border-radius: 50%; animation: pkgspin 0.8s linear infinite; display: inline-block; flex-shrink: 0; }
     @keyframes pkgspin { to { transform: rotate(360deg); } }
-    .vps-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
-    @media (max-width: 700px) { .vps-card { flex-direction: column; align-items: stretch; } .vps-actions { justify-content: flex-start; } }
 
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex-shrink: 0; display: inline-block; }
-    .dot.on { background: var(--green); }
-    .dot.err { background: var(--red); }
-    .status-text { font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+    /* ---------- Saved repos ---------- */
+    .repo-row {
+      display: flex; align-items: center; gap: 11px;
+      padding: 11px 13px; border-radius: var(--radius-sm);
+      background: rgba(0,0,0,0.25); border: 1px solid var(--stroke-soft);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .repo-row + .repo-row { margin-top: 8px; }
+    .repo-row:hover { border-color: rgba(139,92,246,0.35); background: rgba(0,0,0,0.35); }
+    .repo-ico { width: 32px; height: 32px; border-radius: 9px; background: rgba(255,255,255,0.05); border: 1px solid var(--stroke); display: flex; align-items: center; justify-content: center; color: var(--muted); flex-shrink: 0; }
+    .repo-name { font-family: var(--mono); font-size: 12.5px; font-weight: 600; word-break: break-all; }
+    .repo-sub { font-size: 10.5px; color: var(--dim); display: flex; align-items: center; gap: 5px; }
+    .pin-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--amber); }
 
     /* ---------- Empty state ---------- */
     .empty {
-      border: 1px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 42px 20px;
-      text-align: center;
-      color: var(--muted);
+      border: 1.5px dashed rgba(255,255,255,0.14);
+      border-radius: var(--radius); padding: 48px 24px;
+      text-align: center; color: var(--muted);
+      background: rgba(255,255,255,0.02);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     }
-    .empty h3 { font-size: 14.5px; color: var(--text); font-weight: 600; margin-bottom: 5px; }
-    .empty p { font-size: 13px; margin-bottom: 14px; }
+    .empty .empty-ico { width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 16px; background: var(--grad-soft); border: 1px solid rgba(139,92,246,0.3); display: flex; align-items: center; justify-content: center; color: var(--violet-2); }
+    .empty h3 { font-size: 15.5px; color: var(--text); font-weight: 700; margin-bottom: 6px; }
+    .empty p { font-size: 13px; margin-bottom: 16px; color: var(--muted); }
 
     /* ---------- Dropzone ---------- */
     .dropzone {
-      border: 1.5px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 22px;
-      text-align: center;
-      color: var(--muted);
-      cursor: pointer;
-      transition: border-color 0.12s, background 0.12s;
-      background: var(--panel);
+      border: 1.5px dashed rgba(255,255,255,0.16);
+      border-radius: var(--radius); padding: 26px;
+      text-align: center; color: var(--muted); cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+      background: rgba(0,0,0,0.22);
     }
-    .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: rgba(88, 101, 242, 0.05); }
-    .dropzone .dz-title { color: var(--text); font-weight: 500; font-size: 13.5px; }
-    .dropzone .dz-sub { font-size: 12px; margin-top: 3px; }
+    .dropzone:hover, .dropzone.drag { border-color: var(--violet); background: rgba(139,92,246,0.06); box-shadow: 0 0 24px rgba(139,92,246,0.12) inset; }
+    .dropzone .dz-title { color: var(--text); font-weight: 600; font-size: 13.5px; }
+    .dropzone .dz-sub { font-size: 12px; margin-top: 3px; color: var(--dim); }
 
     /* ---------- File tree ---------- */
-    .tree { font-size: 13px; }
+    .tree { font-size: 13px; max-height: 340px; overflow-y: auto; }
     .tree-row {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      color: var(--muted);
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 9px; border-radius: 8px; cursor: pointer; color: var(--muted);
+      transition: background 0.12s, color 0.12s;
     }
-    .tree-row:hover { background: var(--panel-2); color: var(--text); }
-    .tree-row.selected { background: rgba(88, 101, 242, 0.14); color: var(--text); }
+    .tree-row:hover { background: var(--glass-2); color: var(--text); }
+    .tree-row.selected { background: rgba(139, 92, 246, 0.16); color: var(--text); border: 1px solid rgba(139,92,246,0.3); }
     .tree-row .t-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .tree-row .t-meta { font-size: 11.5px; color: var(--dim); flex-shrink: 0; }
+    .tree-row .t-meta { font-size: 11px; color: var(--dim); flex-shrink: 0; font-family: var(--mono); }
     .tree-row .t-actions { display: none; gap: 2px; flex-shrink: 0; }
     .tree-row:hover .t-actions { display: inline-flex; }
-    .tree-empty { color: var(--dim); font-size: 12.5px; padding: 10px 4px; }
+    .tree-empty { color: var(--dim); font-size: 12.5px; padding: 12px 4px; }
 
     /* ---------- Editor ---------- */
     #editor-wrap { display: none; }
     #editor-wrap.open { display: block; }
-    .editor-head {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
+    .editor-head { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
     .editor-head .fname { font-family: var(--mono); font-size: 12.5px; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .dirty-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); display: none; }
+    .dirty-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); display: none; box-shadow: 0 0 8px rgba(251,191,36,0.6); }
     .dirty-dot.show { display: block; }
     #file-editor {
-      width: 100%;
-      min-height: 300px;
-      background: #0b0d10;
-      border: 1px solid var(--border-soft);
+      width: 100%; min-height: 300px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--stroke);
       border-radius: var(--radius-sm);
-      color: #dfe3e8;
-      font-family: var(--mono);
-      font-size: 12.5px;
-      line-height: 1.6;
-      padding: 12px;
-      outline: none;
-      resize: vertical;
-      tab-size: 4;
+      color: #dfe3e8; font-family: var(--mono);
+      font-size: 12.5px; line-height: 1.65;
+      padding: 13px; outline: none; resize: vertical; tab-size: 4;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     }
-    #file-editor:focus { border-color: var(--accent); }
+    #file-editor:focus { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15); }
 
-    /* ---------- Logs ---------- */
-    .log-box {
-      background: #0b0d10;
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius-sm);
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.65;
-      color: #c8cdd4;
-      padding: 10px 12px;
-      height: 250px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
+    /* ---------- Logs (terminal) ---------- */
+    .terminal { border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--stroke); background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    .terminal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 13px; background: rgba(255,255,255,0.035); border-bottom: 1px solid var(--stroke-soft);
     }
-    .log-box:empty::before { content: "No logs yet. Start the bot to see output here."; color: var(--dim); }
+    .terminal-dots { display: flex; gap: 6px; }
+    .terminal-dots span { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dots span:nth-child(1) { background: #ff5f57; } .terminal-dots span:nth-child(2) { background: #febc2e; } .terminal-dots span:nth-child(3) { background: #28c840; }
+    .terminal-title { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+    .log-box {
+      font-family: var(--mono); font-size: 12px; line-height: 1.7;
+      color: #a5f3b4; padding: 12px 14px;
+      height: 280px; overflow-y: auto;
+      white-space: pre-wrap; word-break: break-word;
+      text-shadow: 0 0 6px rgba(52, 211, 153, 0.25);
+    }
+    .log-box:empty::before { content: "No logs yet — start your bot and watch it come alive here."; color: var(--dim); text-shadow: none; }
 
     /* ---------- Account ---------- */
-    .account-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); }
+    .profile-hero { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .profile-avatar {
+      width: 64px; height: 64px; border-radius: 20px;
+      background: var(--grad); color: #fff; font-size: 26px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--glow-violet); flex-shrink: 0;
+    }
+    .profile-name { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+    .profile-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+    .forever-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      margin-left: auto; padding: 8px 14px; border-radius: 99px;
+      background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3);
+      color: #a7f3d0; font-size: 12px; font-weight: 600;
+    }
+    .forever-badge svg { flex-shrink: 0; }
+    .protect-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 700px) { .protect-list { grid-template-columns: 1fr; } }
+    .protect-item { display: flex; gap: 10px; align-items: flex-start; padding: 11px 13px; border-radius: var(--radius-sm); background: rgba(0,0,0,0.22); border: 1px solid var(--stroke-soft); }
+    .protect-item .pi-ico { color: var(--green); flex-shrink: 0; margin-top: 1px; }
+    .protect-item .pi-t { font-size: 12.5px; font-weight: 600; }
+    .protect-item .pi-s { font-size: 11.5px; color: var(--dim); margin-top: 1px; }
+    .account-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--stroke-soft); }
     .account-row:last-child { border-bottom: none; }
     .account-row .k { font-size: 13px; color: var(--muted); }
-    .account-row .v { font-size: 13px; font-weight: 500; font-family: var(--mono); word-break: break-all; text-align: right; }
+    .account-row .v { font-size: 13px; font-weight: 600; font-family: var(--mono); word-break: break-all; text-align: right; }
 
-    /* ---------- Modal ---------- */
+    /* ================= MODALS ================= */
     .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(5, 7, 10, 0.66);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      padding: 16px;
+      position: fixed; inset: 0;
+      background: rgba(3, 4, 8, 0.72);
+      backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
+      display: none; align-items: center; justify-content: center;
+      z-index: 100; padding: 16px;
     }
     .modal-backdrop.open { display: flex; }
     .modal {
-      width: 100%;
-      max-width: 400px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      width: 100%; max-width: 420px;
+      background: rgba(16, 18, 30, 0.88);
+      border: 1px solid var(--stroke);
+      border-radius: 20px; padding: 24px;
+      backdrop-filter: blur(28px) saturate(1.6); -webkit-backdrop-filter: blur(28px) saturate(1.6);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 40px rgba(139,92,246,0.08);
+      animation: modalIn 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
     }
-    .modal h2 { font-size: 15.5px; font-weight: 600; margin-bottom: 14px; }
-    .modal .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
-    .modal-error { display: none; font-size: 12.5px; color: var(--red); background: rgba(229, 83, 75, 0.09); border: 1px solid rgba(229, 83, 75, 0.3); border-radius: var(--radius-sm); padding: 7px 10px; margin-bottom: 12px; }
-    .auth-tabs { display: flex; gap: 4px; background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 14px; }
-    .auth-tabs button { flex: 1; height: 28px; border-radius: 5px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
-    .auth-tabs button.active { background: var(--panel-2); color: var(--text); }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.94) translateY(10px); } to { opacity: 1; transform: none; } }
+    .modal h2 { font-size: 17px; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.01em; }
+    .modal .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    .modal-error { display: none; font-size: 12.5px; color: var(--red); background: rgba(251, 113, 133, 0.08); border: 1px solid rgba(251, 113, 133, 0.3); border-radius: var(--radius-sm); padding: 8px 11px; margin-bottom: 14px; }
+    .auth-logo { width: 52px; height: 52px; border-radius: 16px; background: var(--grad); box-shadow: var(--glow-violet); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+    .auth-logo svg { width: 28px; height: 28px; }
+    .auth-sub { font-size: 12.5px; color: var(--muted); margin: -10px 0 16px; }
+    .auth-tabs { display: flex; gap: 4px; background: rgba(0,0,0,0.35); border: 1px solid var(--stroke); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 16px; }
+    .auth-tabs button { flex: 1; height: 30px; border-radius: 7px; font-size: 12.5px; font-weight: 600; color: var(--muted); transition: all 0.15s; }
+    .auth-tabs button.active { background: var(--grad); color: #fff; box-shadow: 0 2px 12px rgba(139,92,246,0.4); }
+    .saved-users { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .saved-user-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11.5px; font-weight: 600; font-family: var(--mono);
+      padding: 5px 11px; border-radius: 99px;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--stroke); color: var(--muted);
+      transition: all 0.15s;
+    }
+    .saved-user-chip:hover { border-color: var(--violet); color: var(--text); background: rgba(139,92,246,0.1); }
+    .auth-foot { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--stroke-soft); font-size: 11.5px; color: var(--dim); display: flex; align-items: center; gap: 7px; }
+    .auth-foot svg { color: var(--green); flex-shrink: 0; }
 
-    /* ---------- Toasts ---------- */
-    #toasts { position: fixed; bottom: 18px; right: 18px; display: flex; flex-direction: column; gap: 8px; z-index: 200; max-width: 360px; }
+    /* ================= TOASTS ================= */
+    #toasts { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 9px; z-index: 200; max-width: 370px; }
     .toast {
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      border-radius: 8px;
-      padding: 10px 13px;
-      font-size: 13px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      animation: toast-in 0.15s ease;
+      background: rgba(16, 18, 30, 0.9);
+      border: 1px solid var(--stroke);
+      border-left: 3px solid var(--violet);
+      border-radius: 12px; padding: 12px 15px; font-size: 13px;
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+      animation: toast-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2);
     }
     .toast.ok { border-left-color: var(--green); }
     .toast.err { border-left-color: var(--red); }
-    @keyframes toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @keyframes toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
 
-    @media (max-width: 760px) {
-      #sidebar { width: 62px; min-width: 62px; }
-      .brand span, .nav-btn span, .user-pill .info { display: none; }
-      .brand { justify-content: center; padding: 16px 8px 14px; }
-      .nav-btn { justify-content: center; padding: 9px 0; }
-      .user-pill { justify-content: center; padding: 6px; }
+    /* ================= RESPONSIVE ================= */
+    @media (max-width: 780px) {
+      #sidebar { width: 64px; min-width: 64px; }
+      .brand .wordmark, .nav-btn span, .user-pill .info, .save-pill .save-txt, .nav-label { display: none; }
+      .brand { justify-content: center; padding: 16px 8px; }
+      .nav-btn { justify-content: center; padding: 10px 0; }
+      .nav-btn.active::before { display: none; }
+      .user-pill, .save-pill { justify-content: center; padding: 7px; }
       .footer-actions { justify-content: center; }
     }
   </style>
 </head>
 <body>
+  <div class="aurora">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
   <div id="app">
     <aside id="sidebar">
       <div class="brand">
-        <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
-          <path d="M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z" fill="#972577"/>
-          <path d="M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z" fill="#BD2E95"/>
-        </svg>
-        <span>Cloud Vps</span>
+        <div class="logo">
+          <svg viewBox="0 0 100 100" fill="none">
+            <path d="M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z" fill="#fff"/>
+            <path d="M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z" fill="#fff" opacity=".7"/>
+          </svg>
+        </div>
+        <div class="wordmark"><span>Cloud</span><b>Vps</b><span class="tagline">Forever Cloud</span></div>
       </div>
 
       <nav id="nav">
+        <div class="nav-label">Platform</div>
         <button class="nav-btn active" data-tab="vps" onclick="switchTab('vps')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           <span>My Vps</span>
         </button>
         <button class="nav-btn" data-tab="bot" onclick="switchTab('bot')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
           <span>Dc Bots</span>
         </button>
         <button class="nav-btn" data-tab="account" onclick="switchTab('account')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span>Account</span>
         </button>
       </nav>
 
-      <div class="sidebar-footer" id="sidebar-footer">
-        <!-- filled by JS -->
-      </div>
+      <div class="sidebar-footer" id="sidebar-footer"></div>
     </aside>
 
     <div id="main">
       <header id="topbar">
-        <div id="page-title">My Vps</div>
+        <div id="page-title-wrap">
+          <div id="page-title">My Vps</div>
+          <div id="page-sub">Everything auto-saves — forever</div>
+        </div>
         <div id="page-actions"></div>
       </header>
 
@@ -441,12 +579,23 @@
         <!-- ============ MY VPS ============ -->
         <section class="view active" id="view-vps">
           <div class="stat-strip" id="hw-strip" style="display:none;">
-            <div class="stat"><div class="k">CPU</div><div class="v" id="hw-cpu">—</div><div class="s" id="hw-cpu-sub">—</div></div>
-            <div class="stat"><div class="k">Memory</div><div class="v" id="hw-ram">—</div><div class="s" id="hw-ram-sub">—</div></div>
-            <div class="stat"><div class="k">Platform</div><div class="v" id="hw-platform">—</div><div class="s" id="hw-platform-sub">—</div></div>
-            <div class="stat"><div class="k">Server Uptime</div><div class="v" id="hw-uptime">—</div><div class="s" id="hw-uptime-sub">Online</div></div>
+            <div class="stat"><div class="k"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>CPU</div><div class="v" id="hw-cpu">—</div><div class="s" id="hw-cpu-sub">—</div></div>
+            <div class="stat"><div class="k"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19v-3"/><path d="M10 19v-6"/><path d="M14 19v-9"/><path d="M18 19V7"/></svg>Memory</div><div class="v" id="hw-ram">—</div><div class="s" id="hw-ram-sub">—</div></div>
+            <div class="stat"><div class="k"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/></svg>Platform</div><div class="v" id="hw-platform">—</div><div class="s" id="hw-platform-sub">—</div></div>
+            <div class="stat"><div class="k"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Uptime</div><div class="v" id="hw-uptime">—</div><div class="s" id="hw-uptime-sub">Always on · 24/7</div></div>
           </div>
-          <div id="vps-list"></div>
+          <div id="vps-list" class="vps-grid"></div>
+          <div class="card" id="repos-card" style="margin-top:16px; display:none;">
+            <div class="card-title">
+              <span>Saved Repositories — remembered forever</span>
+              <span class="ct-actions">
+                <input type="text" class="input" id="repo-add-name" placeholder="user/repo" style="width:150px; height:29px; font-size:12px; font-family:var(--mono);" spellcheck="false" onkeydown="if (event.key === 'Enter') addSavedRepo()">
+                <button class="btn btn-sm" onclick="addSavedRepo()">+ Save Repo</button>
+              </span>
+            </div>
+            <div id="repo-list"></div>
+            <div class="hint">Saved repos live in the database forever and can be cloned into any VPS in one click.</div>
+          </div>
         </section>
 
         <!-- ============ DC BOTS ============ -->
@@ -454,31 +603,31 @@
           <div id="bot-empty"></div>
 
           <div id="bot-body" style="display:none;">
-            <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-              <div class="field" style="margin:0; flex:1; min-width:180px;">
-                <label style="margin-bottom:4px;">VPS</label>
+            <div class="card" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+              <div class="field" style="margin:0; flex:1; min-width:200px;">
+                <label style="margin-bottom:5px;">Instance</label>
                 <select class="input" id="bot-vps-select" onchange="setBotVps(this.value)"></select>
               </div>
-              <div style="display:flex; align-items:center; gap:14px; padding-top:18px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:16px; padding-top:20px; flex-wrap:wrap;">
                 <span class="status-text"><span class="dot" id="bot-status-dot"></span><span id="bot-status-text">Stopped</span></span>
                 <span class="status-text" id="bot-uptime-text" style="display:none;"></span>
               </div>
             </div>
 
-            <div class="card" style="margin-top:14px;">
+            <div class="card" style="margin-top:16px;">
               <div class="card-title">Upload Files</div>
               <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
                 <div class="dz-title">Click or drag files here</div>
-                <div class="dz-sub">Zip files are extracted automatically</div>
+                <div class="dz-sub">Zip files are extracted automatically · files are saved to your VPS forever</div>
               </div>
               <input type="file" id="file-input" multiple style="display:none" onchange="uploadFiles(this.files); this.value='';">
             </div>
 
-            <div class="grid-2" style="margin-top:14px;">
+            <div class="grid-2" style="margin-top:16px;">
               <div class="card">
                 <div class="card-title">
                   <span>Files</span>
-                  <span style="display:flex; gap:6px;">
+                  <span class="ct-actions">
                     <button class="btn btn-sm" onclick="newFile()">New File</button>
                     <button class="btn btn-sm" onclick="newFolder()">New Folder</button>
                   </span>
@@ -514,7 +663,7 @@
                     <option value="user">User token</option>
                   </select>
                 </div>
-                <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
+                <div style="display:flex; gap:8px; margin-top:18px; flex-wrap:wrap;">
                   <button class="btn btn-success" id="btn-start" onclick="startBot()">Start</button>
                   <button class="btn" id="btn-restart" onclick="restartBot()">Restart</button>
                   <button class="btn btn-danger" id="btn-stop" onclick="stopBot()">Stop</button>
@@ -522,10 +671,10 @@
               </div>
             </div>
 
-            <div class="card" style="margin-top:14px;">
+            <div class="card" style="margin-top:16px;">
               <div class="card-title">
                 <span>Packages</span>
-                <span style="display:flex; gap:6px; align-items:center;">
+                <span class="ct-actions">
                   <span class="pkg-state" id="pkg-auto-state"></span>
                   <button class="btn btn-sm" id="btn-discord-stack" onclick="installDiscordStack()" title="Install discord.py + discord.js and common libraries">Install Discord Stack</button>
                 </span>
@@ -539,11 +688,11 @@
                 </select>
                 <button class="btn btn-primary" id="btn-pkg-install" onclick="installPackage()">Install</button>
               </div>
-              <div class="hint">Discord packages (discord.py, discord.js, dotenv…) install automatically on VPS creation. Anything you add here is saved with the VPS and re-installed if missing when bots start.</div>
-              <div class="pkg-chips" id="pkg-list" style="margin-top:10px;"></div>
+              <div class="hint">Discord packages install automatically on VPS creation. Everything you add is saved with the VPS forever and re-installed if missing.</div>
+              <div class="pkg-chips" id="pkg-list" style="margin-top:12px;"></div>
             </div>
 
-            <div class="card" id="editor-card" style="display:none;">
+            <div class="card" id="editor-card" style="display:none; margin-top:16px;">
               <div class="editor-head">
                 <span class="fname" id="editor-fname"></span>
                 <span class="dirty-dot" id="editor-dirty"></span>
@@ -553,14 +702,20 @@
               <textarea id="file-editor" spellcheck="false" oninput="markDirty()"></textarea>
             </div>
 
-            <div class="card" style="margin-top:14px;">
+            <div class="card" style="margin-top:16px;">
               <div class="card-title">
-                <span>Logs</span>
-                <span style="display:flex; gap:6px;">
+                <span>Live Logs</span>
+                <span class="ct-actions">
                   <button class="btn btn-sm" onclick="clearLogs()">Clear</button>
                 </span>
               </div>
-              <div class="log-box" id="log-box"></div>
+              <div class="terminal">
+                <div class="terminal-head">
+                  <div class="terminal-dots"><span></span><span></span><span></span></div>
+                  <div class="terminal-title" id="terminal-title">root@cloudvps: ~/workspace $ tail -f</div>
+                </div>
+                <div class="log-box" id="log-box"></div>
+              </div>
             </div>
           </div>
         </section>
@@ -576,12 +731,20 @@
   <!-- Auth modal -->
   <div class="modal-backdrop" id="auth-backdrop" onclick="if (event.target === this) closeAuth()">
     <div class="modal">
-      <h2 id="auth-title">Sign In</h2>
+      <div class="auth-logo">
+        <svg viewBox="0 0 100 100" fill="none">
+          <path d="M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z" fill="#fff"/>
+          <path d="M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z" fill="#fff" opacity=".7"/>
+        </svg>
+      </div>
+      <h2 id="auth-title">Create Account</h2>
+      <p class="auth-sub" id="auth-sub">Your account, VPS and bots are saved forever — never deleted.</p>
       <div class="modal-error" id="auth-error"></div>
       <div class="auth-tabs">
         <button id="tab-login" onclick="setAuthMode('login')">Sign In</button>
         <button id="tab-signup" class="active" onclick="setAuthMode('signup')">Create Account</button>
       </div>
+      <div class="saved-users" id="saved-users" style="display:none;"></div>
       <div class="field">
         <label for="auth-username">Username</label>
         <input type="text" class="input" id="auth-username" autocomplete="username" spellcheck="false">
@@ -592,9 +755,13 @@
       </div>
       <div class="field" id="auth-confirm-field">
         <label for="auth-confirm">Confirm Password</label>
-        <input type="password" id="auth-confirm" autocomplete="new-password">
+        <input type="password" id="auth-confirm" autocomplete="new-password" style="width:100%; height:38px; background:rgba(0,0,0,0.35); border:1px solid var(--stroke); border-radius:var(--radius-sm); padding:0 12px; font-size:13.5px; outline:none;">
       </div>
-      <button class="btn btn-primary" id="auth-submit" style="width:100%;" onclick="submitAuth()">Create Account</button>
+      <button class="btn btn-primary" id="auth-submit" style="width:100%; height:40px;" onclick="submitAuth()">Create Account</button>
+      <div class="auth-foot">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Remembered for 100 years · auto-backups · never pruned
+      </div>
     </div>
   </div>
 
@@ -611,6 +778,7 @@
         <label for="vps-plan">Plan</label>
         <select class="input" id="vps-plan"></select>
       </div>
+      <div class="hint" style="margin-top:-6px; margin-bottom:6px;">Your VPS, its files and packages are saved forever.</div>
       <div class="modal-actions">
         <button class="btn" onclick="closeVpsModal()">Cancel</button>
         <button class="btn btn-primary" id="vps-create-btn" onclick="createVps()">Create</button>
@@ -665,6 +833,7 @@
       statusTimer: null,
       netFailNotified: false,
       pkgAutoStatus: '',      // Discord-stack auto-install status of active VPS
+      savedRepos: [],
     };
 
     const $ = (id) => document.getElementById(id);
@@ -767,7 +936,9 @@
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       $('view-' + tab).classList.add('active');
-      $('page-title').textContent = tab === 'vps' ? 'My Vps' : tab === 'bot' ? 'Dc Bots' : 'Account';
+      const titles = { vps: ['My Vps', 'Your machines — saved forever'], bot: ['Dc Bots', 'Deploy & run 24/7 — state persists'], account: ['Account', 'Forever storage · 100-year session'] };
+      $('page-title').textContent = titles[tab] ? titles[tab][0] : 'CloudVps';
+      $('page-sub').textContent = titles[tab] ? titles[tab][1] : '';
 
       const actions = $('page-actions');
       actions.innerHTML = '';
@@ -782,6 +953,7 @@
         actions.appendChild(b);
         loadVpsList();
         loadHardware();
+        loadSavedRepos();
       } else if (tab === 'bot') {
         loadBotTab();
       } else if (tab === 'account') {
@@ -794,12 +966,16 @@
       const footer = $('sidebar-footer');
       if (STATE.user) {
         footer.innerHTML = `
+          <div class="save-pill"><span class="pulse-dot"></span><span class="save-txt">Forever-Save ON<span class="sub">account · vps · files</span></span></div>
           <div class="user-pill">
             <div class="user-avatar">${esc((STATE.user.username || '?')[0].toUpperCase())}</div>
             <div class="info">
               <div class="name">${esc(STATE.user.username)}</div>
-              <div class="sub">Signed in</div>
+              <div class="sub"><span class="dot on" style="width:6px;height:6px;"></span> Saved · ${esc(STATE.user.vps_count ?? STATE.vpsList.length ?? 0)} VPS</div>
             </div>
+          </div>
+          <div class="footer-actions">
+            <button class="btn btn-sm btn-danger" style="flex:1;" onclick="signOut()">Sign Out</button>
           </div>`;
       } else {
         footer.innerHTML = `
@@ -815,7 +991,8 @@
       setAuthMode(mode);
       $('auth-error').style.display = 'none';
       $('auth-backdrop').classList.add('open');
-      setTimeout(() => $('auth-username').focus(), 30);
+      setTimeout(() => $('auth-username').focus(), 60);
+      loadSavedAccounts();
     }
     function closeAuth() { $('auth-backdrop').classList.remove('open'); }
 
@@ -823,10 +1000,33 @@
       authMode = mode;
       $('tab-login').classList.toggle('active', mode === 'login');
       $('tab-signup').classList.toggle('active', mode === 'signup');
-      $('auth-title').textContent = mode === 'login' ? 'Sign In' : 'Create Account';
+      $('auth-title').textContent = mode === 'login' ? 'Welcome back' : 'Create Account';
+      $('auth-sub').textContent = mode === 'login'
+        ? 'Sign in — your VPS, files and packages are exactly where you left them.'
+        : 'Your account, VPS and bots are saved forever — never deleted.';
       $('auth-confirm-field').style.display = mode === 'signup' ? '' : 'none';
       $('auth-submit').textContent = mode === 'login' ? 'Sign In' : 'Create Account';
       $('auth-error').style.display = 'none';
+    }
+
+    // Quick-pick chips for accounts that already exist on this server.
+    async function loadSavedAccounts() {
+      const wrap = $('saved-users');
+      try {
+        const res = await fetch('/api/users/saved');
+        const data = await res.json();
+        const users = (data && data.users) || [];
+        if (!users.length) { wrap.style.display = 'none'; return; }
+        wrap.style.display = '';
+        wrap.innerHTML = users.slice(0, 8).map(u =>
+          `<button class="saved-user-chip" title="Use this username" onclick="pickSavedUser('${esc(u.username)}')">
+            <span class="user-avatar" style="width:16px;height:16px;font-size:9px;border-radius:5px;">${esc((u.username || '?')[0].toUpperCase())}</span>${esc(u.username)}
+          </button>`).join('');
+      } catch (e) { wrap.style.display = 'none'; }
+    }
+    function pickSavedUser(username) {
+      $('auth-username').value = username;
+      $('auth-password').focus();
     }
 
     async function submitAuth() {
@@ -850,12 +1050,17 @@
 
       if (res.ok && res.data.success) {
         localStorage.setItem('cloudvps_key', res.data.api_key);
+        localStorage.setItem('cloudvps_user', res.data.username);
         STATE.user = { id: res.data.user_id, username: res.data.username, api_key: res.data.api_key };
         closeAuth();
         $('auth-password').value = '';
         $('auth-confirm').value = '';
         renderSidebar();
-        toast('Signed in as ' + STATE.user.username, 'ok');
+        if (res.data.adopted_vps > 0) {
+          toast(`Welcome back — ${res.data.adopted_vps} of your old VPS restored`, 'ok');
+        } else {
+          toast('Signed in as ' + STATE.user.username, 'ok');
+        }
         switchTab(STATE.tab);
       } else {
         showAuthError(res.data.error || 'Authentication failed. Check your details.');
@@ -874,31 +1079,41 @@
       STATE.user = null;
       renderSidebar();
       switchTab('vps');
-      toast('Signed out');
+      toast('Signed out — your data stays saved');
     }
 
     /* ================= MY VPS ================= */
     async function loadVpsList() {
       if (!STATE.user) {
         $('vps-list').innerHTML = guestEmpty('Sign in to create and manage your VPS.', 'Sign In');
+        $('repos-card').style.display = 'none';
         return;
       }
       const res = await api('/api/vps');
       if (!res.ok) return;
       STATE.vpsList = res.data.vps || [];
       renderVpsList();
+      renderSidebar();
     }
 
     function guestEmpty(text, btnLabel) {
-      return `<div class="empty"><h3>${esc(text)}</h3><p>It takes less than a minute.</p>
+      return `<div class="empty">
+        <div class="empty-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+        <h3>${esc(text)}</h3><p>It takes less than a minute — and it is saved forever.</p>
         <button class="btn btn-primary" onclick="openAuth('${btnLabel === 'Sign In' ? 'login' : 'signup'}')">${btnLabel}</button></div>`;
+    }
+
+    function vpsIconSvg() {
+      return `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="6" rx="2"/><rect x="2" y="13" width="20" height="6" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="16" x2="6.01" y2="16"/></svg>`;
     }
 
     function renderVpsList() {
       const wrap = $('vps-list');
       if (!STATE.user) return;
       if (STATE.vpsList.length === 0) {
-        wrap.innerHTML = `<div class="empty"><h3>No VPS yet</h3><p>Create your first VPS to host a Discord bot.</p>
+        wrap.innerHTML = `<div class="empty">
+          <div class="empty-ico">${vpsIconSvg()}</div>
+          <h3>No VPS yet</h3><p>Create your first VPS to host a Discord bot — it will be saved forever.</p>
           <button class="btn btn-primary" onclick="openVpsModal()">Create VPS</button></div>`;
         return;
       }
@@ -909,33 +1124,45 @@
         if (ai && ['queued', 'pending', 'running'].includes(ai.status)) {
           pkgBadge = `<span class="pkg-state installing"><span class="spinner"></span>Installing Discord packages…</span>`;
         } else if (ai && ai.status === 'done') {
-          pkgBadge = `<span class="pkg-state done">Discord stack ✓</span>`;
+          pkgBadge = `<span class="pkg-state done">✓ Discord stack</span>`;
         } else if (ai && ai.status === 'failed') {
           pkgBadge = `<span class="pkg-state failed">Package install failed — retry in Dc Bots</span>`;
         }
+        const created = v.created_at ? new Date(v.created_at).toLocaleDateString() : '';
         return `
         <div class="vps-card">
-          <div class="vps-main">
-            <div class="vps-name"><span class="dot ${on ? 'on' : ''}"></span>${esc(v.name)}</div>
-            <div class="vps-specs">
-              <span>${esc(v.cpu)} · ${esc(v.memory)} · ${esc(v.storage)}</span>
-              <span class="ip">${esc(v.ip)}</span>
-              <span>Plan: ${esc(v.plan)}</span>
-              ${pkgBadge}
+          <div class="vps-head">
+            <div class="vps-ico">${vpsIconSvg()}</div>
+            <div class="vps-main">
+              <div class="vps-name">${esc(v.name)}
+                <span class="status-pill ${on ? 'on' : 'off'}"><span class="dot"></span>${on ? 'Running' : 'Stopped'}</span>
+              </div>
+              <div class="vps-specs">
+                <span class="spec-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>${esc(v.cpu)}</span>
+                <span class="spec-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19v-3"/><path d="M10 19v-6"/><path d="M14 19v-9"/><path d="M18 19V7"/></svg>${esc(v.memory)}</span>
+                <span class="spec-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>${esc(v.storage)}</span>
+                <span class="spec-chip ip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>${esc(v.ip)}</span>
+              </div>
+              <div class="vps-meta">
+                <span class="plan-badge">${esc(v.plan)}</span>
+                ${created ? `<span>created ${esc(created)}</span>` : ''}
+                <span>· saved forever</span>
+                ${pkgBadge}
+              </div>
             </div>
-          </div>
-          <div class="vps-actions">
-            <button class="btn btn-sm btn-primary" onclick="manageBot('${v.id}')">Manage Bot</button>
-            ${on
-              ? `<button class="btn btn-sm" onclick="vpsAction('${v.id}', 'stop')">Stop</button>`
-              : `<button class="btn btn-sm" onclick="vpsAction('${v.id}', 'start')">Start</button>`}
-            <button class="btn btn-sm" onclick="vpsAction('${v.id}', 'restart')">Restart</button>
-            <button class="btn-icon" title="Rename" onclick="renameVps('${v.id}')">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-            </button>
-            <button class="btn-icon" title="Delete" style="color:var(--red);" onclick="deleteVps('${v.id}')">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
+            <div class="vps-actions">
+              <button class="btn btn-sm btn-primary" onclick="manageBot('${v.id}')">Manage Bot</button>
+              ${on
+                ? `<button class="btn btn-sm" onclick="vpsAction('${v.id}', 'stop')">Stop</button>`
+                : `<button class="btn btn-sm btn-success" onclick="vpsAction('${v.id}', 'start')">Start</button>`}
+              <button class="btn btn-sm" onclick="vpsAction('${v.id}', 'restart')">Restart</button>
+              <button class="btn-icon" title="Rename" onclick="renameVps('${v.id}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+              </button>
+              <button class="btn-icon" title="Delete" style="color:var(--red);" onclick="deleteVps('${v.id}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
           </div>
         </div>`;
       }).join('');
@@ -974,6 +1201,84 @@
       switchTab('bot');
     }
 
+    /* ---- Saved repos (remembered forever) ---- */
+    async function loadSavedRepos() {
+      if (!STATE.user) return;
+      const res = await api('/api/repos/saved');
+      if (!res.ok) return;
+      STATE.savedRepos = res.data.repos || [];
+      renderSavedRepos();
+    }
+
+    function renderSavedRepos() {
+      const card = $('repos-card');
+      const list = $('repo-list');
+      if (!STATE.user) { card.style.display = 'none'; return; }
+      card.style.display = '';
+      if (!STATE.savedRepos.length) {
+        list.innerHTML = '<div class="hint" style="margin:0;">No saved repos yet — add one above.</div>';
+        return;
+      }
+      list.innerHTML = STATE.savedRepos.map(r => `
+        <div class="repo-row">
+          <div class="repo-ico">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div class="repo-name">${esc(r.repo)}</div>
+            <div class="repo-sub">${r.pinned ? `<span class="pin-badge">📌 pinned forever</span> ·` : ''} saved ${r.saved_at ? new Date(r.saved_at).toLocaleDateString() : ''}</div>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="cloneSavedRepo('${esc(r.id)}')">Clone to VPS</button>
+          ${r.pinned
+            ? ''
+            : `<button class="btn-icon" title="Remove from saved" style="color:var(--red);" onclick="removeSavedRepo('${esc(r.id)}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>`}
+        </div>`).join('');
+    }
+
+    async function addSavedRepo() {
+      const input = $('repo-add-name');
+      const repo = input.value.trim();
+      if (!repo) { toast('Enter a repo like user/repo', 'err'); return; }
+      const res = await api('/api/repos/saved', { method: 'POST', body: { repo } });
+      if (res.ok) { input.value = ''; toast('Repo saved forever', 'ok'); loadSavedRepos(); }
+      else toast(res.data.error || 'Could not save repo', 'err');
+    }
+
+    async function removeSavedRepo(id) {
+      const ok = await confirmModal('Remove saved repo', 'Remove this repository from your saved list?');
+      if (!ok) return;
+      const res = await api(`/api/repos/saved/${id}`, { method: 'DELETE' });
+      if (res.ok) { toast('Removed', 'ok'); loadSavedRepos(); }
+      else toast(res.data.error || 'Could not remove', 'err');
+    }
+
+    async function cloneSavedRepo(repoId) {
+      const repo = STATE.savedRepos.find(r => r.id === repoId);
+      if (!repo) return;
+      if (!STATE.vpsList.length) { toast('Create a VPS first.', 'err'); openVpsModal(); return; }
+      if (STATE.vpsList.length === 1) return doClone(repo, STATE.vpsList[0].id);
+      const opts = STATE.vpsList.map(v => `${v.id}|||${v.name}`);
+      const picked = await promptModal(`Clone ${repo.repo} into which VPS?`, 'Type a VPS name', STATE.vpsList[0].name);
+      if (!picked) return;
+      const match = STATE.vpsList.find(v => v.name.toLowerCase() === picked.trim().toLowerCase() || v.id === picked.trim());
+      if (!match) { toast('No VPS with that name', 'err'); return; }
+      doClone(repo, match.id);
+    }
+
+    async function doClone(repo, vpsId) {
+      toast(`Cloning ${repo.repo}…`);
+      const res = await api(`/api/vps/${vpsId}/github/clone`, { method: 'POST', body: { repo_url: repo.url, target_folder: 'root' } });
+      if (res.ok) {
+        toast(`Cloned ${repo.repo} into your VPS`, 'ok');
+        STATE.activeVpsId = vpsId;
+        switchTab('bot');
+      } else {
+        toast(res.data.error || 'Clone failed — the repo may be private', 'err');
+      }
+    }
+
     /* ---- Create VPS modal ---- */
     async function openVpsModal() {
       if (!STATE.user) { openAuth('signup'); return; }
@@ -985,10 +1290,10 @@
       }
       const sel = $('vps-plan');
       sel.innerHTML = Object.entries(STATE.plans).map(([k, p]) =>
-        `<option value="${esc(k)}">${esc(k)} — ${esc(p.cpu)}, ${esc(p.memory)}</option>`).join('');
+        `<option value="${esc(k)}">${esc(k)} — ${esc(p.cpu)}, ${esc(p.memory)}, ${esc(p.storage)}</option>`).join('');
       sel.value = 'performance';
       $('vps-backdrop').classList.add('open');
-      setTimeout(() => $('vps-name').focus(), 30);
+      setTimeout(() => $('vps-name').focus(), 60);
     }
     function closeVpsModal() { $('vps-backdrop').classList.remove('open'); }
 
@@ -1002,7 +1307,7 @@
       if (res.ok && res.data.success) {
         closeVpsModal();
         const installing = res.data.auto_install && ['queued', 'pending', 'running'].includes(res.data.auto_install.status);
-        toast(installing ? 'VPS created — Discord packages installing…' : 'VPS created', 'ok');
+        toast(installing ? 'VPS created — Discord packages installing…' : 'VPS created — saved forever', 'ok');
         loadVpsList();
         if (installing) {
           // Refresh the list while the background installer runs so the
@@ -1059,7 +1364,9 @@
       }
       if (STATE.vpsList.length === 0) {
         body.style.display = 'none';
-        empty.innerHTML = `<div class="empty"><h3>No VPS yet</h3><p>Create a VPS first, then upload your bot files.</p>
+        empty.innerHTML = `<div class="empty">
+          <div class="empty-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/></svg></div>
+          <h3>No VPS yet</h3><p>Create a VPS first, then upload your bot files.</p>
           <button class="btn btn-primary" onclick="openVpsModal()">Create VPS</button></div>`;
         return;
       }
@@ -1267,7 +1574,7 @@
       api(`/api/vps/${STATE.activeVpsId}/bot/upload`, { method: 'POST', body: fd })
         .then(res => {
           if (res.ok && res.data.success) {
-            toast(res.data.message || 'Upload complete', 'ok');
+            toast(res.data.message || 'Upload complete — saved forever', 'ok');
             const d = res.data;
             if (d.detected_entry) {
               $('bot-script').value = d.detected_entry;
@@ -1334,7 +1641,7 @@
           if (child.isFile) {
             const selected = STATE.editorPath === path ? ' selected' : '';
             html += `<div class="tree-row${selected}" data-path="${esc(path)}" style="padding-left:${8 + depth * 16}px;">
-              <span style="color:var(--dim); font-size:11px; font-family:var(--mono);">›</span>
+              <span style="color:var(--violet-2); font-size:11px; font-family:var(--mono);">›</span>
               <span class="t-name">${esc(child.name)}</span>
               <span class="t-meta">${formatBytes(child.meta ? child.meta.size : 0)}</span>
               <span class="t-actions">
@@ -1350,7 +1657,7 @@
             const collapsed = STATE.collapsed.has(path);
             html += `<div class="tree-row" data-dir="${esc(path)}" style="padding-left:${8 + depth * 16}px;" onclick="toggleDir('${esc(path)}')">
               <span style="font-size:11px; width:12px; display:inline-block; text-align:center;">${collapsed ? '▸' : '▾'}</span>
-              <span class="t-name" style="font-weight:500;">${esc(child.name)}/</span>
+              <span class="t-name" style="font-weight:600;">${esc(child.name)}/</span>
               <span class="t-actions">
                 <button class="btn-icon" title="Delete" style="color:var(--red);" onclick="event.stopPropagation(); deleteItem('${esc(path)}')">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -1500,11 +1807,29 @@
       const created = STATE.user.created_at ? new Date(STATE.user.created_at).toLocaleDateString() : '—';
       wrap.innerHTML = `
         <div class="card">
-          <div class="card-title">Account</div>
-          <div class="account-row"><span class="k">Username</span><span class="v" style="font-family:inherit;">${esc(STATE.user.username)}</span></div>
-          <div class="account-row"><span class="k">VPS Count</span><span class="v">${STATE.vpsList.length}</span></div>
-          <div class="account-row"><span class="k">Member Since</span><span class="v" style="font-family:inherit;">${esc(created)}</span></div>
+          <div class="profile-hero">
+            <div class="profile-avatar">${esc((STATE.user.username || '?')[0].toUpperCase())}</div>
+            <div>
+              <div class="profile-name">${esc(STATE.user.username)}</div>
+              <div class="profile-sub">Member since ${esc(created)} · ${STATE.vpsList.length} VPS · saved forever</div>
+            </div>
+            <div class="forever-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Protected — remembered for 100 years
+            </div>
+          </div>
         </div>
+
+        <div class="card">
+          <div class="card-title">Forever Storage — what is kept</div>
+          <div class="protect-list">
+            <div class="protect-item"><span class="pi-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span><div><div class="pi-t">Your account</div><div class="pi-s">Never pruned, never auto-deleted — even after server restarts</div></div></div>
+            <div class="protect-item"><span class="pi-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span><div><div class="pi-t">Every VPS & file</div><div class="pi-s">Instances, workspaces and uploads persist across reboots</div></div></div>
+            <div class="protect-item"><span class="pi-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span><div><div class="pi-t">Packages & tokens</div><div class="pi-s">The package ledger and saved tokens are stored with each VPS</div></div></div>
+            <div class="protect-item"><span class="pi-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span><div><div class="pi-t">Auto-backups</div><div class="pi-s">Snapshot every 5 minutes · state flushed twice a minute</div></div></div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-title">API Key</div>
           <div class="account-row">
@@ -1517,8 +1842,10 @@
           </div>
           <div class="hint">Use this key for API access. Anyone with it can control your VPS.</div>
         </div>
+
         <div class="card">
           <div class="card-title" style="margin-bottom:8px;">Session</div>
+          <p style="font-size:12.5px; color:var(--muted); margin-bottom:12px;">You stay signed in for 100 years — no forced logouts, ever.</p>
           <button class="btn btn-danger" onclick="signOut()">Sign Out</button>
         </div>`;
     }
@@ -1562,6 +1889,9 @@
       if (res.ok && res.data.authenticated && res.data.user) {
         STATE.user = res.data.user;
         renderSidebar();
+      } else {
+        // No saved session — invite the user in. Their data is safe forever.
+        openAuth('signup');
       }
       const plansRes = await api('/api/plans');
       if (plansRes.ok) STATE.plans = plansRes.data;

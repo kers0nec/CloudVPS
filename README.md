@@ -1,15 +1,36 @@
 # Cloud Vps
 
-A small VPS + Discord bot hosting platform. Sign up, create VPS instances,
-upload your bot files (zip bundles auto-extract on upload), set your token,
-and start the bot. Every VPS is saved to the persistent database — including
-its installed package ledger — and Discord packages are installed
-automatically: new VPS instances get the full Discord stack (discord.py,
-python-dotenv, aiohttp, requests, psutil, colorama via pip and discord.js,
-dotenv via npm) installed in the background as soon as they are created.
-Interrupted installs self-heal on boot, and a watchdog keeps running bots
-alive: crashed processes are restarted, and bots that were running are
-resumed when the server boots.
+A small VPS + Discord bot hosting platform with a modern glassmorphism
+dashboard. Sign up, create VPS instances, upload your bot files (zip bundles
+auto-extract on upload), set your token, and start the bot. **Everything is
+saved forever** — accounts, VPS instances, files, tokens, packages and logs
+are never pruned, never expire (sessions last 100 years), and survive
+restarts and crashes via rolling database snapshots. New VPS instances get
+the full Discord stack (discord.py, python-dotenv, aiohttp, requests,
+psutil, colorama via pip and discord.js, dotenv via npm) installed
+automatically in the background. Interrupted installs self-heal on boot, and
+a watchdog keeps running bots alive: crashed processes are restarted, and
+bots that were running are resumed when the server boots.
+
+## Forever storage ("it keeps deleting my account" — fixed)
+
+- **Nothing is ever deleted at boot.** Older builds pruned "legacy demo"
+  accounts (and cascade-deleted their VPS) on every start — that code is
+  permanently removed. Boot-time logic only repairs and re-attaches data.
+- **100-year sessions.** Login cookies (and the saved dashboard key) are
+  valid for 100 years, so nobody gets logged out of their own platform.
+- **Rolling snapshots.** The database is flushed to disk at least twice a
+  minute, atomically, plus a snapshot every 5 minutes (60 kept in
+  `data/backups/`). Recovery chain: primary DB → backup copy → newest
+  snapshot — a corrupt file can never erase your data. State is also saved
+  on shutdown and on unexpected crashes.
+- **Orphan adoption.** If a user record was ever lost to the old bug, the
+  VPS workspaces are kept. Registering or signing in with the same username
+  automatically adopts every orphaned VPS back into the account — files,
+  packages, logs and tokens intact.
+- **Saved repositories.** GitHub repos pinned in the database are remembered
+  forever and can be cloned into any VPS in one click from the dashboard.
+  `kers0ne/1LuhhCrim` is pre-pinned and cannot be removed.
 
 ## Dashboard
 
@@ -63,6 +84,10 @@ Get a key by registering or logging in.
 | POST   | `/api/register`             | Create account, returns API key      |
 | POST   | `/api/login`                | Log in, returns API key              |
 | POST   | `/api/logout`               | End session                          |
+| GET    | `/api/users/saved`          | Account names for the switcher       |
+| GET    | `/api/repos/saved`          | Saved repositories (pinned forever)  |
+| POST   | `/api/repos/saved`          | Save a repo `{repo}` (`user/repo`)   |
+| DELETE | `/api/repos/saved/<repo_id>`| Unsave (pinned entries are refused)  |
 | GET    | `/api/plans`                | Plan catalogue                       |
 | GET    | `/api/hardware`             | Host hardware info                   |
 | GET    | `/api/vps`                  | List your VPS instances              |

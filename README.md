@@ -1,132 +1,121 @@
-# Cloud Vps
+# Cloud Agent
 
-A small VPS + Discord bot hosting platform with a modern glassmorphism
-dashboard. Sign up, create VPS instances, upload your bot files (zip bundles
-auto-extract on upload), set your token, and start the bot. **Everything is
-saved forever** — accounts, VPS instances, files, tokens, packages and logs
-are never pruned, never expire (sessions last 100 years), and survive
-restarts and crashes via rolling database snapshots. New VPS instances get
-the full Discord stack (discord.py, python-dotenv, aiohttp, requests,
-psutil, colorama via pip and discord.js, dotenv via npm) installed
-automatically in the background. Interrupted installs self-heal on boot, and
-a watchdog keeps running bots alive: crashed processes are restarted, and
-bots that were running are resumed when the server boots.
+**Cloud Agent** is an autonomous AI software engineer & cloud platform (Devin-style, free forever) with a dark aurora glassmorphic interface. It lands directly into a chat workspace with real platform execution primitives: isolated VM sandboxes, live terminal streaming, embedded interactive IDE, live browser control, parallel Managed Devins (subagents), 24/7 Discord bot hosting with watchdog supervisor, typed Roblox Luau script generation, and deep multi-layer code deobfuscation.
 
-## Forever storage ("it keeps deleting my account" — fixed)
+**Everything is saved forever** — accounts, VPS instances, files, tokens, packages, and sessions are never pruned, survive crashes via rolling atomic database snapshots, and login sessions are persisted for 100 years.
 
-- **Nothing is ever deleted at boot.** Older builds pruned "legacy demo"
-  accounts (and cascade-deleted their VPS) on every start — that code is
-  permanently removed. Boot-time logic only repairs and re-attaches data.
-- **100-year sessions.** Login cookies (and the saved dashboard key) are
-  valid for 100 years, so nobody gets logged out of their own platform.
-- **Rolling snapshots.** The database is flushed to disk at least twice a
-  minute, atomically, plus a snapshot every 5 minutes (60 kept in
-  `data/backups/`). Recovery chain: primary DB → backup copy → newest
-  snapshot — a corrupt file can never erase your data. State is also saved
-  on shutdown and on unexpected crashes.
-- **Orphan adoption.** If a user record was ever lost to the old bug, the
-  VPS workspaces are kept. Registering or signing in with the same username
-  automatically adopts every orphaned VPS back into the account — files,
-  packages, logs and tokens intact.
-- **Saved repositories.** GitHub repos pinned in the database are remembered
-  forever and can be cloned into any VPS in one click from the dashboard.
-  `kers0ne/1LuhhCrim` is pre-pinned and cannot be removed.
+---
 
-## Dashboard
+## Architecture & Interaction Design
 
-- **My Vps** — create, rename, start/stop/restart and delete VPS instances.
-  Cards show live package-install state ("Installing Discord packages…" →
-  "Discord stack ✓").
-- **Dc Bots** — file manager (upload, create, rename, delete, download),
-  code editor, token field, live logs, and a **Packages** panel (installed
-  package chips, manual pip/npm install, "Install Discord Stack" button) for
-  your bot on a chosen VPS.
-- **Account** — your details, API key, sign out.
+### 1. Entry Page
+- **Zero-Friction Entry**: No landing page or marketing wall. You land straight into the chat input. Type a task, hit send, and an isolated session immediately begins.
+- Instant anonymous or guest provisioning with 100-year cookie persistence; seamless sign-in with password for named accounts.
 
-Workspaces start with no demo files: create or upload your own files. Zip
-uploads are extracted into the workspace, the archive is removed, and the
-entry point is auto-detected. Uploaded `requirements.txt` / `package.json`
-dependencies are installed automatically, and missing python requirements
-are re-installed before a bot starts.
+### 2. Session Page (Main Screen)
+- **Mode Toggle (Always Visible)**:
+  - `Ask` — Read-only research, architecture planning, and step breakdowns without modifying disk or running destructive commands.
+  - `Agent` — Full autonomous execution: writes code, runs commands, installs packages, and tests.
+  - Sits at the top bar and right next to the chat prompt. Takes effect next message.
+- **Pinned Bottom Input Box**:
+  - `@ Mentions`: Triggered by typing `@` or clicking the mention button (`@Repos`, `@Files`, `@Macros`, `@Playbooks`, `@Skills`, `@Secrets`, `@Sessions`).
+  - `Add to Chat`: Highlight any transcript text, press `Cmd/Ctrl + L` to quote it directly into the input.
+  - `Editable Queued Messages`: While the agent is running, typed messages queue in a tray where you can edit or cancel them before execution.
+  - `Subagent Indicator`: Displays background Managed Devins active with direct link to inspect.
+- **Chat Thread**:
+  - Responses render inline:
+    - **Plans**: Interactive checklist with live status badges.
+    - **Code Diffs**: Unified diff viewer with addition/deletion highlights and "Open in IDE" button.
+    - **Shell Outputs**: Terminal cards with command, stdout/stderr, and exit code.
+    - **Browser Previews**: Live web app preview with URL bar.
+  - `Duplicate Session`: Branch off from any response footer to explore an alternative path without losing the original.
 
-## Package persistence ("saves our VPS")
+### 3. Embedded Tools (PC Panels / Mobile Bottom Sheet)
+- **Shell**: Live terminal streaming commands run by Devin, plus an interactive command prompt where you can run your own commands (`ls -la`, `git`, `python3`) on the VPS.
+- **IDE**: Embedded code editor (VS Code style). Workspace file tree explorer, tabbed editor, inline syntax highlighting, interactive code editing, "Save File" button, and "✨ Deobfuscate" button.
+- **Browser**: Live browser simulator. Watch Devin test web apps, inspect DOM, or take over for CAPTCHAs, MFA, and forms.
+- **Progress Tab**: Unified timeline view of all shell commands, file edits, browser events, plan steps, and subagent actions.
+- **Subagent Panel**: Managed Devins coordinator view. Shows child Devins running in isolated VMs with elapsed time, tool calls, and ACU compute meter. Coordinator can message children, sleep/resume, or terminate them.
 
-- Every VPS keeps a **package ledger** in `data/cloudvps_db.json`
-  (`vps.packages.python` / `vps.packages.node` + `auto_install` state),
-  written atomically with a backup copy on every change.
-- Installs, uninstalls and the automatic Discord stack all update the
-  ledger, so package state survives server restarts.
-- On boot, any VPS whose auto-install never completed (pending / running /
-  failed) is re-installed automatically — no user action needed.
+### 4. Agent Command Center
+- Toggle with `Cmd/Ctrl + K` or the top bar button.
+- **Kanban Board**: Grouped by status (`Working`, `Blocked`, `Ready for Review`). Local and cloud agents side-by-side.
+- **Spaces**: Group sessions, PRs, files, and context for one task into a single view. Context shared across sessions via `devin.spaces.shareContext`.
+- **Sessions Sidebar**: Filter, sort, and double-click to rename sessions inline.
+- **Playbooks**: Reusable autonomous blueprints for recurring dev tasks. Turn any session into a playbook in one click.
+- **Knowledge Base**: Deduplicated codebase facts, conventions, and architectural secrets.
+- **Automated Schedules**: Scheduled Devin tasks running on cron triggers.
 
-## Quick start
+---
 
-```bash
-npm install
-npm start        # node server.js, listens on :3000 (override with PORT)
-```
+## Core Agent Capabilities
 
-Open <http://localhost:3000>, create an account (a starter VPS is provisioned
-automatically), then go to **Dc Bots** and upload your bot.
+1. **24/7 Discord Bot Watchdog**:
+   - Write bots in Python (`discord.py`) or Node.js (`discord.js v14`).
+   - Supervisor watchdog automatically restarts crashed bots and resumes running bots upon container boot.
+2. **Roblox Luau Script Studio**:
+   - Generates modern typed Luau (`--!strict`) scripts: welcome ScreenGui, shop GUI, leaderstats leaderboard, day/night lighting cycle, teleport pad, and part spawners.
+3. **Deep Multi-Layer Deobfuscation**:
+   - Decodes `\xNN` and `\uNNNN` escape sequences.
+   - Decodes `String.fromCharCode` and Luau `string.char` chains.
+   - Unpacks base64 eval / atob packers.
+   - Demangles `_0x` obfuscated variable identifiers.
+   - Unpacks Python `exec(base64.b64decode())` payloads.
+4. **Real Shell & Package Management**:
+   - Runs bash/terminal commands inside the isolated VPS container.
+   - Installs pip and npm packages with auto-recorded package ledgers.
+5. **GitHub Integration**:
+   - Clones public repositories into the workspace.
+   - `kers0ne/1LuhhCrim` is pinned permanently in the repository ledger.
 
-Other scripts: `npm run dev` (watch mode), `npm test` (unit tests),
-`npm run lint`, `npm run format`.
+---
 
-## API
+## Privacy & Security
+
+The old public user listing and passwordless account switcher have been permanently deleted.
+- Only your password or private API key can access your account.
+- Nobody can automatically log into another user's account.
+- Login cookies are configured for 100 years (`COOKIE_MAX_AGE_MS = 100 * 365.25 * 24 * 3600 * 1000`).
+- Atomic database writes with rolling backups (`data/backups/`) protect data from corruption or crashes.
+
+---
+
+## API Reference
 
 Auth: pass your API key as the `X-API-Key` header (or `Authorization: Bearer`).
-Get a key by registering or logging in.
 
-| Method | Path                        | Description                          |
-|--------|-----------------------------|--------------------------------------|
-| GET    | `/api/health`               | Service status                       |
-| GET    | `/api/session`              | Current session (cookie or key)      |
-| POST   | `/api/register`             | Create account, returns API key      |
-| POST   | `/api/login`                | Log in, returns API key              |
-| POST   | `/api/logout`               | End session                          |
-| GET    | `/api/users/saved`          | Account names for the switcher       |
-| GET    | `/api/repos/saved`          | Saved repositories (pinned forever)  |
-| POST   | `/api/repos/saved`          | Save a repo `{repo}` (`user/repo`)   |
-| DELETE | `/api/repos/saved/<repo_id>`| Unsave (pinned entries are refused)  |
-| GET    | `/api/plans`                | Plan catalogue                       |
-| GET    | `/api/hardware`             | Host hardware info                   |
-| GET    | `/api/vps`                  | List your VPS instances              |
-| POST   | `/api/vps`                  | Create a VPS `{name, plan, auto_install?}` — Discord stack auto-installs unless `auto_install:false` |
-| POST   | `/api/vps/<id>/rename`      | Rename `{name}`                      |
-| POST   | `/api/vps/<id>/start`       | Start                                |
-| POST   | `/api/vps/<id>/stop`        | Stop                                 |
-| POST   | `/api/vps/<id>/restart`     | Restart                              |
-| DELETE | `/api/vps/<id>`             | Delete                               |
-| GET    | `/api/vps/<id>/files`       | List workspace files                 |
-| GET    | `/api/vps/<id>/file?path=`  | Read a file                          |
-| POST   | `/api/vps/<id>/file`        | Create/overwrite `{path, content}`   |
-| POST   | `/api/vps/<id>/folder`      | Create folder `{path}`               |
-| POST   | `/api/vps/<id>/file/rename` | Rename `{oldPath, newPath}`          |
-| GET    | `/api/vps/<id>/file/download?path=` | Download a file              |
-| DELETE | `/api/vps/<id>/file?path=`  | Delete file or folder                |
-| POST   | `/api/vps/<id>/bot/upload`  | Upload files (multipart `files`); zips auto-extract |
-| GET    | `/api/vps/<id>/bot`         | Bot state (script, runtime, token, status) |
-| POST   | `/api/vps/<id>/bot/start`   | Start bot `{filename, runtime, token?}` |
-| POST   | `/api/vps/<id>/bot/stop`    | Stop bot                             |
-| POST   | `/api/vps/<id>/bot/restart` | Restart bot                          |
-| GET    | `/api/vps/<id>/bot/logs`    | Live logs + status                   |
-| POST   | `/api/vps/<id>/bot/logs/clear` | Clear logs                        |
-| POST   | `/api/vps/<id>/bot/token`   | Store token                          |
-| GET    | `/api/vps/<id>/packages/list` | Persisted package ledger (python + node) + auto-install state |
-| POST   | `/api/vps/<id>/packages/install` | Install `{packages, runtime}` (pip/npm), saved to the ledger |
-| POST   | `/api/vps/<id>/packages/uninstall` | Uninstall `{package, runtime}` |
-| POST   | `/api/vps/<id>/packages/auto-install` | (Re)run the Discord-stack installer `{force?}` |
-| POST   | `/api/vps/<id>/packages/install-bundle` | Bundle install `{bundle}` (`discord`, `python`, `lune`, …) |
-| GET    | `/api/vps/<id>/packages/status` | Runtimes, tools and Discord-stack state |
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/health` | Health & sandbox engine status |
+| GET | `/api/session` | Get current session from cookie or key |
+| POST | `/api/register` | Register new account (100-year session) |
+| POST | `/api/login` | Login with password |
+| POST | `/api/logout` | End session |
+| POST | `/api/agent/quick-start` | Instant guest account + isolated VPS VM |
+| POST | `/api/agent/run` | Execute task (`{instruction, mode: 'agent'|'ask', session_id}`) |
+| GET | `/api/agent/sessions` | List user sessions |
+| POST | `/api/agent/sessions` | Create or update session |
+| POST | `/api/agent/sessions/:id/rename` | Rename session |
+| POST | `/api/agent/sessions/:id/duplicate` | Branch / duplicate session |
+| DELETE | `/api/agent/sessions/:id` | Delete session |
+| GET | `/api/agent/spaces` | List Spaces |
+| POST | `/api/agent/spaces` | Create or update Space |
+| GET | `/api/agent/subagents` | List Managed Devins (subagents) |
+| POST | `/api/agent/subagents/spawn` | Spawn child Devin in isolated VM |
+| POST | `/api/agent/subagents/:id/control` | Control child (`sleep`, `wake`, `terminate`) |
+| POST | `/api/agent/subagents/:id/message` | Message child Devin |
+| GET | `/api/agent/playbooks` | List autonomous playbooks |
+| POST | `/api/agent/playbooks` | Create / export playbook |
+| GET | `/api/agent/knowledge` | List knowledge entries |
+| POST | `/api/agent/knowledge` | Add knowledge entry |
+| GET | `/api/agent/schedules` | List automated schedules |
+| POST | `/api/agent/schedules` | Add schedule |
+| POST | `/api/agent/analyze-outcome` | Analyze session telemetry & ACU efficiency |
+| POST | `/api/vps/:id/deobfuscate` | Deobfuscate file (`{path}`) |
+| GET | `/api/vps/:id/files` | List workspace files |
+| GET | `/api/vps/:id/file?path=` | Read workspace file |
+| POST | `/api/vps/:id/file` | Create or overwrite file |
+| POST | `/api/vps/:id/terminal/exec` | Interactive terminal execution |
+| GET | `/api/repos/saved` | Saved repositories (`kers0ne/1LuhhCrim` pinned) |
 
-Interactive docs are served at `/api-docs` (Swagger UI, `openapi.yaml`).
-
-## Legacy Python backend
-
-`app.py` is the original Flask backend (Docker-backed VPS containers,
-port 5000). The Node.js server above is the default.
-
-```bash
-pip install -r requirements.txt
-python app.py
-```
+Interactive API documentation is served at `/api-docs` (Swagger UI).

@@ -812,28 +812,11 @@ app.post('/api/register', (req, res) => {
  });
 });
 
-// List registered account names for the in-app account switcher.
-// API keys are intentionally never listed here — they are only returned
-// by the /api/users/switch call for the account being switched to.
-app.get('/api/users/saved', (req, res) => {
- const userList = Object.values(db.users).map(u => ({
- id: u.id,
- username: u.username,
- created_at: u.created_at,
- vps_count: Object.values(db.vps).filter(v => v.user_id === u.id).length
- }));
- res.json({ success: true, users: userList });
-});
-
-// Quick Switch User
-app.post('/api/users/switch', (req, res) => {
- const { username } = req.body || {};
- if (!username) {return res.status(400).json({ error: 'Username required' });}
- const user = Object.values(db.users).find(u => u.username.toLowerCase() === username.trim().toLowerCase());
- if (!user) {return res.status(404).json({ error: 'User not found' });}
- res.cookie('api_key', user.api_key, { maxAge: COOKIE_MAX_AGE_MS, httpOnly: false, sameSite: 'Lax' });
- res.json({ success: true, api_key: user.api_key, user_id: user.id, username: user.username });
-});
+// PRIVACY / SECURITY: the old /api/users/saved + /api/users/switch endpoints
+// (which listed every username publicly and allowed switching into ANY
+// account with NO password) were a serious account-takeover hole and have
+// been permanently removed. The only way into an account now is its password
+// (or its API key). Sessions are private per browser/device.
 
 // Login (strict: account must exist and the password must match)
 app.post('/api/login', (req, res) => {
@@ -2967,6 +2950,28 @@ if (process.env.ENABLE_SWAGGER !== 'false') {
     res.json(swaggerDocument);
   });
 }
+
+// ---------------------- CLOUD AGENT (autonomous AI operator) ----------------------
+// Devin-style built-in agent that can keep Discord bots online, write bots
+// & Roblox scripts, deobfuscate files, run commands, install packages and
+// clone repos — wired to the real platform primitives.
+import { wireAgent } from './agent.js';
+wireAgent(app, {
+ getDb: () => db,
+ logger,
+ saveDb,
+ initVpsWorkspace,
+ ensurePackageState,
+ recordPackages,
+ runAutoInstall,
+ startBotProcess,
+ stopBotProcess,
+ getFileList,
+ PLANS,
+ INSTANCES_DIR,
+ authRequired,
+ vpsOwnerRequired,
+});
 
 // ---------------------- STATIC ASSETS & FALLBACK ----------------------
 

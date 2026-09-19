@@ -95,13 +95,71 @@ const AUTO_INSTALL_TIMEOUT_MS = 300000;
 // In-Memory Database with JSON Persistence & Atomic Flushes
 const DB_FILE = path.join(DATA_DIR, 'cloudvps_db.json');
 const DB_BACKUP_FILE = path.join(DATA_DIR, 'cloudvps_db.backup.json');
+const DB_SNAPSHOT_DIR = path.join(DATA_DIR, 'backups');
+const SNAPSHOT_EVERY_MS = 5 * 60 * 1000;   // rolling snapshot every 5 minutes
+const SNAPSHOT_KEEP = 60;                  // keep the last 60 (≈5 hours of history)
+const AUTOSAVE_EVERY_MS = 30 * 1000;       // periodic flush — nothing is ever only in memory for long
+const COOKIE_MAX_AGE_MS = 100 * 365.25 * 24 * 3600 * 1000; // session remembered for 100 years
+
+if (!existsSync(DB_SNAPSHOT_DIR)) {mkdirSync(DB_SNAPSHOT_DIR, { recursive: true });}
 
 let db = {
   users: {},
   vps: {},
   bots: {},
-  services: {}
+  services: {},
+  saved_repos: {},
+  meta: {}
 };
+
+let lastSnapshotAt = 0;
+
+function writeDbFile(target, payload) {
+  // Atomic write: temp file -> rename, so a crash mid-write can never
+  // corrupt the database on disk.
+  const tmpFile = `${target}.tmp.${Date.now()}.${process.pid}`;
+  fs.writeFileSync(tmpFile, payload, 'utf8');
+  fs.renameSync(tmpFile, target);
+}
+
+function pruneOldSnapshots() {
+  try {
+    const snaps = fs.readdirSync(DB_SNAPSHOT_DIR)
+      .filter(f => f.startsWith('cloudvps_db.') && f.endsWith('.json'))
+      .sort();
+    while (snaps.length > SNAPSHOT_KEEP) {
+      const oldest = snaps.shift();
+      try {fs.unlinkSync(path.join(DB_SNAPSHOT_DIR, oldest));} catch (e) {}
+    }
+  } catch (e) {}
+}
+
+function saveDb(forceSnapshot = false) {
+  try {
+    const payload = JSON.stringify(db, null, 2);
+    writeDbFile(DB_FILE, payload);
+    fs.copyFileSync(DB_FILE, DB_BACKUP_FILE);
+
+    const now = Date.now();
+    if (forceSnapshot || now - lastSnapshotAt >= SNAPSHOT_EVERY_MS) {
+      lastSnapshotAt = now;
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      try {
+        writeDbFile(path.join(DB_SNAPSHOT_DIR, `cloudvps_db.${stamp}.json`), payload);
+        pruneOldSnapshots();
+      } catch (e) {
+        logger.warn({ err: e }, '[CloudVPS DB] Snapshot write failed (primary DB still safe)');
+      }
+    }
+  } catch (err) {
+    logger.error({ err }, '[CloudVPS DB Save Error]');
+  }
+}
+
+// Periodic flush: even if a code path ever forgets to call saveDb(), the
+// entire state is committed to disk twice a minute (plus rolling snapshots
+// every 5 minutes), so nothing lives only in memory.
+setInterval(() => saveDb(), AUTOSAVE_EVERY_MS).unref();
 
 function hashPassword(password, salt = 'cvps_default_salt') {
   try {
@@ -128,70 +186,66 @@ function verifyPassword(user, password) {
   return false;
 }
 
-function saveDb() {
-  try {
-    const payload = JSON.stringify(db, null, 2);
-    // Atomic write: write to a temp file, then rename over the primary file.
-    const tmpFile = `${DB_FILE}.tmp.${Date.now()}.${process.pid}`;
-    fs.writeFileSync(tmpFile, payload, 'utf8');
-    fs.renameSync(tmpFile, DB_FILE);
-    fs.copyFileSync(DB_FILE, DB_BACKUP_FILE);
-  } catch (err) {
-    logger.error({ err }, '[CloudVPS DB Save Error]');
-  }
-}
-
 function loadDb() {
-  let loaded = false;
+  // Recovery chain: primary DB -> backup copy -> newest rolling snapshot.
+  // Each candidate is also *merged* over the previously recovered data so a
+  // partially corrupt file can never erase what still parses. NOTHING here
+  // ever deletes a user, VPS or bot — recovery only ever adds data back.
+  const candidates = [DB_FILE, DB_BACKUP_FILE];
   try {
-    if (existsSync(DB_FILE)) {
-      const raw = readFileSync(DB_FILE, 'utf8');
-      if (raw.trim()) {
-        const data = JSON.parse(raw);
-        db = { ...db, ...data };
-        loaded = true;
-      }
-    }
-  } catch (err) {
-    logger.warn({ err }, '[CloudVPS DB] Could not read primary db file, attempting backup recovery');
-  }
+    const snaps = fs.readdirSync(DB_SNAPSHOT_DIR)
+      .filter(f => f.startsWith('cloudvps_db.') && f.endsWith('.json'))
+      .sort()
+      .reverse();
+    for (const s of snaps) {candidates.push(path.join(DB_SNAPSHOT_DIR, s));}
+  } catch (e) {}
 
-  if (!loaded && existsSync(DB_BACKUP_FILE)) {
+  let recoveredFrom = null;
+  for (const file of candidates) {
+    if (!existsSync(file)) {continue;}
     try {
-      const bkpRaw = readFileSync(DB_BACKUP_FILE, 'utf8');
-      if (bkpRaw.trim()) {
-        const bkpData = JSON.parse(bkpRaw);
-        db = { ...db, ...bkpData };
-        logger.info('[CloudVPS DB] Restored database state from backup snapshot.');
-      }
-    } catch (e) {
-      logger.warn({ err: e }, '[CloudVPS DB] Backup recovery failed');
+      const raw = readFileSync(file, 'utf8');
+      if (!raw.trim()) {continue;}
+      const data = JSON.parse(raw);
+      db = { ...db, ...data };
+      if (!recoveredFrom) {recoveredFrom = file;}
+      if (file === DB_FILE) {break;} // primary is intact — stop here
+    } catch (err) {
+      logger.warn({ err, file }, '[CloudVPS DB] Corrupt/unreadable DB candidate, trying next recovery source');
     }
   }
-
-  // Prune any legacy demo accounts / demo VPS that older versions seeded.
-  // The platform only ever contains real, user-registered accounts.
-  const legacyDemoUsers = Object.values(db.users).filter(
-    u => u.id === 'usr_free_user' || u.id === 'usr_brittainjaden347' ||
-         u.username === 'demo_user' || u.username === 'brittainjaden347'
-  );
-  for (const u of legacyDemoUsers) {
-    delete db.users[u.id];
+  if (recoveredFrom && recoveredFrom !== DB_FILE) {
+    logger.info({ recoveredFrom }, '[CloudVPS DB] Primary DB unavailable — state restored from backup/snapshot');
   }
-  for (const id of Object.keys(db.vps)) {
-    const vps = db.vps[id];
-    const ownerIsGone = vps.user_id && !db.users[vps.user_id];
-    const isDemoVps = id === 'vps-free-01' || vps.container_id === 'c-free-01' ||
-                      vps.engine === 'native_sandbox' && !vps.user_id;
-    if (ownerIsGone || isDemoVps) {
-      delete db.vps[id];
-      delete db.bots[id];
-    }
+  lastSnapshotAt = Date.now();
+
+  // ============ FOREVER-STORAGE (nothing is ever deleted at boot) ============
+  // Accounts, VPS instances, bots, logs and package ledgers are PERMANENT.
+  // Older versions of this server pruned "legacy demo" users on boot and
+  // cascade-deleted their VPS — that silently destroyed real accounts and is
+  // permanently removed. Boot-time code below only REPAIRS, never deletes.
+  db.meta = db.meta && typeof db.meta === 'object' ? db.meta : {};
+  if (!db.meta.first_boot) {db.meta.first_boot = new Date().toISOString();}
+  db.meta.last_boot = new Date().toISOString();
+  db.meta.boot_count = (db.meta.boot_count || 0) + 1;
+
+  if (!db.saved_repos || typeof db.saved_repos !== 'object') {db.saved_repos = {};}
+  // Pinned repositories are remembered forever ("saved for 100 years").
+  if (!db.saved_repos['repo_1luhhcrim']) {
+    db.saved_repos['repo_1luhhcrim'] = {
+      id: 'repo_1luhhcrim',
+      repo: 'kers0ne/1LuhhCrim',
+      url: 'https://github.com/kers0ne/1LuhhCrim',
+      pinned: true,
+      saved_at: new Date().toISOString()
+    };
   }
 
-  // Ensure workspace directories exist for every remaining real VPS, and
-  // strip legacy web-hosting/domain fields from records created by older
-  // versions (domains and site hosting were removed from the platform).
+  // Ensure workspace directories exist for every VPS — including orphans
+  // whose owner record was lost to the old pruning bug — and strip legacy
+  // web-hosting/domain fields from records created by older versions.
+  // Orphaned workspaces are KEPT so re-registering the same username can
+  // adopt them again (see adoptOrphanVps on /api/register).
   for (const vpsId of Object.keys(db.vps)) {
     const v = db.vps[vpsId];
     delete v.domains;
@@ -205,6 +259,46 @@ function loadDb() {
   }
 
   saveDb();
+}
+
+// Re-attach VPS instances whose owner vanished (legacy pruning bug / lost DB).
+// Called on register + login so a returning user with the same username gets
+// every one of their old VPS instances (files, packages, logs) back.
+function adoptOrphanVps(userId, username) {
+  if (!userId || !username) {return [];}
+  const clean = String(username).trim().toLowerCase();
+  const adopted = [];
+  for (const [id, v] of Object.entries(db.vps)) {
+    if (!v || typeof v !== 'object') {continue;}
+    const orphaned = !v.user_id || !db.users[v.user_id];
+    const ownerUsername = String(v.owner_username || '').toLowerCase();
+    const nameMatch = !v.user_id && v.name && v.name.toLowerCase().startsWith(`${clean}-vps`);
+    if (orphaned && (ownerUsername === clean || nameMatch)) {
+      v.user_id = userId;
+      v.owner_username = String(username).trim();
+      initVpsWorkspace(id);
+      ensurePackageState(id);
+      adopted.push(id);
+    }
+  }
+  if (adopted.length) {
+    appendBotLogSafe(adopted[0], `[CloudVPS Vault] Welcome back — ${adopted.length} previously orphaned VPS instance(s) restored to your account.`);
+    saveDb();
+  }
+  return adopted;
+}
+
+// Safety net for logging before the bot supervisor module is initialised.
+function appendBotLogSafe(vpsId, message) {
+  try {
+    if (typeof appendBotLog === 'function') {
+      appendBotLog(vpsId, message);
+      return;
+    }
+  } catch (e) {}
+  if (!db.bots[vpsId]) {db.bots[vpsId] = { logs: [] };}
+  if (!Array.isArray(db.bots[vpsId].logs)) {db.bots[vpsId].logs = [];}
+  db.bots[vpsId].logs.push(`[${new Date().toLocaleTimeString()}] ${message}`);
 }
 
 // Ensures the VPS workspace directory exists. It intentionally stays EMPTY:
@@ -663,6 +757,7 @@ app.post('/api/register', (req, res) => {
  const userVps = {
  id: vpsId,
  user_id: userId,
+ owner_username: username,
  name: `${username}-VPS-01`,
  plan: 'performance',
  status: 'running',
@@ -677,6 +772,10 @@ app.post('/api/register', (req, res) => {
  };
  db.vps[vpsId] = userVps;
  initVpsWorkspace(vpsId);
+
+ // If this username lost VPS instances to the old account-pruning bug,
+ // adopt them back — files, packages, logs and tokens all come home.
+ const adopted = adoptOrphanVps(userId, username);
 
  // Persisted package ledger + automatic Discord stack install for the starter VPS
  const starterPkgState = ensurePackageState(vpsId);
@@ -703,37 +802,21 @@ app.post('/api/register', (req, res) => {
  // Kick off the background install after the response is sent
  setTimeout(() => runAutoInstall(vpsId), 500);
 
- res.cookie('api_key', apiKey, { maxAge: 30 * 24 * 3600 * 1000, httpOnly: false, sameSite: 'Lax' });
+ res.cookie('api_key', apiKey, { maxAge: COOKIE_MAX_AGE_MS, httpOnly: false, sameSite: 'Lax' });
  res.json({
  success: true,
  api_key: apiKey,
  user_id: userId,
- username
+ username,
+ adopted_vps: Array.isArray(adopted) ? adopted.length : 0
  });
 });
 
-// List registered account names for the in-app account switcher.
-// API keys are intentionally never listed here — they are only returned
-// by the /api/users/switch call for the account being switched to.
-app.get('/api/users/saved', (req, res) => {
- const userList = Object.values(db.users).map(u => ({
- id: u.id,
- username: u.username,
- created_at: u.created_at,
- vps_count: Object.values(db.vps).filter(v => v.user_id === u.id).length
- }));
- res.json({ success: true, users: userList });
-});
-
-// Quick Switch User
-app.post('/api/users/switch', (req, res) => {
- const { username } = req.body || {};
- if (!username) {return res.status(400).json({ error: 'Username required' });}
- const user = Object.values(db.users).find(u => u.username.toLowerCase() === username.trim().toLowerCase());
- if (!user) {return res.status(404).json({ error: 'User not found' });}
- res.cookie('api_key', user.api_key, { maxAge: 30 * 24 * 3600 * 1000, httpOnly: false, sameSite: 'Lax' });
- res.json({ success: true, api_key: user.api_key, user_id: user.id, username: user.username });
-});
+// PRIVACY / SECURITY: the old /api/users/saved + /api/users/switch endpoints
+// (which listed every username publicly and allowed switching into ANY
+// account with NO password) were a serious account-takeover hole and have
+// been permanently removed. The only way into an account now is its password
+// (or its API key). Sessions are private per browser/device.
 
 // Login (strict: account must exist and the password must match)
 app.post('/api/login', (req, res) => {
@@ -753,12 +836,16 @@ app.post('/api/login', (req, res) => {
  return res.status(401).json({ error: 'Incorrect password for this account.' });
  }
 
- res.cookie('api_key', user.api_key, { maxAge: 30 * 24 * 3600 * 1000, httpOnly: false, sameSite: 'Lax' });
+ // Returning user: re-adopt any VPS orphaned by the legacy pruning bug.
+ const adoptedVps = adoptOrphanVps(user.id, user.username);
+
+ res.cookie('api_key', user.api_key, { maxAge: COOKIE_MAX_AGE_MS, httpOnly: false, sameSite: 'Lax' });
  res.json({
  success: true,
  api_key: user.api_key,
  user_id: user.id,
- username: user.username
+ username: user.username,
+ adopted_vps: adoptedVps.length
  });
 });
 
@@ -791,6 +878,62 @@ app.post('/api/user/profile', authRequired, (req, res) => {
  res.json({ success: true, message: 'Profile updated' });
 });
 
+// ---------------------- SAVED REPOSITORIES (remembered forever) ----------------------
+// Repositories pinned here are stored in the persistent database and survive
+// restarts, reinstalls — everything. `kers0ne/1LuhhCrim` is seeded as a pinned
+// entry and can never be removed.
+
+function normalizeRepoName(input) {
+ const raw = String(input || '').trim();
+ if (!raw) {return null;}
+ const clean = raw.replace(/^https?:\/\/(www\.)?github\.com\//i, '').replace(/\.git$/i, '').replace(/^\/+|\/+$/g, '');
+ const parts = clean.split('/').filter(Boolean);
+ if (parts.length < 2) {return null;}
+ return `${parts[0]}/${parts[1]}`;
+}
+
+app.get('/api/repos/saved', authRequired, (req, res) => {
+ const repos = Object.values(db.saved_repos || {}).sort((a, b) =>
+ (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || String(a.saved_at).localeCompare(String(b.saved_at)));
+ res.json({ success: true, repos });
+});
+
+app.post('/api/repos/saved', authRequired, (req, res) => {
+ const repo = normalizeRepoName(req.body?.repo);
+ if (!repo) {
+ return res.status(400).json({ success: false, error: 'Repository must look like user/repo or a GitHub URL' });
+ }
+ const existing = Object.values(db.saved_repos || {}).find(r => r.repo.toLowerCase() === repo.toLowerCase());
+ if (existing) {
+ return res.json({ success: true, repo: existing, message: 'Repository is already saved' });
+ }
+ const id = `repo_${crypto.randomBytes(5).toString('hex')}`;
+ const entry = {
+ id,
+ repo,
+ url: `https://github.com/${repo}`,
+ pinned: false,
+ saved_at: new Date().toISOString()
+ };
+ if (!db.saved_repos || typeof db.saved_repos !== 'object') {db.saved_repos = {};}
+ db.saved_repos[id] = entry;
+ saveDb();
+ res.status(201).json({ success: true, repo: entry });
+});
+
+app.delete('/api/repos/saved/:repo_id', authRequired, (req, res) => {
+ const entry = db.saved_repos?.[req.params.repo_id];
+ if (!entry) {
+ return res.status(404).json({ success: false, error: 'Saved repository not found' });
+ }
+ if (entry.pinned) {
+ return res.status(403).json({ success: false, error: 'This repository is pinned and can never be removed' });
+ }
+ delete db.saved_repos[req.params.repo_id];
+ saveDb();
+ res.json({ success: true, message: 'Repository removed from saved list' });
+});
+
 // ---------------------- VPS MANAGEMENT ----------------------
 
 // List VPS instances (strictly for the authenticated user)
@@ -817,6 +960,7 @@ app.post('/api/vps', authRequired, (req, res) => {
  const newVps = {
  id: vpsId,
  user_id: req.user.id,
+ owner_username: req.user.username,
  name: vpsName,
  plan,
  os,
@@ -2807,6 +2951,28 @@ if (process.env.ENABLE_SWAGGER !== 'false') {
   });
 }
 
+// ---------------------- CLOUD AGENT (autonomous AI operator) ----------------------
+// Devin-style built-in agent that can keep Discord bots online, write bots
+// & Roblox scripts, deobfuscate files, run commands, install packages and
+// clone repos — wired to the real platform primitives.
+import { wireAgent } from './agent.js';
+wireAgent(app, {
+ getDb: () => db,
+ logger,
+ saveDb,
+ initVpsWorkspace,
+ ensurePackageState,
+ recordPackages,
+ runAutoInstall,
+ startBotProcess,
+ stopBotProcess,
+ getFileList,
+ PLANS,
+ INSTANCES_DIR,
+ authRequired,
+ vpsOwnerRequired,
+});
+
 // ---------------------- STATIC ASSETS & FALLBACK ----------------------
 
 // Serve static assets from project root
@@ -2850,11 +3016,22 @@ function gracefulShutdown(signal) {
  for (const vpsId of Array.from(activeBots.keys())) {
  stopBotProcess(vpsId, false);
  }
- saveDb();
+ // Final flush + rolling snapshot so the exact pre-shutdown state is durable.
+ saveDb(true);
  process.exit(0);
 }
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+// Crash safety: even on an unexpected error the full state hits the disk
+// before anything else happens, so accounts/VPS can never be lost silently.
+process.on('uncaughtException', (err) => {
+ try {logger.error({ err }, '[CloudVPS] Uncaught exception — state flushed to disk');} catch (e) {}
+ try {saveDb(true);} catch (e) {}
+});
+process.on('unhandledRejection', (err) => {
+ try {logger.error({ err }, '[CloudVPS] Unhandled rejection');} catch (e) {}
+ try {saveDb();} catch (e) {}
+});
 
 // Start listening
 loadDb();

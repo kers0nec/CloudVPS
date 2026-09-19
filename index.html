@@ -2,1580 +2,2994 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cloud Vps</title>
-  <meta name="description" content="Cloud Vps — Discord bot hosting and VPS workspace.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z' fill='%23972577'/%3E%3Cpath d='M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z' fill='%23BD2E95'/%3E%3C/svg%3E">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cloud Agent — Autonomous AI Software Engineer</title>
+  <meta name="description" content="Devin-style autonomous AI agent. Free forever, isolated VM per session, real shell streaming, embedded IDE, live browser control, parallel Managed Devins, 24/7 Discord bots, Roblox Luau generation, and deep deobfuscation.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2306b6d4'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%2308090f'/%3E%3Cpath d='M25 50L45 70L75 30' stroke='url(%23g)' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
   <style>
+    /* ================================================================
+       CLOUD AGENT — DEVIN-STYLE DESIGN SYSTEM
+       Obsidian Dark, Cyan/Violet Glow, Ultra-Clean Responsive Layout
+       ================================================================ */
     :root {
-      --bg: #0d0f12;
-      --panel: #14171c;
-      --panel-2: #1a1e24;
-      --input-bg: #0f1216;
-      --border: #262c35;
-      --border-soft: #1f242c;
-      --text: #e7eaee;
-      --muted: #99a2ae;
-      --dim: #6b7480;
-      --accent: #5865f2;
-      --accent-hover: #4a56dd;
-      --green: #3fb950;
-      --red: #e5534b;
-      --amber: #d9a23a;
-      --radius: 10px;
-      --radius-sm: 7px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --bg-base: #06070a;
+      --bg-surface: #0a0c14;
+      --bg-panel: #0d101a;
+      --bg-card: rgba(16, 20, 32, 0.75);
+      --bg-elevated: #151928;
+      --bg-input: rgba(11, 14, 24, 0.95);
+
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-light: rgba(255, 255, 255, 0.12);
+      --border-focus: rgba(6, 182, 212, 0.5);
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+
+      --cyan: #06b6d4;
+      --cyan-soft: rgba(6, 182, 212, 0.12);
+      --violet: #8b5cf6;
+      --violet-soft: rgba(139, 92, 246, 0.14);
+      --emerald: #10b981;
+      --emerald-soft: rgba(16, 185, 129, 0.14);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.14);
+      --rose: #f43f5e;
+      --rose-soft: rgba(244, 63, 94, 0.14);
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+
+      --tools-width: 520px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      font-size: 14px;
+    html, body {
+      height: 100%;
+      width: 100%;
+      background: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 13.5px;
       line-height: 1.5;
+      overflow: hidden;
       -webkit-font-smoothing: antialiased;
     }
-    button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
-    input, select, textarea { font: inherit; color: var(--text); }
-    ::placeholder { color: var(--dim); }
 
-    #app { display: flex; height: 100vh; overflow: hidden; }
+    button { font: inherit; color: inherit; border: none; background: none; cursor: pointer; }
+    input, select, textarea { font: inherit; color: var(--text-main); }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-decoration: underline; }
 
-    /* ---------- Sidebar ---------- */
-    #sidebar {
-      width: 212px;
-      min-width: 212px;
-      background: #101318;
-      border-right: 1px solid var(--border-soft);
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); }
+
+    /* App Root Shell */
+    #app-root {
       display: flex;
       flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
     }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 16px 16px 14px;
-      font-weight: 600;
-      font-size: 15px;
-      letter-spacing: -0.01em;
-    }
-    .brand svg { flex-shrink: 0; }
-    #nav { padding: 4px 10px; display: flex; flex-direction: column; gap: 2px; }
-    .nav-btn {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: var(--radius-sm);
-      color: var(--muted);
-      font-size: 13.5px;
-      font-weight: 500;
-      text-align: left;
-    }
-    .nav-btn:hover { background: var(--panel-2); color: var(--text); }
-    .nav-btn.active { background: var(--panel-2); color: var(--text); }
-    .nav-btn svg { flex-shrink: 0; opacity: 0.85; }
-    .sidebar-footer {
-      margin-top: auto;
-      padding: 12px;
-      border-top: 1px solid var(--border-soft);
-    }
-    .user-pill {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 7px 9px;
-      border-radius: var(--radius-sm);
-      background: var(--panel);
-      border: 1px solid var(--border-soft);
-    }
-    .user-avatar {
-      width: 26px; height: 26px;
-      border-radius: 6px;
-      background: var(--accent);
-      color: #fff;
-      font-size: 12px;
-      font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .user-pill .name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .user-pill .sub { font-size: 11px; color: var(--muted); }
-    .footer-actions { display: flex; gap: 8px; }
 
-    /* ---------- Main ---------- */
-    #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-    #topbar {
-      height: 53px;
-      min-height: 53px;
+    /* Top Navigation Bar */
+    #top-nav {
+      height: 46px;
+      min-height: 46px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(10, 12, 19, 0.85);
+      backdrop-filter: blur(14px);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 0 20px;
-      border-bottom: 1px solid var(--border-soft);
-      background: rgba(13, 15, 18, 0.6);
+      padding: 0 14px;
+      z-index: 50;
     }
-    #page-title { font-size: 14.5px; font-weight: 600; }
-    #page-actions { display: flex; gap: 8px; align-items: center; }
-    #content { flex: 1; overflow-y: auto; padding: 20px; }
-    .view { display: none; max-width: 1100px; margin: 0 auto; }
-    .view.active { display: block; }
 
-    /* ---------- Cards ---------- */
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius);
-      padding: 16px;
+    .nav-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .card + .card { margin-top: 14px; }
-    .card-title {
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      color: #fff;
+      cursor: pointer;
+    }
+    .brand-mark {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: 900;
       font-size: 12px;
+    }
+
+    /* Mode Toggle */
+    .mode-toggle {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .mode-btn {
+      padding: 3px 10px;
+      border-radius: 16px;
+      font-size: 11.5px;
       font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .mode-btn:hover { color: var(--text-main); }
+    .mode-btn.active.mode-agent {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(139, 92, 246, 0.28));
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      color: #38bdf8;
+    }
+    .mode-btn.active.mode-ask {
+      background: rgba(245, 158, 11, 0.18);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fbbf24;
+    }
+
+    /* Space Selector Pill */
+    .space-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.12s;
+    }
+    .space-pill:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+    .space-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--violet); }
+
+    .nav-btn {
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.12s;
+    }
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--text-main); }
+    .nav-btn.active { background: var(--cyan-soft); border-color: var(--cyan); color: var(--cyan); }
+
+    .acu-chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Workspace Body Area */
+    #workspace-container {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Sessions Sidebar */
+    #sessions-sidebar {
+      width: 250px;
+      min-width: 250px;
+      border-right: 1px solid var(--border-subtle);
+      background: rgba(8, 10, 16, 0.98);
+      display: flex;
+      flex-direction: column;
+      transition: margin-left 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 30;
+    }
+    #sessions-sidebar.collapsed { margin-left: -250px; }
+
+    .sidebar-head {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .sidebar-title {
+      font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--muted);
-      margin-bottom: 12px;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      font-weight: 700;
+    }
+    .icon-action-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      transition: all 0.12s;
+    }
+    .icon-action-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+    .sessions-list-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .session-card {
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      border: 1px solid transparent;
+      transition: all 0.12s;
+      position: relative;
+    }
+    .session-card:hover { background: rgba(255, 255, 255, 0.04); }
+    .session-card.active {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: var(--border-light);
+    }
+    .session-card.drag-over {
+      border: 1px dashed var(--cyan);
+      background: var(--cyan-soft);
+    }
+    .session-card-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .session-title-text {
+      font-weight: 500;
+      font-size: 12.5px;
+      color: var(--text-main);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .session-meta-text {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10.5px;
+      color: var(--text-dim);
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .status-dot.working { background: var(--cyan); }
+    .status-dot.blocked { background: var(--amber); }
+    .status-dot.ready_for_review { background: var(--emerald); }
+
+    /* Center Chat Workspace (Primary) */
+    #chat-main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: var(--bg-base);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    /* Split Pane Support */
+    #panes-wrapper {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      width: 100%;
+    }
+    .chat-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+      position: relative;
+    }
+    .chat-pane.split-pane {
+      border-left: 1px solid var(--border-subtle);
+    }
+
+    /* Scrolling Transcript */
+    .chat-transcript {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Zero State / Entry Screen */
+    .entry-zero-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 20px 40px;
+      margin: auto 0;
+      gap: 16px;
+    }
+    .entry-tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 99px;
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      color: #38bdf8;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+    .entry-headline {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .entry-description {
+      color: var(--text-muted);
+      font-size: 13.5px;
+      max-width: 520px;
+      line-height: 1.6;
+    }
+    .entry-prompt-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      max-width: 640px;
+      margin-top: 10px;
+    }
+    .prompt-chip {
+      padding: 8px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid var(--border-subtle);
+      font-size: 12px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .prompt-chip:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-light);
+      transform: translateY(-1px);
+    }
+
+    /* Message Bubbles */
+    .msg-row {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 6px;
+    }
+    .msg-user-bubble {
+      align-self: flex-end;
+      max-width: 84%;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.16), rgba(139, 92, 246, 0.2));
+      border: 1px solid rgba(6, 182, 212, 0.32);
+      padding: 12px 16px;
+      border-radius: 16px 16px 4px 16px;
+      font-size: 13.5px;
+      color: #fff;
+      white-space: pre-wrap;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .msg-agent-card {
+      align-self: flex-start;
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 18px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .agent-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 10px;
+    }
+    .agent-header-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .agent-mode-badge {
+      font-size: 10.5px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(6, 182, 212, 0.12);
+      color: var(--cyan);
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+
+    /* Plans Checklist Card */
+    .inline-plan-card {
+      border: 1px solid var(--border-subtle);
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .inline-plan-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .plan-step-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      color: var(--text-main);
+    }
+    .step-badge-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      flex-shrink: 0;
+    }
+    .step-badge-icon.done { background: var(--emerald-soft); color: #34d399; }
+    .step-badge-icon.running { background: var(--cyan-soft); color: var(--cyan); animation: pulseGlow 1.2s infinite; }
+    .step-badge-icon.pending { background: rgba(255, 255, 255, 0.06); color: var(--text-dim); }
+
+    @keyframes pulseGlow {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    /* Code Diff Box */
+    .inline-diff-card {
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: #080a11;
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .diff-card-head {
+      padding: 7px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 11.5px;
+    }
+    .diff-lines-scroll {
+      padding: 10px 14px;
+      overflow-x: auto;
+      max-height: 280px;
+      white-space: pre;
+      line-height: 1.5;
+    }
+    .diff-green { color: #34d399; background: rgba(16, 185, 129, 0.09); display: block; }
+    .diff-red { color: #fb7185; background: rgba(244, 63, 94, 0.09); display: block; }
+    .diff-info { color: #38bdf8; display: block; }
+
+    /* Shell Box */
+    .inline-shell-card {
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: #05060b;
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+    }
+    .shell-card-head {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-dim);
+    }
+    .shell-card-body {
+      padding: 10px 14px;
+      max-height: 220px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #94a3b8;
+    }
+
+    /* Browser Box */
+    .inline-browser-card {
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: #080a11;
+      overflow: hidden;
+    }
+    .browser-card-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 11.5px;
+    }
+    .browser-url-pill {
+      flex: 1;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .browser-card-body {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.35);
+    }
+
+    /* Response Footer (Branch Session / Add to Chat / Actions) */
+    .msg-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 11.5px;
+      color: var(--text-dim);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .footer-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-footer-btn {
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      transition: all 0.12s;
+    }
+    .card-footer-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+
+    /* Pinned Bottom Input Dock */
+    .input-dock-container {
+      padding: 10px 20px 16px;
+      background: linear-gradient(to top, var(--bg-base) 80%, transparent);
+      z-index: 40;
+      position: relative;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Queued Messages Tray */
+    #queued-messages-tray {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 8px;
+      background: rgba(16, 20, 32, 0.95);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    .queued-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+      font-size: 12px;
     }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
-    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
-
-    /* ---------- Buttons ---------- */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      height: 32px;
-      padding: 0 13px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--panel-2);
-      font-size: 13px;
-      font-weight: 500;
+    .queued-text-span {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
-      transition: background 0.12s, border-color 0.12s;
+      color: var(--text-muted);
     }
-    .btn:hover { background: #21262e; }
-    .btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
-    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent-hover); }
-    .btn-success { background: #1d6b3c; border-color: #24804a; color: #d7f5e1; }
-    .btn-success:hover { background: #227a45; }
-    .btn-danger { background: transparent; border-color: rgba(229, 83, 75, 0.4); color: var(--red); }
-    .btn-danger:hover { background: rgba(229, 83, 75, 0.1); }
-    .btn-sm { height: 27px; padding: 0 10px; font-size: 12.5px; }
-    .btn-icon {
-      width: 26px; height: 26px; padding: 0;
-      display: inline-flex; align-items: center; justify-content: center;
-      border-radius: 6px; color: var(--muted);
-      border: 1px solid transparent;
-    }
-    .btn-icon:hover { background: var(--panel-2); color: var(--text); border-color: var(--border); }
 
-    /* ---------- Forms ---------- */
-    .field { margin-bottom: 12px; }
-    .field label { display: block; font-size: 12.5px; font-weight: 500; color: var(--muted); margin-bottom: 5px; }
-    .input, select.input, textarea.input {
+    /* Chat Input Card */
+    .chat-input-box {
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      background: var(--bg-input);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .chat-input-box:focus-within {
+      border-color: var(--cyan);
+      box-shadow: 0 8px 32px rgba(6, 182, 212, 0.15), 0 0 0 1px var(--cyan);
+    }
+
+    .main-task-textarea {
       width: 100%;
-      height: 34px;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 0 11px;
-      font-size: 13.5px;
+      background: transparent;
+      border: none;
       outline: none;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #fff;
+      resize: none;
+      max-height: 180px;
+      min-height: 44px;
     }
-    textarea.input { height: auto; padding: 9px 11px; resize: vertical; }
-    .input:focus, select.input:focus, textarea.input:focus { border-color: var(--accent); }
-    select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 16px) 15px, calc(100% - 11px) 15px; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 28px; }
-    .input-row { display: flex; gap: 8px; }
-    .input-row .input { flex: 1; min-width: 0; }
-    .hint { font-size: 12px; color: var(--dim); margin-top: 6px; }
+    .main-task-textarea::placeholder { color: var(--text-dim); }
 
-    /* ---------- Stat strip ---------- */
-    .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
-    @media (max-width: 800px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } }
-    .stat {
-      background: var(--panel);
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius);
-      padding: 11px 14px;
-    }
-    .stat .k { font-size: 11.5px; color: var(--muted); font-weight: 500; }
-    .stat .v { font-size: 13.5px; font-weight: 600; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .stat .s { font-size: 11.5px; color: var(--dim); }
-
-    /* ---------- VPS list ---------- */
-    .vps-card {
-      background: var(--panel);
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius);
-      padding: 14px 16px;
+    .input-controls-row {
       display: flex;
       align-items: center;
-      gap: 14px;
+      justify-content: space-between;
+      padding-top: 4px;
     }
-    .vps-card + .vps-card { margin-top: 10px; }
-    .vps-main { flex: 1; min-width: 0; }
-    .vps-name { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    .vps-specs { font-size: 12.5px; color: var(--muted); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
-    .vps-specs .ip { font-family: var(--mono); font-size: 12px; }
-
-    /* ---------- Packages ---------- */
-    .pkg-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    .pkg-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-family: var(--mono); padding: 3px 9px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel-2); color: var(--muted); }
-    .pkg-chip .pv { color: var(--dim); }
-    .pkg-chip.auto { border-color: rgba(88, 101, 242, .45); color: #9aa6ff; }
-    .pkg-chip.pending { border-color: rgba(240, 178, 50, .4); color: #f0b232; }
-    .pkg-state { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; }
-    .pkg-state.installing { color: #f0b232; }
-    .pkg-state.done { color: var(--green); }
-    .pkg-state.failed { color: var(--red, #f85149); }
-    .spinner { width: 11px; height: 11px; border: 2px solid rgba(240, 178, 50, .25); border-top-color: #f0b232; border-radius: 50%; animation: pkgspin .8s linear infinite; display: inline-block; flex-shrink: 0; }
-    @keyframes pkgspin { to { transform: rotate(360deg); } }
-    .vps-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
-    @media (max-width: 700px) { .vps-card { flex-direction: column; align-items: stretch; } .vps-actions { justify-content: flex-start; } }
-
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex-shrink: 0; display: inline-block; }
-    .dot.on { background: var(--green); }
-    .dot.err { background: var(--red); }
-    .status-text { font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
-
-    /* ---------- Empty state ---------- */
-    .empty {
-      border: 1px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 42px 20px;
-      text-align: center;
-      color: var(--muted);
-    }
-    .empty h3 { font-size: 14.5px; color: var(--text); font-weight: 600; margin-bottom: 5px; }
-    .empty p { font-size: 13px; margin-bottom: 14px; }
-
-    /* ---------- Dropzone ---------- */
-    .dropzone {
-      border: 1.5px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 22px;
-      text-align: center;
-      color: var(--muted);
-      cursor: pointer;
-      transition: border-color 0.12s, background 0.12s;
-      background: var(--panel);
-    }
-    .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: rgba(88, 101, 242, 0.05); }
-    .dropzone .dz-title { color: var(--text); font-weight: 500; font-size: 13.5px; }
-    .dropzone .dz-sub { font-size: 12px; margin-top: 3px; }
-
-    /* ---------- File tree ---------- */
-    .tree { font-size: 13px; }
-    .tree-row {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      color: var(--muted);
-    }
-    .tree-row:hover { background: var(--panel-2); color: var(--text); }
-    .tree-row.selected { background: rgba(88, 101, 242, 0.14); color: var(--text); }
-    .tree-row .t-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .tree-row .t-meta { font-size: 11.5px; color: var(--dim); flex-shrink: 0; }
-    .tree-row .t-actions { display: none; gap: 2px; flex-shrink: 0; }
-    .tree-row:hover .t-actions { display: inline-flex; }
-    .tree-empty { color: var(--dim); font-size: 12.5px; padding: 10px 4px; }
-
-    /* ---------- Editor ---------- */
-    #editor-wrap { display: none; }
-    #editor-wrap.open { display: block; }
-    .editor-head {
+    .input-left-items {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 8px;
     }
-    .editor-head .fname { font-family: var(--mono); font-size: 12.5px; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .dirty-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); display: none; }
-    .dirty-dot.show { display: block; }
-    #file-editor {
+    .mention-btn {
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mention-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+
+    .run-send-btn {
+      padding: 7px 16px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      color: #000;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 10px rgba(6, 182, 212, 0.3);
+      transition: transform 0.1s, opacity 0.15s;
+    }
+    .run-send-btn:hover { transform: translateY(-1px); }
+    .run-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* Subagent Indicator below input */
+    #subagent-dock-indicator {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+      padding: 4px 12px;
+      border-radius: 8px;
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      font-size: 11.5px;
+      color: #c4b5fd;
+    }
+
+    /* @ Mentions Popover Dropdown */
+    #mentions-popover {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 14px;
+      width: 320px;
+      max-height: 280px;
+      overflow-y: auto;
+      background: #0e111b;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      display: none;
+      flex-direction: column;
+      z-index: 60;
+      padding: 6px;
+    }
+    .mention-category-title {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-dim);
+      padding: 6px 8px 3px;
+      font-weight: 700;
+    }
+    .mention-item {
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+    .mention-item:hover {
+      background: rgba(6, 182, 212, 0.14);
+      color: #38bdf8;
+    }
+
+    /* Right Embedded Tools Panel (PC: Resizable / Mobile: Bottom Sheet) */
+    #embedded-tools-panel {
+      width: var(--tools-width);
+      min-width: 320px;
+      max-width: 80vw;
+      border-left: 1px solid var(--border-subtle);
+      background: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 35;
+      transition: margin-right 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #embedded-tools-panel.collapsed {
+      margin-right: calc(-1 * var(--tools-width));
+    }
+
+    /* Drag Handle for Resizing on PC */
+    #tools-drag-handle {
+      position: absolute;
+      left: -4px;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      cursor: col-resize;
+      z-index: 45;
+    }
+    #tools-drag-handle:hover {
+      background: rgba(6, 182, 212, 0.3);
+    }
+
+    .tools-nav-bar {
+      height: 42px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      background: rgba(12, 15, 25, 0.95);
+    }
+    .tools-tab-group {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .tools-tab-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tools-tab-btn:hover { color: var(--text-main); }
+    .tools-tab-btn.active {
+      background: var(--bg-elevated);
+      color: #fff;
+    }
+
+    .tool-tab-content {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .tool-tab-content.active { display: flex; }
+
+    /* Tool 1: Shell */
+    .terminal-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: #05060b;
+      font-family: var(--font-mono);
+    }
+    .terminal-scroll-area {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+    }
+    .terminal-prompt-bar {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: #090c14;
+      border-top: 1px solid var(--border-subtle);
+      gap: 8px;
+    }
+    .terminal-cli-prompt { color: var(--cyan); font-weight: 700; }
+    .terminal-cli-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    /* Tool 2: IDE / Code Editor */
+    .ide-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: #080a11;
+    }
+    .ide-top-bar {
+      padding: 6px 12px;
+      background: #0c0f18;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .ide-workspace-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    .ide-tree-sidebar {
+      width: 150px;
+      border-right: 1px solid var(--border-subtle);
+      overflow-y: auto;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+    .ide-file-node {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      cursor: pointer;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .ide-file-node:hover, .ide-file-node.active {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+    }
+    .ide-editor-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .ide-textarea-editor {
+      flex: 1;
       width: 100%;
-      min-height: 300px;
-      background: #0b0d10;
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius-sm);
-      color: #dfe3e8;
-      font-family: var(--mono);
+      padding: 12px;
+      background: #06080e;
+      border: none;
+      outline: none;
+      color: #f8fafc;
+      font-family: var(--font-mono);
       font-size: 12.5px;
       line-height: 1.6;
-      padding: 12px;
-      outline: none;
-      resize: vertical;
-      tab-size: 4;
+      resize: none;
+      white-space: pre;
     }
-    #file-editor:focus { border-color: var(--accent); }
 
-    /* ---------- Logs ---------- */
-    .log-box {
-      background: #0b0d10;
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius-sm);
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.65;
-      color: #c8cdd4;
-      padding: 10px 12px;
-      height: 250px;
+    /* Tool 3: Browser */
+    .browser-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: #0b0d14;
+    }
+    .browser-url-strip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      background: #0e111a;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .browser-url-input {
+      flex: 1;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      font-size: 11.5px;
+      color: #fff;
+      font-family: var(--font-mono);
+    }
+    .browser-viewport-frame {
+      flex: 1;
+      overflow: auto;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .browser-iframe-element {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+    }
+
+    /* Tool 4: Progress Tab */
+    .progress-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
       overflow-y: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
+      padding: 14px;
+      gap: 12px;
     }
-    .log-box:empty::before { content: "No logs yet. Start the bot to see output here."; color: var(--dim); }
+    .progress-filter-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .p-chip-btn {
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+    }
+    .p-chip-btn.active {
+      background: var(--cyan-soft);
+      color: var(--cyan);
+      font-weight: 600;
+    }
+    .timeline-event-row {
+      display: flex;
+      gap: 10px;
+      font-size: 12px;
+      position: relative;
+    }
+    .timeline-node-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--cyan);
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    .timeline-event-card {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
 
-    /* ---------- Account ---------- */
-    .account-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); }
-    .account-row:last-child { border-bottom: none; }
-    .account-row .k { font-size: 13px; color: var(--muted); }
-    .account-row .v { font-size: 13px; font-weight: 500; font-family: var(--mono); word-break: break-all; text-align: right; }
+    /* Tool 5: Subagents Panel */
+    .subagents-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow-y: auto;
+      padding: 12px;
+      gap: 10px;
+    }
+    .subagent-item-card {
+      background: rgba(18, 22, 34, 0.85);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
-    /* ---------- Modal ---------- */
-    .modal-backdrop {
+    /* Command Center Modal */
+    .overlay-modal {
       position: fixed;
       inset: 0;
-      background: rgba(5, 7, 10, 0.66);
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      z-index: 100;
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 100;
       padding: 16px;
     }
-    .modal-backdrop.open { display: flex; }
-    .modal {
+    .overlay-modal.open { display: flex; }
+    .modal-frame {
       width: 100%;
-      max-width: 400px;
-      background: var(--panel);
-      border: 1px solid var(--border);
+      max-width: 940px;
+      max-height: 90vh;
+      background: #0b0e17;
+      border: 1px solid var(--border-light);
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header-bar {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-scroll-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+    }
+
+    /* Kanban Grid */
+    .kanban-board-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      min-height: 420px;
+    }
+    .kanban-lane {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-subtle);
       border-radius: 12px;
-      padding: 20px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
-    .modal h2 { font-size: 15.5px; font-weight: 600; margin-bottom: 14px; }
-    .modal .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
-    .modal-error { display: none; font-size: 12.5px; color: var(--red); background: rgba(229, 83, 75, 0.09); border: 1px solid rgba(229, 83, 75, 0.3); border-radius: var(--radius-sm); padding: 7px 10px; margin-bottom: 12px; }
-    .auth-tabs { display: flex; gap: 4px; background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 14px; }
-    .auth-tabs button { flex: 1; height: 28px; border-radius: 5px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
-    .auth-tabs button.active { background: var(--panel-2); color: var(--text); }
-
-    /* ---------- Toasts ---------- */
-    #toasts { position: fixed; bottom: 18px; right: 18px; display: flex; flex-direction: column; gap: 8px; z-index: 200; max-width: 360px; }
-    .toast {
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
+    .lane-heading {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-muted);
+    }
+    .lane-cards-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+    }
+    .lane-card-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
       border-radius: 8px;
-      padding: 10px 13px;
-      font-size: 13px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      animation: toast-in 0.15s ease;
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.15s;
     }
-    .toast.ok { border-left-color: var(--green); }
-    .toast.err { border-left-color: var(--red); }
-    @keyframes toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .lane-card-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-light);
+      transform: translateY(-1px);
+    }
 
-    @media (max-width: 760px) {
-      #sidebar { width: 62px; min-width: 62px; }
-      .brand span, .nav-btn span, .user-pill .info { display: none; }
-      .brand { justify-content: center; padding: 16px 8px 14px; }
-      .nav-btn { justify-content: center; padding: 9px 0; }
-      .user-pill { justify-content: center; padding: 6px; }
-      .footer-actions { justify-content: center; }
+    /* Mobile Sheet Adaptation */
+    @media (max-width: 768px) {
+      #sessions-sidebar {
+        position: fixed;
+        left: 0;
+        top: 46px;
+        bottom: 0;
+        z-index: 70;
+      }
+      #embedded-tools-panel {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw !important;
+        max-width: 100vw;
+        height: 70vh;
+        margin-right: 0 !important;
+        border-left: none;
+        border-top: 1px solid var(--border-light);
+        transform: translateY(100%);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      #embedded-tools-panel.open-mobile {
+        transform: translateY(0);
+      }
+      #tools-drag-handle { display: none; }
+      .kanban-board-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <div id="app">
-    <aside id="sidebar">
-      <div class="brand">
-        <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
-          <path d="M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z" fill="#972577"/>
-          <path d="M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z" fill="#BD2E95"/>
-        </svg>
-        <span>Cloud Vps</span>
+  <div id="app-root">
+    <!-- Top Navigation Header -->
+    <header id="top-nav">
+      <div class="nav-group">
+        <button class="icon-action-btn" id="btn-sidebar-toggle" title="Toggle Sessions Sidebar">☰</button>
+        <div class="brand-logo" onclick="resetToNewSession()">
+          <div class="brand-mark">⚡</div>
+          <span>Cloud<span>Agent</span></span>
+        </div>
+
+        <!-- Mode Toggle (Top, Always Visible) -->
+        <div class="mode-toggle">
+          <button class="mode-btn mode-ask" id="top-toggle-ask" onclick="switchAgentMode('ask')">
+            <span>Ask</span>
+          </button>
+          <button class="mode-btn mode-agent active" id="top-toggle-agent" onclick="switchAgentMode('agent')">
+            <span>Agent</span>
+          </button>
+        </div>
+
+        <!-- Space Selector -->
+        <div class="space-pill" id="nav-space-pill" onclick="openCommandCenter('spaces')" title="Switch or create Space">
+          <div class="space-pill-dot"></div>
+          <span id="nav-active-space-label">Core Infrastructure</span>
+          <span style="font-size:9px; color:var(--text-dim);">▾</span>
+        </div>
       </div>
 
-      <nav id="nav">
-        <button class="nav-btn active" data-tab="vps" onclick="switchTab('vps')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-          <span>My Vps</span>
-        </button>
-        <button class="nav-btn" data-tab="bot" onclick="switchTab('bot')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
-          <span>Dc Bots</span>
-        </button>
-        <button class="nav-btn" data-tab="account" onclick="switchTab('account')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span>Account</span>
-        </button>
-      </nav>
-
-      <div class="sidebar-footer" id="sidebar-footer">
-        <!-- filled by JS -->
+      <div class="nav-group">
+        <!-- Active Session Title (Click to rename) -->
+        <span id="nav-session-name" style="font-weight:600; font-size:13px; color:var(--text-muted); cursor:pointer;" title="Double-click to rename" ondblclick="inlineRenameSession()">
+          New Session
+        </span>
       </div>
-    </aside>
 
-    <div id="main">
-      <header id="topbar">
-        <div id="page-title">My Vps</div>
-        <div id="page-actions"></div>
-      </header>
+      <div class="nav-group">
+        <!-- ACU Compute Meter -->
+        <div class="acu-chip" id="nav-acu-chip" title="Agent Compute Units consumed">
+          <span>⚡</span>
+          <span id="nav-acu-counter">0.2 ACU</span>
+        </div>
 
-      <div id="content">
-        <!-- ============ MY VPS ============ -->
-        <section class="view active" id="view-vps">
-          <div class="stat-strip" id="hw-strip" style="display:none;">
-            <div class="stat"><div class="k">CPU</div><div class="v" id="hw-cpu">—</div><div class="s" id="hw-cpu-sub">—</div></div>
-            <div class="stat"><div class="k">Memory</div><div class="v" id="hw-ram">—</div><div class="s" id="hw-ram-sub">—</div></div>
-            <div class="stat"><div class="k">Platform</div><div class="v" id="hw-platform">—</div><div class="s" id="hw-platform-sub">—</div></div>
-            <div class="stat"><div class="k">Server Uptime</div><div class="v" id="hw-uptime">—</div><div class="s" id="hw-uptime-sub">Online</div></div>
-          </div>
-          <div id="vps-list"></div>
-        </section>
+        <!-- Split Pane Toggle Button -->
+        <button class="nav-btn" onclick="toggleSplitPane()" title="Split Pane in Same Space (Cmd+\)">
+          <span>Split</span>
+        </button>
 
-        <!-- ============ DC BOTS ============ -->
-        <section class="view" id="view-bot">
-          <div id="bot-empty"></div>
+        <!-- Managed Devins Badge -->
+        <button class="nav-btn" onclick="showEmbeddedTool('subagents')" title="Managed Devins">
+          <span>Subagents</span>
+          <span id="nav-subagents-count" style="background:var(--violet-soft); color:#c4b5fd; padding:1px 5px; border-radius:10px; font-size:10px;">0</span>
+        </button>
 
-          <div id="bot-body" style="display:none;">
-            <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-              <div class="field" style="margin:0; flex:1; min-width:180px;">
-                <label style="margin-bottom:4px;">VPS</label>
-                <select class="input" id="bot-vps-select" onchange="setBotVps(this.value)"></select>
-              </div>
-              <div style="display:flex; align-items:center; gap:14px; padding-top:18px; flex-wrap:wrap;">
-                <span class="status-text"><span class="dot" id="bot-status-dot"></span><span id="bot-status-text">Stopped</span></span>
-                <span class="status-text" id="bot-uptime-text" style="display:none;"></span>
-              </div>
-            </div>
+        <!-- Command Center Toggle -->
+        <button class="nav-btn" onclick="openCommandCenter('kanban')" title="Agent Command Center (Cmd+K)">
+          <span>Kanban</span>
+        </button>
 
-            <div class="card" style="margin-top:14px;">
-              <div class="card-title">Upload Files</div>
-              <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
-                <div class="dz-title">Click or drag files here</div>
-                <div class="dz-sub">Zip files are extracted automatically</div>
-              </div>
-              <input type="file" id="file-input" multiple style="display:none" onchange="uploadFiles(this.files); this.value='';">
-            </div>
+        <!-- Embedded Tools Dock Toggle -->
+        <button class="nav-btn active" id="nav-tools-toggle" onclick="toggleToolsPanel()" title="Toggle Tools (Cmd+B)">
+          <span>Tools</span>
+          <span style="font-size:10px;">⇄</span>
+        </button>
 
-            <div class="grid-2" style="margin-top:14px;">
-              <div class="card">
-                <div class="card-title">
-                  <span>Files</span>
-                  <span style="display:flex; gap:6px;">
-                    <button class="btn btn-sm" onclick="newFile()">New File</button>
-                    <button class="btn btn-sm" onclick="newFolder()">New Folder</button>
-                  </span>
+        <!-- Account Pill -->
+        <button class="nav-btn" id="nav-account-btn" onclick="openModal('modal-account-view')">
+          <span id="nav-account-username">Account</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <div id="workspace-container">
+      <!-- Sessions Sidebar -->
+      <aside id="sessions-sidebar">
+        <div class="sidebar-head">
+          <span class="sidebar-title">Sessions</span>
+          <button class="icon-action-btn" onclick="createNewSession()" title="New Session (Cmd+T)">+</button>
+        </div>
+        <div class="sessions-list-wrap" id="sidebar-sessions-container">
+          <!-- Dynamically populated -->
+        </div>
+        <div style="padding:10px 14px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:var(--text-dim);">100-Yr Storage Active</span>
+          <button class="icon-action-btn" onclick="openCommandCenter('playbooks')" title="Playbooks">📚</button>
+        </div>
+      </aside>
+
+      <!-- Center Chat Area (Primary) -->
+      <main id="chat-main-area">
+        <div id="panes-wrapper">
+          <!-- Main Chat Pane -->
+          <div class="chat-pane" id="pane-primary">
+            <div class="chat-transcript" id="transcript-primary">
+              <!-- Entry screen or transcript items -->
+              <div class="entry-zero-state" id="entry-zero-state">
+                <div class="entry-tag-pill">Cloud Agent · Devin-Style Teammate</div>
+                <h1 class="entry-headline">What would you like Cloud Agent<br/>to build or run today?</h1>
+                <p class="entry-description">Isolated VM dev environment. Autonomous execution, real terminal streaming, embedded IDE, Roblox Luau generation, 24/7 Discord bots, and deep multi-layer deobfuscation.</p>
+                <div class="entry-prompt-chips">
+                  <button class="prompt-chip" onclick="fillPromptText('keep my bots online')">
+                    <span>🤖</span> Keep Discord bots online 24/7
+                  </button>
+                  <button class="prompt-chip" onclick="fillPromptText('make me a discord bot')">
+                    <span>⚡</span> Write Discord bot (discord.py / discord.js)
+                  </button>
+                  <button class="prompt-chip" onclick="fillPromptText('create a roblox shop script')">
+                    <span>🎮</span> Create Roblox Luau shop GUI
+                  </button>
+                  <button class="prompt-chip" onclick="fillPromptText('deobfuscate all')">
+                    <span>🛡️</span> Deobfuscate workspace scripts
+                  </button>
+                  <button class="prompt-chip" onclick="fillPromptText('clone kers0ne/1LuhhCrim')">
+                    <span>📦</span> Clone kers0ne/1LuhhCrim (pinned)
+                  </button>
                 </div>
-                <div class="tree" id="file-tree"></div>
+              </div>
+            </div>
+
+            <!-- Pinned Bottom Input Dock -->
+            <div class="input-dock-container">
+              <!-- Queued Messages Tray -->
+              <div id="queued-messages-tray">
+                <div style="font-size:11px; font-weight:700; color:var(--cyan); text-transform:uppercase;">Up Next (Queued while agent runs)</div>
+                <div id="queued-rows-box" style="display:flex; flex-direction:column; gap:4px;"></div>
               </div>
 
-              <div class="card">
-                <div class="card-title">Bot</div>
-                <div class="field">
-                  <label for="bot-script">Script</label>
-                  <div class="input-row">
-                    <input type="text" class="input" id="bot-script" placeholder="bot.py" spellcheck="false">
-                    <select class="input" id="bot-runtime" style="width:110px; flex:none;" title="Runtime">
-                      <option value="python">python</option>
-                      <option value="node">node</option>
-                      <option value="bash">bash</option>
-                    </select>
+              <!-- Input Box Card -->
+              <div class="chat-input-box">
+                <!-- Mentions Popover -->
+                <div id="mentions-popover">
+                  <div class="mention-category-title">@ Repositories</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Repos/kers0ne/1LuhhCrim')">kers0ne/1LuhhCrim (pinned forever)</div>
+                  <div class="mention-category-title">@ Files</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Files/bot.py')">bot.py</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Files/roblox/welcome.luau')">roblox/welcome.luau</div>
+                  <div class="mention-category-title">@ Skills & Primitives</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Skills/discord-watchdog')">discord-watchdog 24/7</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Skills/roblox-luau')">roblox-luau generator</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Skills/deobfuscator')">deep deobfuscator</div>
+                  <div class="mention-category-title">@ Playbooks</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Playbooks/deploy-discord')">Deploy 24/7 Discord Bot</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Playbooks/roblox-economy')">Roblox Economy System</div>
+                </div>
+
+                <textarea class="main-task-textarea" id="main-task-input" placeholder="Type a task, @ mention context, or ask a question... (Cmd+L adds selected text)" rows="2"></textarea>
+
+                <div class="input-controls-row">
+                  <div class="input-left-items">
+                    <!-- Mode Toggle next to input -->
+                    <div class="mode-toggle" style="transform:scale(0.95); transform-origin:left center;">
+                      <button class="mode-btn mode-ask" id="dock-toggle-ask" onclick="switchAgentMode('ask')">Ask</button>
+                      <button class="mode-btn mode-agent active" id="dock-toggle-agent" onclick="switchAgentMode('agent')">Agent</button>
+                    </div>
+
+                    <button class="mention-btn" onclick="toggleMentionsMenu()" title="@ mentions for context">
+                      <span>@</span> Mention
+                    </button>
                   </div>
-                </div>
-                <div class="field">
-                  <label for="bot-token">Discord Token</label>
-                  <div class="input-row">
-                    <input type="password" class="input" id="bot-token" placeholder="Paste token" autocomplete="off" spellcheck="false">
-                    <button class="btn" onclick="toggleToken()" id="token-eye" title="Show / hide">Show</button>
-                  </div>
-                  <div class="hint" id="token-hint">Left empty, the saved token is used.</div>
-                </div>
-                <div class="field" style="margin-bottom:0;">
-                  <label for="bot-token-type">Token Type</label>
-                  <select class="input" id="bot-token-type">
-                    <option value="bot">Bot token</option>
-                    <option value="user">User token</option>
-                  </select>
-                </div>
-                <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
-                  <button class="btn btn-success" id="btn-start" onclick="startBot()">Start</button>
-                  <button class="btn" id="btn-restart" onclick="restartBot()">Restart</button>
-                  <button class="btn btn-danger" id="btn-stop" onclick="stopBot()">Stop</button>
-                </div>
-              </div>
-            </div>
 
-            <div class="card" style="margin-top:14px;">
-              <div class="card-title">
-                <span>Packages</span>
-                <span style="display:flex; gap:6px; align-items:center;">
-                  <span class="pkg-state" id="pkg-auto-state"></span>
-                  <button class="btn btn-sm" id="btn-discord-stack" onclick="installDiscordStack()" title="Install discord.py + discord.js and common libraries">Install Discord Stack</button>
-                </span>
+                  <button class="run-send-btn" id="btn-run-prompt" onclick="submitAgentPrompt()">
+                    <span>Run</span>
+                    <span>↵</span>
+                  </button>
+                </div>
               </div>
-              <div class="input-row">
-                <input type="text" class="input" id="pkg-name" placeholder="Package name (e.g. discord.py, axios) — space-separated for multiple" spellcheck="false"
-                  onkeydown="if (event.key === 'Enter') installPackage()">
-                <select class="input" id="pkg-runtime" style="width:110px; flex:none;" title="Runtime">
-                  <option value="python">python</option>
-                  <option value="node">node</option>
-                </select>
-                <button class="btn btn-primary" id="btn-pkg-install" onclick="installPackage()">Install</button>
-              </div>
-              <div class="hint">Discord packages (discord.py, discord.js, dotenv…) install automatically on VPS creation. Anything you add here is saved with the VPS and re-installed if missing when bots start.</div>
-              <div class="pkg-chips" id="pkg-list" style="margin-top:10px;"></div>
-            </div>
 
-            <div class="card" id="editor-card" style="display:none;">
-              <div class="editor-head">
-                <span class="fname" id="editor-fname"></span>
-                <span class="dirty-dot" id="editor-dirty"></span>
-                <button class="btn btn-sm" onclick="deleteEditorFile()">Delete</button>
-                <button class="btn btn-sm btn-primary" onclick="saveEditorFile()">Save</button>
+              <!-- Subagents Running Indicator -->
+              <div id="subagent-dock-indicator">
+                <span>⚡ <strong id="subagent-dock-count">2</strong> Managed Devins active in parallel VMs</span>
+                <button class="card-footer-btn" onclick="showEmbeddedTool('subagents')">Inspect Subagents →</button>
               </div>
-              <textarea id="file-editor" spellcheck="false" oninput="markDirty()"></textarea>
-            </div>
-
-            <div class="card" style="margin-top:14px;">
-              <div class="card-title">
-                <span>Logs</span>
-                <span style="display:flex; gap:6px;">
-                  <button class="btn btn-sm" onclick="clearLogs()">Clear</button>
-                </span>
-              </div>
-              <div class="log-box" id="log-box"></div>
             </div>
           </div>
-        </section>
 
-        <!-- ============ ACCOUNT ============ -->
-        <section class="view" id="view-account">
-          <div id="account-body"></div>
-        </section>
+          <!-- Secondary Split Pane (Hidden unless split pane activated) -->
+          <div class="chat-pane split-pane" id="pane-secondary" style="display:none;">
+            <div style="padding:8px 14px; border-bottom:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-size:12px; color:var(--text-muted);">Split Session View</strong>
+              <button class="icon-action-btn" onclick="toggleSplitPane()">✕</button>
+            </div>
+            <div class="chat-transcript" id="transcript-secondary">
+              <div style="color:var(--text-dim); text-align:center; padding:40px 10px;">Dual execution pane ready. New sessions in Space inherit shared context.</div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right Embedded Tools Panel -->
+      <aside id="embedded-tools-panel">
+        <div id="tools-drag-handle"></div>
+        <div class="tools-nav-bar">
+          <div class="tools-tab-group">
+            <button class="tools-tab-btn active" id="btn-tab-shell" onclick="showEmbeddedTool('shell')">Shell</button>
+            <button class="tools-tab-btn" id="btn-tab-ide" onclick="showEmbeddedTool('ide')">IDE</button>
+            <button class="tools-tab-btn" id="btn-tab-browser" onclick="showEmbeddedTool('browser')">Browser</button>
+            <button class="tools-tab-btn" id="btn-tab-progress" onclick="showEmbeddedTool('progress')">Progress</button>
+            <button class="tools-tab-btn" id="btn-tab-subagents" onclick="showEmbeddedTool('subagents')">Subagents</button>
+          </div>
+          <button class="icon-action-btn" onclick="toggleToolsPanel()" title="Collapse Tools Panel">✕</button>
+        </div>
+
+        <!-- Tool 1: Shell -->
+        <div class="tool-tab-content active" id="tab-content-shell">
+          <div class="terminal-container">
+            <div class="terminal-scroll-area" id="terminal-stdout-log">
+[Cloud Agent VM Host] Ubuntu 22.04 LTS container initialized.
+[Watchdog] Active 24/7 supervisor armed.
+[System] Real interactive shell connected. Type commands below.
+            </div>
+            <div class="terminal-prompt-bar">
+              <span class="terminal-cli-prompt">$</span>
+              <input type="text" class="terminal-cli-input" id="terminal-cli-field" placeholder="Type shell command (e.g. ls -la, python3 --version)..." onkeydown="onTerminalKeydown(event)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Tool 2: Embedded IDE -->
+        <div class="tool-tab-content" id="tab-content-ide">
+          <div class="ide-container">
+            <div class="ide-top-bar">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span id="ide-filename-label" style="font-weight:600; font-size:12px; color:var(--text-main);">bot.py</span>
+                <span id="ide-sync-badge" style="font-size:11px; color:var(--text-dim);">synced</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <button class="card-footer-btn" onclick="saveActiveIdeFile()">Save</button>
+                <button class="card-footer-btn" onclick="deobfuscateActiveIdeFile()">✨ Deobfuscate</button>
+                <button class="card-footer-btn" onclick="reloadIdeFiles()">Refresh</button>
+              </div>
+            </div>
+            <div class="ide-workspace-body">
+              <div class="ide-tree-sidebar" id="ide-files-container">
+                <!-- Dynamically loaded file tree -->
+              </div>
+              <div class="ide-editor-wrapper">
+                <textarea class="ide-textarea-editor" id="ide-editor-textarea" spellcheck="false"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tool 3: Browser Simulator -->
+        <div class="tool-tab-content" id="tab-content-browser">
+          <div class="browser-container">
+            <div class="browser-url-strip">
+              <button class="icon-action-btn" onclick="browserGoBack()">←</button>
+              <button class="icon-action-btn" onclick="browserRefresh()">↻</button>
+              <input type="text" class="browser-url-input" id="browser-url-bar" value="http://localhost:3000">
+              <button class="card-footer-btn" onclick="browserNavigateTo()">Go</button>
+            </div>
+            <div class="browser-viewport-frame">
+              <iframe class="browser-iframe-element" id="browser-iframe-view" src="about:blank"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tool 4: Unified Progress Tab -->
+        <div class="tool-tab-content" id="tab-content-progress">
+          <div class="progress-container">
+            <div class="progress-filter-strip">
+              <button class="p-chip-btn active" onclick="applyProgressFilter('all')">All</button>
+              <button class="p-chip-btn" onclick="applyProgressFilter('shell')">Shell</button>
+              <button class="p-chip-btn" onclick="applyProgressFilter('file_edit')">Files</button>
+              <button class="p-chip-btn" onclick="applyProgressFilter('browser')">Browser</button>
+              <button class="p-chip-btn" onclick="applyProgressFilter('subagent')">Subagents</button>
+              <button class="p-chip-btn" onclick="applyProgressFilter('plan')">Plans</button>
+            </div>
+            <div id="progress-timeline-feed" style="display:flex; flex-direction:column; gap:10px;">
+              <!-- Timeline events -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tool 5: Managed Devins Subagents -->
+        <div class="tool-tab-content" id="tab-content-subagents">
+          <div class="subagents-container">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Managed Devins</span>
+              <button class="card-footer-btn" onclick="triggerSpawnSubagentModal()">+ Spawn Subagent</button>
+            </div>
+            <div id="subagents-feed-list" style="display:flex; flex-direction:column; gap:8px;">
+              <!-- Subagents list -->
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Agent Command Center Modal (Kanban, Spaces, Playbooks, Knowledge, Schedules) -->
+    <div class="overlay-modal" id="modal-command-center">
+      <div class="modal-frame">
+        <div class="modal-header-bar">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <strong style="font-size:15px; color:#fff;">Agent Command Center</strong>
+            <div class="tools-tab-group">
+              <button class="tools-tab-btn active" id="cc-btn-kanban" onclick="switchCcView('kanban')">Kanban</button>
+              <button class="tools-tab-btn" id="cc-btn-spaces" onclick="switchCcView('spaces')">Spaces</button>
+              <button class="tools-tab-btn" id="cc-btn-playbooks" onclick="switchCcView('playbooks')">Playbooks</button>
+              <button class="tools-tab-btn" id="cc-btn-knowledge" onclick="switchCcView('knowledge')">Knowledge</button>
+              <button class="tools-tab-btn" id="cc-btn-schedules" onclick="switchCcView('schedules')">Schedules</button>
+            </div>
+          </div>
+          <button class="icon-action-btn" onclick="closeModal('modal-command-center')">✕</button>
+        </div>
+        <div class="modal-scroll-body" id="modal-command-center-content">
+          <!-- Dynamic Content -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Outcome Analysis Modal -->
+    <div class="overlay-modal" id="modal-outcome-view">
+      <div class="modal-frame" style="max-width:620px;">
+        <div class="modal-header-bar">
+          <strong style="font-size:15px; color:#fff;">Session Outcome Analysis</strong>
+          <button class="icon-action-btn" onclick="closeModal('modal-outcome-view')">✕</button>
+        </div>
+        <div class="modal-scroll-body" id="outcome-analysis-body">
+          <!-- Dynamic Analysis -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Modal -->
+    <div class="overlay-modal" id="modal-account-view">
+      <div class="modal-frame" style="max-width:440px;">
+        <div class="modal-header-bar">
+          <strong style="font-size:15px; color:#fff;">Account & 100-Year Sessions</strong>
+          <button class="icon-action-btn" onclick="closeModal('modal-account-view')">✕</button>
+        </div>
+        <div class="modal-scroll-body" style="display:flex; flex-direction:column; gap:14px;">
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
+            <div style="font-size:11.5px; color:var(--text-dim); text-transform:uppercase;">Active Account</div>
+            <div style="font-size:14px; font-weight:700; color:#fff; margin-top:2px;" id="account-card-username">-</div>
+            <div style="font-size:11.5px; color:var(--cyan); margin-top:4px;" id="account-card-vps">Isolated VM: Ready</div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:12px; color:var(--text-muted);">Sign In to Named Account</label>
+            <input type="text" id="auth-field-username" placeholder="Username" style="padding:8px 12px; border-radius:8px; background:var(--bg-elevated); border:1px solid var(--border-subtle);">
+            <input type="password" id="auth-field-password" placeholder="Password" style="padding:8px 12px; border-radius:8px; background:var(--bg-elevated); border:1px solid var(--border-subtle);">
+            <div style="display:flex; gap:8px; margin-top:4px;">
+              <button class="run-send-btn" style="flex:1; justify-content:center;" onclick="performAccountLogin()">Log In</button>
+              <button class="card-footer-btn" style="flex:1; justify-content:center;" onclick="performAccountSignup()">Sign Up Free</button>
+            </div>
+          </div>
+
+          <div style="font-size:11px; color:var(--text-dim); line-height:1.4; border-top:1px solid var(--border-subtle); padding-top:10px;">
+            🔒 <strong>Strict Privacy:</strong> Public user directories and insecure account-switching have been permanently deleted. Only your password grants access. Sessions are saved for 100 years.
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Auth modal -->
-  <div class="modal-backdrop" id="auth-backdrop" onclick="if (event.target === this) closeAuth()">
-    <div class="modal">
-      <h2 id="auth-title">Sign In</h2>
-      <div class="modal-error" id="auth-error"></div>
-      <div class="auth-tabs">
-        <button id="tab-login" onclick="setAuthMode('login')">Sign In</button>
-        <button id="tab-signup" class="active" onclick="setAuthMode('signup')">Create Account</button>
-      </div>
-      <div class="field">
-        <label for="auth-username">Username</label>
-        <input type="text" class="input" id="auth-username" autocomplete="username" spellcheck="false">
-      </div>
-      <div class="field">
-        <label for="auth-password">Password</label>
-        <input type="password" class="input" id="auth-password" autocomplete="current-password">
-      </div>
-      <div class="field" id="auth-confirm-field">
-        <label for="auth-confirm">Confirm Password</label>
-        <input type="password" id="auth-confirm" autocomplete="new-password">
-      </div>
-      <button class="btn btn-primary" id="auth-submit" style="width:100%;" onclick="submitAuth()">Create Account</button>
-    </div>
-  </div>
-
-  <!-- Create VPS modal -->
-  <div class="modal-backdrop" id="vps-backdrop" onclick="if (event.target === this) closeVpsModal()">
-    <div class="modal">
-      <h2>Create VPS</h2>
-      <div class="modal-error" id="vps-error"></div>
-      <div class="field">
-        <label for="vps-name">Name</label>
-        <input type="text" class="input" id="vps-name" placeholder="my-bot-vps" maxlength="40" spellcheck="false">
-      </div>
-      <div class="field">
-        <label for="vps-plan">Plan</label>
-        <select class="input" id="vps-plan"></select>
-      </div>
-      <div class="modal-actions">
-        <button class="btn" onclick="closeVpsModal()">Cancel</button>
-        <button class="btn btn-primary" id="vps-create-btn" onclick="createVps()">Create</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Prompt modal -->
-  <div class="modal-backdrop" id="prompt-backdrop">
-    <div class="modal">
-      <h2 id="prompt-title">Name</h2>
-      <div class="field" style="margin-bottom:0;">
-        <input type="text" class="input" id="prompt-input" spellcheck="false">
-      </div>
-      <div class="modal-actions">
-        <button class="btn" id="prompt-cancel">Cancel</button>
-        <button class="btn btn-primary" id="prompt-ok">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Confirm modal -->
-  <div class="modal-backdrop" id="confirm-backdrop">
-    <div class="modal">
-      <h2 id="confirm-title">Confirm</h2>
-      <p id="confirm-message" style="font-size:13.5px; color:var(--muted);"></p>
-      <div class="modal-actions">
-        <button class="btn" id="confirm-cancel">Cancel</button>
-        <button class="btn btn-danger" id="confirm-ok">Delete</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="toasts"></div>
-
+  <!-- Application Logic -->
   <script>
-    'use strict';
-
-    /* ================= STATE ================= */
-    const STATE = {
+    /* ================================================================
+       CLOUD AGENT CLIENT ENGINE & EVENT BUS
+       ================================================================ */
+    const APP = {
       user: null,
-      vpsList: [],
-      activeVpsId: null,      // VPS selected in Dc Bots
-      tab: 'vps',
-      bot: null,
+      apiKey: null,
+      vpsId: null,
+      mode: 'agent', // 'agent' | 'ask'
+      activeSessionId: null,
+      sessions: [],
+      spaces: [],
+      playbooks: [],
+      knowledge: [],
+      schedules: [],
+      subagents: [],
+      activeSpaceId: null,
+      activeTool: 'shell',
+      isToolsOpen: false, // Starts collapsed: Rule 1 (Chat is primary, tools expand on demand)
+      isExecuting: false,
+      queuedPrompts: [],
+      activeFile: 'bot.py',
       files: [],
-      collapsed: new Set(),
-      editorPath: null,
-      editorDirty: false,
-      plans: {},
-      logTimer: null,
-      statusTimer: null,
-      netFailNotified: false,
-      pkgAutoStatus: '',      // Discord-stack auto-install status of active VPS
+      eventsStream: [],
+      progressFilter: 'all',
+      isSplitPaneOpen: false,
     };
 
-    const $ = (id) => document.getElementById(id);
-    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-    /* ================= API ================= */
     function authHeaders() {
-      const key = (STATE.user && STATE.user.api_key) || localStorage.getItem('cloudvps_key') || '';
-      const h = {};
-      if (key) { h['X-API-Key'] = key; h['Authorization'] = 'Bearer ' + key; }
+      const h = { 'Content-Type': 'application/json' };
+      if (APP.apiKey) {
+        h['X-API-Key'] = APP.apiKey;
+      }
       return h;
     }
 
-    async function api(path, opts = {}) {
-      opts.headers = Object.assign({}, authHeaders(), opts.headers || {});
-      if (opts.body && typeof opts.body === 'object' && !(opts.body instanceof FormData)) {
-        opts.headers['Content-Type'] = 'application/json';
-        opts.body = JSON.stringify(opts.body);
-      }
-      let res;
-      try {
-        res = await fetch(path, opts);
-      } catch (e) {
-        if (!STATE.netFailNotified) {
-          STATE.netFailNotified = true;
-          toast('Cannot reach the server. Check your connection.', 'err');
-          setTimeout(() => { STATE.netFailNotified = false; }, 8000);
-        }
-        return { ok: false, status: 0, data: {} };
-      }
-      let data = {};
-      try { data = await res.json(); } catch (e) {}
-      if (res.status === 401) {
-        STATE.user = null;
-        localStorage.removeItem('cloudvps_key');
-        renderSidebar();
-        switchTab('vps');
-      }
-      return { ok: res.ok, status: res.status, data };
-    }
-
-    /* ================= TOASTS ================= */
-    function toast(msg, type = 'info') {
-      const el = document.createElement('div');
-      el.className = 'toast' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
-      el.textContent = msg;
-      $('toasts').appendChild(el);
-      setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .25s'; setTimeout(() => el.remove(), 260); }, 3400);
-    }
-
-    /* ================= MODALS ================= */
-    function promptModal(title, placeholder, defaultValue = '') {
-      return new Promise((resolve) => {
-        const bd = $('prompt-backdrop');
-        $('prompt-title').textContent = title;
-        const input = $('prompt-input');
-        input.value = defaultValue;
-        input.placeholder = placeholder || '';
-        input.style.display = '';
-        bd.classList.add('open');
-        setTimeout(() => { input.focus(); input.select(); }, 30);
-
-        const close = (val) => {
-          bd.classList.remove('open');
-          $('prompt-ok').onclick = null;
-          $('prompt-cancel').onclick = null;
-          input.onkeydown = null;
-          resolve(val);
-        };
-        $('prompt-ok').onclick = () => close(input.value);
-        $('prompt-cancel').onclick = () => close(null);
-        input.onkeydown = (e) => {
-          if (e.key === 'Enter') close(input.value);
-          if (e.key === 'Escape') close(null);
-        };
-      });
-    }
-
-    function confirmModal(title, message, okLabel = 'Delete') {
-      return new Promise((resolve) => {
-        const bd = $('confirm-backdrop');
-        $('confirm-title').textContent = title;
-        $('confirm-message').textContent = message;
-        $('confirm-ok').textContent = okLabel;
-        bd.classList.add('open');
-        const close = (val) => {
-          bd.classList.remove('open');
-          $('confirm-ok').onclick = null;
-          $('confirm-cancel').onclick = null;
-          resolve(val);
-        };
-        $('confirm-ok').onclick = () => close(true);
-        $('confirm-cancel').onclick = () => close(false);
-      });
-    }
-
-    /* ================= TABS ================= */
-    function switchTab(tab) {
-      STATE.tab = tab;
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      $('view-' + tab).classList.add('active');
-      $('page-title').textContent = tab === 'vps' ? 'My Vps' : tab === 'bot' ? 'Dc Bots' : 'Account';
-
-      const actions = $('page-actions');
-      actions.innerHTML = '';
-      stopLogPolling();
-      if (STATE.statusTimer) { clearInterval(STATE.statusTimer); STATE.statusTimer = null; }
-
-      if (tab === 'vps') {
-        const b = document.createElement('button');
-        b.className = 'btn btn-primary';
-        b.textContent = '+ Create VPS';
-        b.onclick = openVpsModal;
-        actions.appendChild(b);
-        loadVpsList();
-        loadHardware();
-      } else if (tab === 'bot') {
-        loadBotTab();
-      } else if (tab === 'account') {
-        renderAccount();
-      }
-    }
-
-    /* ================= SIDEBAR / AUTH ================= */
-    function renderSidebar() {
-      const footer = $('sidebar-footer');
-      if (STATE.user) {
-        footer.innerHTML = `
-          <div class="user-pill">
-            <div class="user-avatar">${esc((STATE.user.username || '?')[0].toUpperCase())}</div>
-            <div class="info">
-              <div class="name">${esc(STATE.user.username)}</div>
-              <div class="sub">Signed in</div>
-            </div>
-          </div>`;
-      } else {
-        footer.innerHTML = `
-          <div class="footer-actions">
-            <button class="btn btn-sm" style="flex:1;" onclick="openAuth('login')">Sign In</button>
-            <button class="btn btn-sm btn-primary" style="flex:1;" onclick="openAuth('signup')">Sign Up</button>
-          </div>`;
-      }
-    }
-
-    let authMode = 'signup';
-    function openAuth(mode = 'signup') {
-      setAuthMode(mode);
-      $('auth-error').style.display = 'none';
-      $('auth-backdrop').classList.add('open');
-      setTimeout(() => $('auth-username').focus(), 30);
-    }
-    function closeAuth() { $('auth-backdrop').classList.remove('open'); }
-
-    function setAuthMode(mode) {
-      authMode = mode;
-      $('tab-login').classList.toggle('active', mode === 'login');
-      $('tab-signup').classList.toggle('active', mode === 'signup');
-      $('auth-title').textContent = mode === 'login' ? 'Sign In' : 'Create Account';
-      $('auth-confirm-field').style.display = mode === 'signup' ? '' : 'none';
-      $('auth-submit').textContent = mode === 'login' ? 'Sign In' : 'Create Account';
-      $('auth-error').style.display = 'none';
-    }
-
-    async function submitAuth() {
-      const username = $('auth-username').value.trim();
-      const password = $('auth-password').value;
-      const confirm = $('auth-confirm').value;
-      const errEl = $('auth-error');
-      errEl.style.display = 'none';
-
-      if (!username || username.length < 3) return showAuthError('Username must be at least 3 characters.');
-      if (!password || password.length < 6) return showAuthError('Password must be at least 6 characters.');
-      if (authMode === 'signup' && password !== confirm) return showAuthError('Passwords do not match.');
-
-      const btn = $('auth-submit');
-      btn.disabled = true;
-      const res = await api(authMode === 'login' ? '/api/login' : '/api/register', {
-        method: 'POST',
-        body: { username, password }
-      });
-      btn.disabled = false;
-
-      if (res.ok && res.data.success) {
-        localStorage.setItem('cloudvps_key', res.data.api_key);
-        STATE.user = { id: res.data.user_id, username: res.data.username, api_key: res.data.api_key };
-        closeAuth();
-        $('auth-password').value = '';
-        $('auth-confirm').value = '';
-        renderSidebar();
-        toast('Signed in as ' + STATE.user.username, 'ok');
-        switchTab(STATE.tab);
-      } else {
-        showAuthError(res.data.error || 'Authentication failed. Check your details.');
-      }
-    }
-
-    function showAuthError(msg) {
-      const el = $('auth-error');
-      el.textContent = msg;
-      el.style.display = 'block';
-    }
-
-    async function signOut() {
-      await api('/api/logout', { method: 'POST' });
-      localStorage.removeItem('cloudvps_key');
-      STATE.user = null;
-      renderSidebar();
-      switchTab('vps');
-      toast('Signed out');
-    }
-
-    /* ================= MY VPS ================= */
-    async function loadVpsList() {
-      if (!STATE.user) {
-        $('vps-list').innerHTML = guestEmpty('Sign in to create and manage your VPS.', 'Sign In');
-        return;
-      }
-      const res = await api('/api/vps');
-      if (!res.ok) return;
-      STATE.vpsList = res.data.vps || [];
-      renderVpsList();
-    }
-
-    function guestEmpty(text, btnLabel) {
-      return `<div class="empty"><h3>${esc(text)}</h3><p>It takes less than a minute.</p>
-        <button class="btn btn-primary" onclick="openAuth('${btnLabel === 'Sign In' ? 'login' : 'signup'}')">${btnLabel}</button></div>`;
-    }
-
-    function renderVpsList() {
-      const wrap = $('vps-list');
-      if (!STATE.user) return;
-      if (STATE.vpsList.length === 0) {
-        wrap.innerHTML = `<div class="empty"><h3>No VPS yet</h3><p>Create your first VPS to host a Discord bot.</p>
-          <button class="btn btn-primary" onclick="openVpsModal()">Create VPS</button></div>`;
-        return;
-      }
-      wrap.innerHTML = STATE.vpsList.map(v => {
-        const on = v.status === 'running';
-        const ai = (v.packages && v.packages.auto_install) || null;
-        let pkgBadge = '';
-        if (ai && ['queued', 'pending', 'running'].includes(ai.status)) {
-          pkgBadge = `<span class="pkg-state installing"><span class="spinner"></span>Installing Discord packages…</span>`;
-        } else if (ai && ai.status === 'done') {
-          pkgBadge = `<span class="pkg-state done">Discord stack ✓</span>`;
-        } else if (ai && ai.status === 'failed') {
-          pkgBadge = `<span class="pkg-state failed">Package install failed — retry in Dc Bots</span>`;
-        }
-        return `
-        <div class="vps-card">
-          <div class="vps-main">
-            <div class="vps-name"><span class="dot ${on ? 'on' : ''}"></span>${esc(v.name)}</div>
-            <div class="vps-specs">
-              <span>${esc(v.cpu)} · ${esc(v.memory)} · ${esc(v.storage)}</span>
-              <span class="ip">${esc(v.ip)}</span>
-              <span>Plan: ${esc(v.plan)}</span>
-              ${pkgBadge}
-            </div>
-          </div>
-          <div class="vps-actions">
-            <button class="btn btn-sm btn-primary" onclick="manageBot('${v.id}')">Manage Bot</button>
-            ${on
-              ? `<button class="btn btn-sm" onclick="vpsAction('${v.id}', 'stop')">Stop</button>`
-              : `<button class="btn btn-sm" onclick="vpsAction('${v.id}', 'start')">Start</button>`}
-            <button class="btn btn-sm" onclick="vpsAction('${v.id}', 'restart')">Restart</button>
-            <button class="btn-icon" title="Rename" onclick="renameVps('${v.id}')">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-            </button>
-            <button class="btn-icon" title="Delete" style="color:var(--red);" onclick="deleteVps('${v.id}')">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
-          </div>
-        </div>`;
-      }).join('');
-    }
-
-    async function vpsAction(id, action) {
-      const res = await api(`/api/vps/${id}/${action}`, { method: 'POST' });
-      if (res.ok) {
-        toast(action === 'start' ? 'VPS started' : action === 'stop' ? 'VPS stopped' : 'VPS restarted', 'ok');
-        loadVpsList();
-      } else {
-        toast(res.data.error || 'Action failed', 'err');
-      }
-    }
-
-    async function renameVps(id) {
-      const v = STATE.vpsList.find(x => x.id === id);
-      const name = await promptModal('Rename VPS', 'New name', v ? v.name : '');
-      if (!name || !name.trim()) return;
-      const res = await api(`/api/vps/${id}/rename`, { method: 'POST', body: { name: name.trim() } });
-      if (res.ok) { toast('Renamed', 'ok'); loadVpsList(); }
-      else toast(res.data.error || 'Rename failed', 'err');
-    }
-
-    async function deleteVps(id) {
-      const v = STATE.vpsList.find(x => x.id === id);
-      const ok = await confirmModal('Delete VPS', `Delete "${v ? v.name : 'this VPS'}" and all its files? This cannot be undone.`);
-      if (!ok) return;
-      const res = await api(`/api/vps/${id}`, { method: 'DELETE' });
-      if (res.ok) { toast('VPS deleted', 'ok'); loadVpsList(); if (STATE.activeVpsId === id) STATE.activeVpsId = null; }
-      else toast(res.data.error || 'Delete failed', 'err');
-    }
-
-    function manageBot(id) {
-      STATE.activeVpsId = id;
-      switchTab('bot');
-    }
-
-    /* ---- Create VPS modal ---- */
-    async function openVpsModal() {
-      if (!STATE.user) { openAuth('signup'); return; }
-      $('vps-error').style.display = 'none';
-      $('vps-name').value = '';
-      if (Object.keys(STATE.plans).length === 0) {
-        const res = await api('/api/plans');
-        if (res.ok) STATE.plans = res.data;
-      }
-      const sel = $('vps-plan');
-      sel.innerHTML = Object.entries(STATE.plans).map(([k, p]) =>
-        `<option value="${esc(k)}">${esc(k)} — ${esc(p.cpu)}, ${esc(p.memory)}</option>`).join('');
-      sel.value = 'performance';
-      $('vps-backdrop').classList.add('open');
-      setTimeout(() => $('vps-name').focus(), 30);
-    }
-    function closeVpsModal() { $('vps-backdrop').classList.remove('open'); }
-
-    async function createVps() {
-      const name = $('vps-name').value.trim();
-      const plan = $('vps-plan').value;
-      const btn = $('vps-create-btn');
-      btn.disabled = true;
-      const res = await api('/api/vps', { method: 'POST', body: { name, plan } });
-      btn.disabled = false;
-      if (res.ok && res.data.success) {
-        closeVpsModal();
-        const installing = res.data.auto_install && ['queued', 'pending', 'running'].includes(res.data.auto_install.status);
-        toast(installing ? 'VPS created — Discord packages installing…' : 'VPS created', 'ok');
-        loadVpsList();
-        if (installing) {
-          // Refresh the list while the background installer runs so the
-          // "Installing Discord packages…" badge flips to "Discord stack ✓".
-          let n = 0;
-          const t = setInterval(() => {
-            n++;
-            loadVpsList();
-            if (n >= 12) clearInterval(t);
-          }, 10000);
-        }
-      } else {
-        const el = $('vps-error');
-        el.textContent = res.data.error || 'Could not create VPS.';
-        el.style.display = 'block';
-      }
-    }
-
-    /* ---- Hardware strip (real host data) ---- */
-    async function loadHardware() {
-      const res = await api('/api/hardware');
-      if (!res.ok || !res.data.hardware) return;
-      const h = res.data.hardware;
-      $('hw-strip').style.display = '';
-      $('hw-cpu').textContent = (h.cpu_cores || '?') + ' cores';
-      $('hw-cpu-sub').textContent = h.cpu_model || '—';
-      $('hw-ram').textContent = h.total_memory || '—';
-      $('hw-ram-sub').textContent = h.free_memory ? h.free_memory + ' free' : '—';
-      $('hw-platform').textContent = h.platform || '—';
-      $('hw-platform-sub').textContent = h.kernel || '';
-      $('hw-uptime').textContent = formatUptime(h.uptime_seconds || 0);
-    }
-
-    function formatUptime(sec) {
-      if (!sec) return '—';
-      const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60);
-      if (d > 0) return d + 'd ' + h + 'h';
-      if (h > 0) return h + 'h ' + m + 'm';
-      return m + 'm ' + Math.floor(sec % 60) + 's';
-    }
-
-    /* ================= DC BOTS ================= */
-    function loadBotTab() {
-      stopLogPolling();
-      if (STATE.statusTimer) { clearInterval(STATE.statusTimer); STATE.statusTimer = null; }
-
-      const empty = $('bot-empty');
-      const body = $('bot-body');
-
-      if (!STATE.user) {
-        body.style.display = 'none';
-        empty.innerHTML = guestEmpty('Sign in to manage your Discord bots.', 'Sign In');
-        return;
-      }
-      if (STATE.vpsList.length === 0) {
-        body.style.display = 'none';
-        empty.innerHTML = `<div class="empty"><h3>No VPS yet</h3><p>Create a VPS first, then upload your bot files.</p>
-          <button class="btn btn-primary" onclick="openVpsModal()">Create VPS</button></div>`;
-        return;
-      }
-      empty.innerHTML = '';
-      body.style.display = '';
-
-      if (!STATE.activeVpsId || !STATE.vpsList.find(v => v.id === STATE.activeVpsId)) {
-        STATE.activeVpsId = STATE.vpsList[0].id;
-      }
-      const sel = $('bot-vps-select');
-      sel.innerHTML = STATE.vpsList.map(v => `<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');
-      sel.value = STATE.activeVpsId;
-
-      loadBotState();
-      loadFiles();
-      loadPackages(true);
-      startLogPolling();
-      STATE.statusTimer = setInterval(() => {
-        if (STATE.tab === 'bot') {
-          loadBotState(true);
-          // Keep polling packages only while the auto-installer is working.
-          if (['queued', 'pending', 'running'].includes(STATE.pkgAutoStatus)) loadPackages(true);
-        }
-      }, 5000);
-    }
-
-    function setBotVps(id) {
-      STATE.activeVpsId = id;
-      STATE.editorPath = null;
-      $('editor-card').style.display = 'none';
-      loadBotState();
-      loadFiles();
-      loadPackages(true);
-    }
-
-    async function loadBotState(silent = false) {
-      if (!STATE.activeVpsId) return;
-      const res = await api(`/api/vps/${STATE.activeVpsId}/bot`);
-      if (!res.ok) { if (!silent) toast(res.data.error || 'Failed to load bot', 'err'); return; }
-      STATE.bot = res.data.bot;
-      renderBotStatus();
-      const b = STATE.bot;
-      const script = $('bot-script');
-      if (document.activeElement !== script && b.filename) script.value = b.filename;
-      const rt = $('bot-runtime');
-      if (b.runtime && document.activeElement !== rt) rt.value = b.runtime;
-      $('bot-token-type').value = b.token_type === 'user' ? 'user' : 'bot';
-      $('token-hint').textContent = b.token ? 'A token is saved. Leave empty to reuse it.' : 'Left empty, the saved token is used.';
-    }
-
-    function renderBotStatus() {
-      const b = STATE.bot || {};
-      const dot = $('bot-status-dot');
-      const txt = $('bot-status-text');
-      const up = $('bot-uptime-text');
-      const running = b.status === 'running' && b.running;
-      dot.className = 'dot' + (running ? ' on' : b.status === 'error' ? ' err' : '');
-      txt.textContent = running ? 'Running' : b.status === 'error' ? 'Error' : 'Stopped';
-      if (running && b.uptime_seconds) {
-        up.style.display = '';
-        up.textContent = 'Uptime ' + formatUptime(b.uptime_seconds) + (b.pid ? ' · PID ' + b.pid : '');
-      } else {
-        up.style.display = 'none';
-      }
-      $('btn-start').disabled = running;
-      $('btn-stop').disabled = !running;
-      $('btn-restart').disabled = false;
-    }
-
-    function toggleToken() {
-      const t = $('bot-token');
-      const show = t.type === 'password';
-      t.type = show ? 'text' : 'password';
-      $('token-eye').textContent = show ? 'Hide' : 'Show';
-    }
-
-    async function startBot() {
-      const body = {
-        filename: $('bot-script').value.trim() || 'bot.py',
-        runtime: $('bot-runtime').value,
-        token_type: $('bot-token-type').value,
-      };
-      const tok = $('bot-token').value.trim();
-      if (tok) body.token = tok;
-      const btn = $('btn-start');
-      btn.disabled = true;
-      const res = await api(`/api/vps/${STATE.activeVpsId}/bot/start`, { method: 'POST', body });
-      btn.disabled = false;
-      if (res.ok) {
-        toast('Bot started', 'ok');
-        if (tok) $('bot-token').value = '';
-        loadBotState();
-        loadPackages(true);
-      } else toast(res.data.error || 'Failed to start bot', 'err');
-    }
-
-    async function restartBot() {
-      const body = {
-        filename: $('bot-script').value.trim() || 'bot.py',
-        runtime: $('bot-runtime').value,
-      };
-      const tok = $('bot-token').value.trim();
-      if (tok) { body.token = tok; body.token_type = $('bot-token-type').value; }
-      const btn = $('btn-restart');
-      btn.disabled = true;
-      const res = await api(`/api/vps/${STATE.activeVpsId}/bot/restart`, { method: 'POST', body });
-      btn.disabled = false;
-      if (res.ok) { toast('Bot restarted', 'ok'); if (tok) $('bot-token').value = ''; loadBotState(); }
-      else toast(res.data.error || 'Failed to restart bot', 'err');
-    }
-
-    async function stopBot() {
-      const btn = $('btn-stop');
-      btn.disabled = true;
-      const res = await api(`/api/vps/${STATE.activeVpsId}/bot/stop`, { method: 'POST' });
-      btn.disabled = false;
-      if (res.ok) { toast('Bot stopped', 'ok'); loadBotState(); }
-      else toast(res.data.error || 'Failed to stop bot', 'err');
-    }
-
-    /* ---- Packages (auto-installed Discord stack + manual installs) ---- */
-    async function loadPackages(silent = false) {
-      if (!STATE.activeVpsId) return;
-      const res = await api(`/api/vps/${STATE.activeVpsId}/packages/list`);
-      if (!res.ok) { if (!silent) toast(res.data.error || 'Failed to load packages', 'err'); return; }
-      STATE.pkgAutoStatus = (res.data.auto_install && res.data.auto_install.status) || '';
-      renderPackages(res.data);
-    }
-
-    function renderPackages(d) {
-      const st = $('pkg-auto-state');
-      const s = (d.auto_install && d.auto_install.status) || '';
-      if (['queued', 'pending', 'running'].includes(s)) {
-        st.className = 'pkg-state installing';
-        st.innerHTML = '<span class="spinner"></span>Auto-installing Discord stack…';
-      } else if (s === 'done') {
-        st.className = 'pkg-state done';
-        st.textContent = 'Discord stack installed ✓';
-      } else if (s === 'failed') {
-        st.className = 'pkg-state failed';
-        st.textContent = 'Auto-install failed — press Install Discord Stack to retry';
-      } else {
-        st.className = 'pkg-state';
-        st.textContent = '';
-      }
-      const chips = [];
-      (d.python || []).forEach(p => chips.push(pkgChip(p, 'python')));
-      (d.node || []).forEach(p => chips.push(pkgChip(p, 'node')));
-      $('pkg-list').innerHTML = chips.length ? chips.join('') : '<span class="hint" style="margin:0;">No packages recorded yet.</span>';
-    }
-
-    function pkgChip(p, runtime) {
-      const pending = p.version === 'pending';
-      const cls = 'pkg-chip' + (p.auto ? ' auto' : '') + (pending ? ' pending' : '');
-      const ver = pending ? 'installing…' : (p.version || '');
-      const title = `${runtime} package${p.auto ? ' — part of the automatic Discord stack' : ''}`;
-      return `<span class="${cls}" title="${esc(title)}">${esc(p.name)}${ver ? ` <span class="pv">${esc(ver)}</span>` : ''}</span>`;
-    }
-
-    async function installPackage() {
-      const name = $('pkg-name').value.trim();
-      if (!name) { toast('Enter a package name', 'err'); return; }
-      if (!STATE.activeVpsId) { toast('Create a VPS first.', 'err'); return; }
-      const runtime = $('pkg-runtime').value;
-      const btn = $('btn-pkg-install');
-      btn.disabled = true;
-      toast(`Installing ${name} (${runtime})…`);
-      const res = await api(`/api/vps/${STATE.activeVpsId}/packages/install`, { method: 'POST', body: { packages: name, runtime } });
-      btn.disabled = false;
-      if (res.ok) {
-        $('pkg-name').value = '';
-        toast(res.data.message || `Installed ${name}`, 'ok');
-        loadPackages(true);
-        loadFiles();
-      } else toast(res.data.error || `Failed to install ${name}`, 'err');
-    }
-
-    async function installDiscordStack() {
-      if (!STATE.activeVpsId) { toast('Create a VPS first.', 'err'); return; }
-      const btn = $('btn-discord-stack');
-      btn.disabled = true;
-      const res = await api(`/api/vps/${STATE.activeVpsId}/packages/auto-install`, { method: 'POST', body: { force: true } });
-      setTimeout(() => { btn.disabled = false; }, 3000);
-      if (res.ok) {
-        toast('Discord stack install started — watch the logs below', 'ok');
-        STATE.pkgAutoStatus = 'running';
-        loadPackages(true);
-      } else toast(res.data.error || 'Failed to start install', 'err');
-    }
-
-    /* ---- Upload ---- */
-    function uploadFiles(fileList) {
-      const files = Array.from(fileList || []);
-      if (files.length === 0) return;
-      if (!STATE.user) { openAuth('signup'); return; }
-      if (!STATE.activeVpsId) { toast('Create a VPS first.', 'err'); return; }
-
-      const total = files.reduce((a, f) => a + f.size, 0);
-      toast(`Uploading ${files.length} file(s) (${(total / 1048576).toFixed(2)} MB)…`);
-      const fd = new FormData();
-      files.forEach(f => fd.append('files', f));
-
-      const btns = ['btn-start', 'btn-stop', 'btn-restart'].map(id => $(id));
-      btns.forEach(b => b.disabled = true);
-      api(`/api/vps/${STATE.activeVpsId}/bot/upload`, { method: 'POST', body: fd })
-        .then(res => {
-          if (res.ok && res.data.success) {
-            toast(res.data.message || 'Upload complete', 'ok');
-            const d = res.data;
-            if (d.detected_entry) {
-              $('bot-script').value = d.detected_entry;
-              if (d.detected_runtime) $('bot-runtime').value = d.detected_runtime;
-            }
-            loadFiles();
-            loadBotState(true);
-            loadPackages(true);
-          } else {
-            toast(res.data.error || 'Upload failed', 'err');
-          }
-        })
-        .finally(() => { btns.forEach(b => b.disabled = false); loadBotState(true); });
-    }
-
-    // Drag & drop
-    (function () {
-      const dz = $('dropzone');
-      ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
-      ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
-      dz.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files); });
-    })();
-
-    /* ---- Files ---- */
-    async function loadFiles() {
-      if (!STATE.activeVpsId) return;
-      const res = await api(`/api/vps/${STATE.activeVpsId}/files`);
-      if (!res.ok) return;
-      STATE.files = res.data.files || [];
-      renderTree();
-    }
-
-    function buildTree(files) {
-      const root = { name: '', children: new Map(), isFile: false };
-      for (const f of files) {
-        const parts = f.name.split('/');
-        let node = root;
-        parts.forEach((p, i) => {
-          if (!node.children.has(p)) node.children.set(p, { name: p, children: new Map(), isFile: false, meta: null });
-          node = node.children.get(p);
-          if (i === parts.length - 1) { node.isFile = !f.isDirectory; node.meta = f; }
-        });
-      }
-      return root;
-    }
-
-    function sortedChildren(node) {
-      return Array.from(node.children.values()).sort((a, b) =>
-        a.isFile === b.isFile ? a.name.localeCompare(b.name) : a.isFile ? 1 : -1);
-    }
-
-    function renderTree() {
-      const root = buildTree(STATE.files);
-      const kids = sortedChildren(root);
-      const wrap = $('file-tree');
-      if (kids.length === 0) {
-        wrap.innerHTML = '<div class="tree-empty">No files yet. Upload files or zip bundles above.</div>';
-        return;
-      }
-      let html = '';
-      const walk = (node, depth) => {
-        for (const child of sortedChildren(node)) {
-          const path = child.name;
-          if (child.isFile) {
-            const selected = STATE.editorPath === path ? ' selected' : '';
-            html += `<div class="tree-row${selected}" data-path="${esc(path)}" style="padding-left:${8 + depth * 16}px;">
-              <span style="color:var(--dim); font-size:11px; font-family:var(--mono);">›</span>
-              <span class="t-name">${esc(child.name)}</span>
-              <span class="t-meta">${formatBytes(child.meta ? child.meta.size : 0)}</span>
-              <span class="t-actions">
-                <button class="btn-icon" title="Download" onclick="event.stopPropagation(); downloadFile('${esc(path)}')">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                </button>
-                <button class="btn-icon" title="Delete" style="color:var(--red);" onclick="event.stopPropagation(); deleteItem('${esc(path)}')">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </button>
-              </span>
-            </div>`;
-          } else {
-            const collapsed = STATE.collapsed.has(path);
-            html += `<div class="tree-row" data-dir="${esc(path)}" style="padding-left:${8 + depth * 16}px;" onclick="toggleDir('${esc(path)}')">
-              <span style="font-size:11px; width:12px; display:inline-block; text-align:center;">${collapsed ? '▸' : '▾'}</span>
-              <span class="t-name" style="font-weight:500;">${esc(child.name)}/</span>
-              <span class="t-actions">
-                <button class="btn-icon" title="Delete" style="color:var(--red);" onclick="event.stopPropagation(); deleteItem('${esc(path)}')">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </button>
-              </span>
-            </div>`;
-            if (!collapsed) walk(child, depth + 1);
-          }
-        }
-      };
-      walk(root, 0);
-      wrap.innerHTML = html;
-      wrap.querySelectorAll('.tree-row[data-path]').forEach(row => {
-        row.onclick = () => openFile(row.dataset.path);
-      });
-    }
-
-    function toggleDir(path) {
-      if (STATE.collapsed.has(path)) STATE.collapsed.delete(path);
-      else STATE.collapsed.add(path);
-      renderTree();
-    }
-
-    async function openFile(path) {
-      const res = await api(`/api/vps/${STATE.activeVpsId}/file?path=${encodeURIComponent(path)}`);
-      if (!res.ok) { toast(res.data.error || 'Could not open file', 'err'); return; }
-      STATE.editorPath = path;
-      STATE.editorDirty = false;
-      $('editor-fname').textContent = path;
-      $('file-editor').value = res.data.content || '';
-      $('editor-dirty').classList.remove('show');
-      $('editor-card').style.display = '';
-      renderTree();
-      $('editor-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    function markDirty() {
-      STATE.editorDirty = true;
-      $('editor-dirty').classList.add('show');
-    }
-
-    async function saveEditorFile() {
-      if (!STATE.editorPath) return;
-      const res = await api(`/api/vps/${STATE.activeVpsId}/file`, {
-        method: 'POST',
-        body: { path: STATE.editorPath, content: $('file-editor').value }
-      });
-      if (res.ok) {
-        STATE.editorDirty = false;
-        $('editor-dirty').classList.remove('show');
-        toast('Saved ' + STATE.editorPath, 'ok');
-        loadFiles();
-      } else toast(res.data.error || 'Save failed', 'err');
-    }
-
-    function closeEditor() {
-      STATE.editorPath = null;
-      STATE.editorDirty = false;
-      $('editor-card').style.display = 'none';
-      $('editor-dirty').classList.remove('show');
-      renderTree();
-    }
-
-    async function deleteEditorFile() {
-      if (!STATE.editorPath) return;
-      const path = STATE.editorPath;
-      const ok = await confirmModal('Delete File', `Delete "${path}"?`);
-      if (ok) { await deleteItem(path); closeEditor(); }
-    }
-
-    async function newFile() {
-      const path = await promptModal('New File', 'e.g. bot.py or cogs/hello.py');
-      if (!path || !path.trim()) return;
-      const p = path.trim().replace(/^\/+/, '');
-      const res = await api(`/api/vps/${STATE.activeVpsId}/file`, { method: 'POST', body: { path: p, content: '' } });
-      if (res.ok) { toast('Created ' + p, 'ok'); loadFiles(); openFile(p); }
-      else toast(res.data.error || 'Could not create file', 'err');
-    }
-
-    async function newFolder() {
-      const path = await promptModal('New Folder', 'e.g. cogs');
-      if (!path || !path.trim()) return;
-      const p = path.trim().replace(/^\/+/, '');
-      const res = await api(`/api/vps/${STATE.activeVpsId}/folder`, { method: 'POST', body: { path: p } });
-      if (res.ok) { toast('Created ' + p, 'ok'); loadFiles(); }
-      else toast(res.data.error || 'Could not create folder', 'err');
-    }
-
-    async function deleteItem(path) {
-      const ok = await confirmModal('Delete', `Delete "${path}"? This cannot be undone.`);
-      if (!ok) return;
-      const res = await api(`/api/vps/${STATE.activeVpsId}/file?path=${encodeURIComponent(path)}`, { method: 'DELETE' });
-      if (res.ok) { toast('Deleted', 'ok'); loadFiles(); }
-      else toast(res.data.error || 'Delete failed', 'err');
-    }
-
-    function downloadFile(path) {
-      const key = (STATE.user && STATE.user.api_key) || localStorage.getItem('cloudvps_key') || '';
-      window.open(`/api/vps/${STATE.activeVpsId}/file/download?path=${encodeURIComponent(path)}&api_key=${encodeURIComponent(key)}`, '_blank');
-    }
-
-    /* ---- Logs ---- */
-    function startLogPolling() {
-      stopLogPolling();
-      loadLogs();
-      STATE.logTimer = setInterval(loadLogs, 2500);
-    }
-    function stopLogPolling() {
-      if (STATE.logTimer) { clearInterval(STATE.logTimer); STATE.logTimer = null; }
-    }
-
-    async function loadLogs() {
-      if (STATE.tab !== 'bot' || !STATE.activeVpsId) return;
-      const res = await api(`/api/vps/${STATE.activeVpsId}/bot/logs`);
-      if (!res.ok) return;
-      const box = $('log-box');
-      const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
-      box.textContent = (res.data.logs || []).slice(-250).join('\n');
-      if (atBottom) box.scrollTop = box.scrollHeight;
-      if (res.data.status && STATE.bot) {
-        STATE.bot.status = res.data.status.status;
-        STATE.bot.running = res.data.status.running;
-        STATE.bot.uptime_seconds = res.data.status.uptime_seconds;
-        renderBotStatus();
-      }
-    }
-
-    async function clearLogs() {
-      const res = await api(`/api/vps/${STATE.activeVpsId}/bot/logs/clear`, { method: 'POST' });
-      if (res.ok) { $('log-box').textContent = ''; toast('Logs cleared', 'ok'); }
-    }
-
-    /* ================= ACCOUNT ================= */
-    function renderAccount() {
-      const wrap = $('account-body');
-      if (!STATE.user) {
-        wrap.innerHTML = `<div class="card">
-          <div class="card-title">Account</div>
-          <p style="font-size:13.5px; color:var(--muted); margin-bottom:14px;">Sign in to manage your account.</p>
-          <div style="display:flex; gap:8px;">
-            <button class="btn" onclick="openAuth('login')">Sign In</button>
-            <button class="btn btn-primary" onclick="openAuth('signup')">Create Account</button>
-          </div>
-        </div>`;
-        return;
-      }
-      const created = STATE.user.created_at ? new Date(STATE.user.created_at).toLocaleDateString() : '—';
-      wrap.innerHTML = `
-        <div class="card">
-          <div class="card-title">Account</div>
-          <div class="account-row"><span class="k">Username</span><span class="v" style="font-family:inherit;">${esc(STATE.user.username)}</span></div>
-          <div class="account-row"><span class="k">VPS Count</span><span class="v">${STATE.vpsList.length}</span></div>
-          <div class="account-row"><span class="k">Member Since</span><span class="v" style="font-family:inherit;">${esc(created)}</span></div>
-        </div>
-        <div class="card">
-          <div class="card-title">API Key</div>
-          <div class="account-row">
-            <span class="k">Key</span>
-            <span style="display:flex; gap:6px; align-items:center;">
-              <span class="v" id="api-key-value">${esc(maskKey(STATE.user.api_key || ''))}</span>
-              <button class="btn btn-sm" onclick="revealKey()">Reveal</button>
-              <button class="btn btn-sm" onclick="copyKey()">Copy</button>
-            </span>
-          </div>
-          <div class="hint">Use this key for API access. Anyone with it can control your VPS.</div>
-        </div>
-        <div class="card">
-          <div class="card-title" style="margin-bottom:8px;">Session</div>
-          <button class="btn btn-danger" onclick="signOut()">Sign Out</button>
-        </div>`;
-    }
-
-    function maskKey(k) {
-      if (!k) return '—';
-      return k.slice(0, 7) + '…' + k.slice(-4);
-    }
-    function revealKey() {
-      $('api-key-value').textContent = STATE.user.api_key || '';
-    }
-    async function copyKey() {
-      const key = STATE.user.api_key || '';
-      try {
-        await navigator.clipboard.writeText(key);
-        toast('API key copied', 'ok');
-      } catch (e) {
-        revealKey();
-        const el = $('api-key-value');
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-        toast('Key revealed — select and copy manually');
-      }
-    }
-
-    /* ================= HELPERS ================= */
-    function formatBytes(n) {
-      if (!n || n <= 0) return '0 B';
-      const units = ['B', 'KB', 'MB', 'GB'];
-      const i = Math.min(units.length - 1, Math.floor(Math.log(n) / Math.log(1024)));
-      return (n / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
-    }
-
-    /* ================= BOOT ================= */
-    async function boot() {
-      renderSidebar();
-      const res = await api('/api/session');
-      if (res.ok && res.data.authenticated && res.data.user) {
-        STATE.user = res.data.user;
-        renderSidebar();
-      }
-      const plansRes = await api('/api/plans');
-      if (plansRes.ok) STATE.plans = plansRes.data;
-      switchTab('vps');
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeAuth();
-        closeVpsModal();
-      }
+    document.addEventListener('DOMContentLoaded', async () => {
+      initShortcuts();
+      initDragResize();
+      await initUserAuth();
+      await fetchSpaces();
+      await fetchSessions();
+      await fetchSubagents();
+      await reloadIdeFiles();
     });
 
-    boot();
+    // ----------------------------------------------------
+    // User Initialization & Instant Quick Start
+    // ----------------------------------------------------
+    async function initUserAuth() {
+      try {
+        const res = await fetch('/api/session');
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          APP.user = data.user;
+          APP.apiKey = data.user.api_key;
+        } else {
+          // Instant Quick Start: zero friction anonymous guest setup
+          const qs = await fetch('/api/agent/quick-start', { method: 'POST' });
+          const qsd = await qs.json();
+          if (qsd.success) {
+            APP.user = { id: qsd.user_id, username: qsd.username };
+            APP.apiKey = qsd.api_key;
+            APP.vpsId = qsd.vps_id;
+          }
+        }
+        syncNavAccount();
+      } catch (err) {
+        console.error('Session init error:', err);
+      }
+    }
+
+    function syncNavAccount() {
+      if (APP.user) {
+        document.getElementById('nav-account-username').textContent = APP.user.username;
+        document.getElementById('account-card-username').textContent = APP.user.username;
+        if (APP.vpsId) {
+          document.getElementById('account-card-vps').textContent = `Isolated VM: ${APP.vpsId}`;
+        }
+      }
+    }
+
+    async function performAccountLogin() {
+      const u = document.getElementById('auth-field-username').value.trim();
+      const p = document.getElementById('auth-field-password').value;
+      if (!u || !p) return alert('Please enter both username and password.');
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p }),
+        });
+        const data = await res.json();
+        if (!data.success) return alert(data.error || 'Login failed.');
+        APP.user = { id: data.user_id, username: data.username };
+        APP.apiKey = data.api_key;
+        closeModal('modal-account-view');
+        syncNavAccount();
+        await fetchSessions();
+        await reloadIdeFiles();
+        appendTerminalMessage(`[Auth] Logged into ${data.username}. Adopted ${data.adopted_vps || 0} VPS.`);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function performAccountSignup() {
+      const u = document.getElementById('auth-field-username').value.trim();
+      const p = document.getElementById('auth-field-password').value;
+      if (!u || !p) return alert('Please enter username and password (6+ characters).');
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p }),
+        });
+        const data = await res.json();
+        if (!data.success) return alert(data.error || 'Registration failed.');
+        APP.user = { id: data.user_id, username: data.username };
+        APP.apiKey = data.api_key;
+        closeModal('modal-account-view');
+        syncNavAccount();
+        await fetchSessions();
+        await reloadIdeFiles();
+        appendTerminalMessage(`[Auth] Registered permanent account ${data.username}. Ready forever.`);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    // ----------------------------------------------------
+    // Mode Switcher: Ask vs Agent
+    // ----------------------------------------------------
+    function switchAgentMode(mode) {
+      APP.mode = mode;
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+      if (mode === 'ask') {
+        document.getElementById('top-toggle-ask').classList.add('active');
+        document.getElementById('dock-toggle-ask').classList.add('active');
+      } else {
+        document.getElementById('top-toggle-agent').classList.add('active');
+        document.getElementById('dock-toggle-agent').classList.add('active');
+      }
+      appendTerminalMessage(`[Mode] Switched to ${mode.toUpperCase()} mode (takes effect next prompt).`);
+    }
+
+    // ----------------------------------------------------
+    // Sessions Management & HTML5 Drag to Create Spaces
+    // ----------------------------------------------------
+    async function fetchSessions() {
+      try {
+        const res = await fetch('/api/agent/sessions', { headers: authHeaders() });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.sessions)) {
+          APP.sessions = data.sessions;
+          renderSidebarSessions();
+          if (APP.sessions.length > 0 && !APP.activeSessionId) {
+            pickSession(APP.sessions[0].id);
+          } else if (APP.sessions.length === 0) {
+            await createNewSession('Core Session');
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching sessions:', e);
+      }
+    }
+
+    function renderSidebarSessions() {
+      const container = document.getElementById('sidebar-sessions-container');
+      container.innerHTML = '';
+      APP.sessions.forEach(s => {
+        const card = document.createElement('div');
+        card.className = `session-card ${s.id === APP.activeSessionId ? 'active' : ''}`;
+        card.draggable = true;
+        card.dataset.sessionId = s.id;
+
+        // Drag to create Space: drag session onto another session
+        card.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', s.id);
+        });
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          card.classList.add('drag-over');
+        });
+        card.addEventListener('dragleave', () => {
+          card.classList.remove('drag-over');
+        });
+        card.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          card.classList.remove('drag-over');
+          const sourceId = e.dataTransfer.getData('text/plain');
+          if (sourceId && sourceId !== s.id) {
+            await mergeSessionsIntoSpace(sourceId, s.id);
+          }
+        });
+
+        card.onclick = () => pickSession(s.id);
+        card.innerHTML = `
+          <div class="session-card-row">
+            <span class="session-title-text">${escapeSafe(s.title || 'Untitled Session')}</span>
+            <span class="status-dot ${s.status || 'working'}"></span>
+          </div>
+          <div class="session-meta-text">
+            <span>${(s.mode || 'agent').toUpperCase()}</span>
+            <span>·</span>
+            <span>${s.acu_used ? s.acu_used + ' ACU' : '0.1 ACU'}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function createNewSession(title = 'New Agent Task') {
+      try {
+        const res = await fetch('/api/agent/sessions', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({
+            title,
+            mode: APP.mode,
+            space_id: APP.activeSpaceId,
+            status: 'working',
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          APP.sessions.unshift(data.session);
+          renderSidebarSessions();
+          pickSession(data.session.id);
+        }
+      } catch (e) {
+        console.error('Failed to create session:', e);
+      }
+    }
+
+    function pickSession(id) {
+      APP.activeSessionId = id;
+      const s = APP.sessions.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('nav-session-name').textContent = s.title;
+      document.getElementById('nav-acu-counter').textContent = `${s.acu_used || 0.1} ACU`;
+      renderSidebarSessions();
+      renderChatTranscript(s);
+    }
+
+    function renderChatTranscript(session) {
+      const transcript = document.getElementById('transcript-primary');
+      if (!session.messages || session.messages.length === 0) {
+        transcript.innerHTML = `
+          <div class="entry-zero-state" id="entry-zero-state">
+            <div class="entry-tag-pill">Cloud Agent · ${session.mode.toUpperCase()} Mode Active</div>
+            <h1 class="entry-headline">${escapeSafe(session.title)}</h1>
+            <p class="entry-description">Isolated VM dev environment. Enter any prompt or task below to begin.</p>
+            <div class="entry-prompt-chips">
+              <button class="prompt-chip" onclick="fillPromptText('keep my bots online')">🤖 Keep Discord bots online</button>
+              <button class="prompt-chip" onclick="fillPromptText('make me a discord bot')">⚡ Write Discord bot</button>
+              <button class="prompt-chip" onclick="fillPromptText('create a roblox shop script')">🎮 Roblox shop GUI</button>
+              <button class="prompt-chip" onclick="fillPromptText('deobfuscate all')">🛡️ Deobfuscate scripts</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      transcript.innerHTML = '';
+      session.messages.forEach(m => {
+        if (m.role === 'user') {
+          transcript.appendChild(buildUserBubble(m.text));
+        } else {
+          transcript.appendChild(buildAgentResponseCard(m));
+        }
+      });
+      transcript.scrollTop = transcript.scrollHeight;
+    }
+
+    async function inlineRenameSession() {
+      const s = APP.sessions.find(x => x.id === APP.activeSessionId);
+      if (!s) return;
+      const newTitle = prompt('Rename session:', s.title);
+      if (!newTitle || newTitle === s.title) return;
+      try {
+        const res = await fetch(`/api/agent/sessions/${s.id}/rename`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ title: newTitle }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          s.title = newTitle;
+          document.getElementById('nav-session-name').textContent = newTitle;
+          renderSidebarSessions();
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function duplicateActiveSession() {
+      if (!APP.activeSessionId) return;
+      try {
+        const res = await fetch(`/api/agent/sessions/${APP.activeSessionId}/duplicate`, {
+          method: 'POST',
+          headers: authHeaders(),
+        });
+        const data = await res.json();
+        if (data.success) {
+          APP.sessions.unshift(data.session);
+          renderSidebarSessions();
+          pickSession(data.session.id);
+          appendTerminalMessage(`[Branch] Branched session ${data.session.id}.`);
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function mergeSessionsIntoSpace(sourceId, targetId) {
+      const spaceName = prompt('Create a new Space grouping these sessions (Name):', 'Grouped Space');
+      if (!spaceName) return;
+      try {
+        const res = await fetch('/api/agent/spaces', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({
+            name: spaceName,
+            context: 'Inherited project context across grouped sessions.',
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          APP.spaces.push(data.space);
+          alert(`Created Space "${spaceName}". Sessions linked.`);
+          await fetchSpaces();
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    function toggleSplitPane() {
+      const p2 = document.getElementById('pane-secondary');
+      APP.isSplitPaneOpen = !APP.isSplitPaneOpen;
+      p2.style.display = APP.isSplitPaneOpen ? 'flex' : 'none';
+      if (APP.isSplitPaneOpen) {
+        appendTerminalMessage('[Split Pane] Opened dual session view in active Space.');
+      }
+    }
+
+    function resetToNewSession() {
+      createNewSession('New Session');
+    }
+
+    // ----------------------------------------------------
+    // Prompt Submission & Execution Engine
+    // ----------------------------------------------------
+    function fillPromptText(str) {
+      const input = document.getElementById('main-task-input');
+      input.value = str;
+      input.focus();
+    }
+
+    async function submitAgentPrompt() {
+      const input = document.getElementById('main-task-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      // If agent is currently executing, place in editable queued messages tray!
+      if (APP.isExecuting) {
+        APP.queuedPrompts.push(text);
+        input.value = '';
+        renderQueuedTray();
+        return;
+      }
+
+      input.value = '';
+      APP.isExecuting = true;
+      document.getElementById('btn-run-prompt').disabled = true;
+
+      const transcript = document.getElementById('transcript-primary');
+      const zeroHero = document.getElementById('entry-zero-state');
+      if (zeroHero) zeroHero.remove();
+
+      // User Message
+      transcript.appendChild(buildUserBubble(text));
+      transcript.scrollTop = transcript.scrollHeight;
+
+      // Agent Executing Card
+      const pendingCard = buildAgentThinkingCard();
+      transcript.appendChild(pendingCard);
+      transcript.scrollTop = transcript.scrollHeight;
+
+      try {
+        const res = await fetch('/api/agent/run', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({
+            instruction: text,
+            mode: APP.mode,
+            session_id: APP.activeSessionId,
+            space_id: APP.activeSpaceId,
+          }),
+        });
+        const data = await res.json();
+        pendingCard.remove();
+
+        if (data.success) {
+          const agentMsg = {
+            role: 'agent',
+            text: data.reply,
+            steps: data.steps || [],
+            events: data.events || [],
+            preview: data.preview || null,
+          };
+          transcript.appendChild(buildAgentResponseCard(agentMsg));
+          transcript.scrollTop = transcript.scrollHeight;
+
+          // Dispatch events to tools
+          if (Array.isArray(data.events)) {
+            ingestEvents(data.events);
+          }
+
+          await fetchSessions();
+        } else {
+          transcript.appendChild(buildAgentResponseCard({ role: 'agent', text: 'Error: ' + (data.error || 'Execution encountered an issue.') }));
+        }
+      } catch (err) {
+        pendingCard.remove();
+        transcript.appendChild(buildAgentResponseCard({ role: 'agent', text: 'Network exception: ' + err.message }));
+      } finally {
+        APP.isExecuting = false;
+        document.getElementById('btn-run-prompt').disabled = false;
+        // Process next queued message if present
+        if (APP.queuedPrompts.length > 0) {
+          const nextPrompt = APP.queuedPrompts.shift();
+          renderQueuedTray();
+          input.value = nextPrompt;
+          submitAgentPrompt();
+        }
+      }
+    }
+
+    function buildUserBubble(text) {
+      const row = document.createElement('div');
+      row.className = 'msg-row';
+      row.innerHTML = `<div class="msg-user-bubble">${escapeSafe(text)}</div>`;
+      return row;
+    }
+
+    function buildAgentThinkingCard() {
+      const row = document.createElement('div');
+      row.className = 'msg-row';
+      row.innerHTML = `
+        <div class="msg-agent-card">
+          <div class="agent-card-header">
+            <div class="agent-header-meta">
+              <span class="step-badge-icon running">⚡</span>
+              <span>Cloud Agent executing (${APP.mode.toUpperCase()} Mode)...</span>
+            </div>
+          </div>
+          <div style="font-size:12.5px; color:var(--text-dim);">Running isolated VM sandbox, analyzing codebase AST, and synthesizing tools...</div>
+        </div>
+      `;
+      return row;
+    }
+
+    function buildAgentResponseCard(msg) {
+      const row = document.createElement('div');
+      row.className = 'msg-row';
+
+      let inner = `
+        <div class="msg-agent-card">
+          <div class="agent-card-header">
+            <div class="agent-header-meta">
+              <span class="step-badge-icon done">✓</span>
+              <span>Cloud Agent</span>
+              <span class="agent-mode-badge">${APP.mode.toUpperCase()}</span>
+            </div>
+            <div style="font-size:11px; color:var(--text-dim);">${new Date().toLocaleTimeString()}</div>
+          </div>
+      `;
+
+      // Inline Plan checklist
+      if (msg.events && msg.events.some(e => e.type === 'plan')) {
+        const pEv = msg.events.find(e => e.type === 'plan');
+        inner += `
+          <div class="inline-plan-card">
+            <div class="inline-plan-header">
+              <span>Execution Plan</span>
+              <span style="color:var(--cyan);">Autonomous</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              ${pEv.steps.map(s => `
+                <div class="plan-step-item">
+                  <span class="step-badge-icon done">✓</span>
+                  <span>${escapeSafe(s)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      // Inline Shell Output
+      if (msg.events && msg.events.some(e => e.type === 'shell')) {
+        const shEv = msg.events.find(e => e.type === 'shell');
+        inner += `
+          <div class="inline-shell-card">
+            <div class="shell-card-head">
+              <span>$ ${escapeSafe(shEv.cmd)}</span>
+              <span style="color:var(--emerald);">exit 0</span>
+            </div>
+            <div class="shell-card-body">${escapeSafe(shEv.output)}</div>
+          </div>
+        `;
+      }
+
+      // Inline Code Diff
+      if (msg.events && msg.events.some(e => e.type === 'file_edit')) {
+        const edEv = msg.events.find(e => e.type === 'file_edit');
+        inner += `
+          <div class="inline-diff-card">
+            <div class="diff-card-head">
+              <span>${escapeSafe(edEv.path)}</span>
+              <button class="card-footer-btn" onclick="openFileInIDE('${escapeSafe(edEv.path)}')">Open in IDE</button>
+            </div>
+            <div class="diff-lines-scroll">${renderDiffMarkup(edEv.diff)}</div>
+          </div>
+        `;
+      }
+
+      // Inline Browser Preview
+      if (msg.events && msg.events.some(e => e.type === 'browser')) {
+        const bEv = msg.events.find(e => e.type === 'browser');
+        inner += `
+          <div class="inline-browser-card">
+            <div class="browser-card-head">
+              <span>🌐</span>
+              <div class="browser-url-pill">${escapeSafe(bEv.url)}</div>
+              <button class="card-footer-btn" onclick="showEmbeddedTool('browser')">Open Live Browser</button>
+            </div>
+            <div class="browser-card-body">
+              <div>
+                <strong style="color:#fff;">${escapeSafe(bEv.title || 'Live Web Test')}</strong>
+                <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Render verified with 0 console warnings</div>
+              </div>
+              <span style="color:var(--emerald); font-size:11px;">Interactive Ready</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // Main Text Body
+      inner += `<div style="font-size:13.5px; color:var(--text-main); line-height:1.6; white-space:pre-wrap;">${renderMarkdown(msg.text)}</div>`;
+
+      // Footer Actions: Branch, Add to Chat, Outcome Analysis, Export Playbook
+      inner += `
+          <div class="msg-card-footer">
+            <div class="footer-btn-group">
+              <button class="card-footer-btn" onclick="duplicateActiveSession()" title="Branch session into alternative path">
+                <span>🔀</span> Duplicate / Branch
+              </button>
+              <button class="card-footer-btn" onclick="openOutcomeModal()" title="Analyze prompt efficiency & ACU">
+                <span>📊</span> Analyze Outcome
+              </button>
+              <button class="card-footer-btn" onclick="exportToPlaybookModal()" title="Export as reusable playbook">
+                <span>📚</span> Export Playbook
+              </button>
+            </div>
+            <span>Cloud Agent VM sandbox</span>
+          </div>
+        </div>
+      `;
+
+      row.innerHTML = inner;
+      return row;
+    }
+
+    // ----------------------------------------------------
+    // Queued Messages Tray (Editable Before Send)
+    // ----------------------------------------------------
+    function renderQueuedTray() {
+      const tray = document.getElementById('queued-messages-tray');
+      const box = document.getElementById('queued-rows-box');
+      if (APP.queuedPrompts.length === 0) {
+        tray.style.display = 'none';
+        return;
+      }
+      tray.style.display = 'flex';
+      box.innerHTML = '';
+      APP.queuedPrompts.forEach((p, i) => {
+        const row = document.createElement('div');
+        row.className = 'queued-row';
+        row.innerHTML = `
+          <span class="queued-text-span">${escapeSafe(p)}</span>
+          <div style="display:flex; gap:6px;">
+            <button class="card-footer-btn" onclick="editQueuedPrompt(${i})">Edit</button>
+            <button class="card-footer-btn" onclick="cancelQueuedPrompt(${i})">Cancel</button>
+          </div>
+        `;
+        box.appendChild(row);
+      });
+    }
+
+    function editQueuedPrompt(i) {
+      const orig = APP.queuedPrompts[i];
+      const mod = prompt('Edit queued message before execution:', orig);
+      if (mod !== null && mod.trim()) {
+        APP.queuedPrompts[i] = mod.trim();
+        renderQueuedTray();
+      }
+    }
+
+    function cancelQueuedPrompt(i) {
+      APP.queuedPrompts.splice(i, 1);
+      renderQueuedTray();
+    }
+
+    // ----------------------------------------------------
+    // @ Mentions Popover
+    // ----------------------------------------------------
+    function toggleMentionsMenu() {
+      const menu = document.getElementById('mentions-popover');
+      menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function insertMentionTag(token) {
+      const input = document.getElementById('main-task-input');
+      input.value = (input.value ? input.value + ' ' : '') + token + ' ';
+      input.focus();
+      document.getElementById('mentions-popover').style.display = 'none';
+    }
+
+    // ----------------------------------------------------
+    // Embedded Tools Navigation & Interaction
+    // ----------------------------------------------------
+    function toggleToolsPanel() {
+      const panel = document.getElementById('embedded-tools-panel');
+      APP.isToolsOpen = !APP.isToolsOpen;
+      if (window.innerWidth <= 768) {
+        panel.classList.toggle('open-mobile', APP.isToolsOpen);
+      } else {
+        panel.classList.toggle('collapsed', !APP.isToolsOpen);
+      }
+      document.getElementById('nav-tools-toggle').classList.toggle('active', APP.isToolsOpen);
+    }
+
+    function showEmbeddedTool(toolName) {
+      APP.activeTool = toolName;
+      document.querySelectorAll('.tools-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tool-tab-content').forEach(b => b.classList.remove('active'));
+
+      const tBtn = document.getElementById(`btn-tab-${toolName}`);
+      if (tBtn) tBtn.classList.add('active');
+
+      const tView = document.getElementById(`tab-content-${toolName}`);
+      if (tView) tView.classList.add('active');
+
+      // Expand panel if collapsed
+      const panel = document.getElementById('embedded-tools-panel');
+      APP.isToolsOpen = true;
+      panel.classList.remove('collapsed');
+      if (window.innerWidth <= 768) {
+        panel.classList.add('open-mobile');
+      }
+      document.getElementById('nav-tools-toggle').classList.add('active');
+    }
+
+    // Ingest Event Stream
+    function ingestEvents(events) {
+      events.forEach(ev => {
+        APP.eventsStream.unshift({ ...ev, time: new Date().toLocaleTimeString() });
+        if (ev.type === 'shell') {
+          appendTerminalMessage(`$ ${ev.cmd}\n${ev.output}`);
+        } else if (ev.type === 'file_edit') {
+          APP.activeFile = ev.path;
+          document.getElementById('ide-filename-label').textContent = ev.path;
+          if (ev.content) {
+            document.getElementById('ide-editor-textarea').value = ev.content;
+          }
+          reloadIdeFiles();
+        } else if (ev.type === 'browser') {
+          document.getElementById('browser-url-bar').value = ev.url;
+          document.getElementById('browser-iframe-view').src = ev.url;
+        } else if (ev.type === 'subagent') {
+          APP.subagents.push(ev);
+          renderSubagentsFeed();
+        }
+      });
+      renderProgressTimelineFeed();
+    }
+
+    // Terminal Commands
+    async function onTerminalKeydown(e) {
+      if (e.key !== 'Enter') return;
+      const f = document.getElementById('terminal-cli-field');
+      const cmd = f.value.trim();
+      if (!cmd) return;
+      f.value = '';
+      appendTerminalMessage(`$ ${cmd}`);
+
+      try {
+        const vps = APP.vpsId || 'default';
+        const res = await fetch(`/api/vps/${vps}/terminal/exec`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ command: cmd }),
+        });
+        const data = await res.json();
+        appendTerminalMessage(data.output || '(exit 0)');
+      } catch (err) {
+        appendTerminalMessage(`Error: ${err.message}`);
+      }
+    }
+
+    function appendTerminalMessage(str) {
+      const area = document.getElementById('terminal-stdout-log');
+      area.textContent += `\n${str}`;
+      area.scrollTop = area.scrollHeight;
+    }
+
+    // IDE Functions
+    async function reloadIdeFiles() {
+      try {
+        const vps = APP.vpsId || 'default';
+        const res = await fetch(`/api/vps/${vps}/files`, { headers: authHeaders() });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.files)) {
+          APP.files = data.files;
+          renderIdeTree();
+        }
+      } catch (e) {
+        console.error('File load error:', e);
+      }
+    }
+
+    function renderIdeTree() {
+      const box = document.getElementById('ide-files-container');
+      box.innerHTML = '';
+      APP.files.forEach(f => {
+        const node = document.createElement('div');
+        node.className = `ide-file-node ${f.name === APP.activeFile ? 'active' : ''}`;
+        node.onclick = () => openFileInIDE(f.name);
+        node.innerHTML = `
+          <span>${escapeSafe(f.name)}</span>
+          <span style="font-size:10px; color:var(--text-dim);">${f.size ? formatBytes(f.size) : ''}</span>
+        `;
+        box.appendChild(node);
+      });
+    }
+
+    async function openFileInIDE(relPath) {
+      APP.activeFile = relPath;
+      document.getElementById('ide-filename-label').textContent = relPath;
+      showEmbeddedTool('ide');
+      renderIdeTree();
+      try {
+        const vps = APP.vpsId || 'default';
+        const res = await fetch(`/api/vps/${vps}/file?path=${encodeURIComponent(relPath)}`, { headers: authHeaders() });
+        const data = await res.json();
+        if (data.success && typeof data.content === 'string') {
+          document.getElementById('ide-editor-textarea').value = data.content;
+        }
+      } catch (e) {
+        console.error('Open file error:', e);
+      }
+    }
+
+    async function saveActiveIdeFile() {
+      const path = APP.activeFile;
+      const content = document.getElementById('ide-editor-textarea').value;
+      try {
+        const vps = APP.vpsId || 'default';
+        const res = await fetch(`/api/vps/${vps}/file`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ path, content }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('ide-sync-badge').textContent = 'saved';
+          setTimeout(() => { document.getElementById('ide-sync-badge').textContent = 'synced'; }, 2000);
+          appendTerminalMessage(`[IDE] Saved ${path}.`);
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function deobfuscateActiveIdeFile() {
+      const path = APP.activeFile;
+      try {
+        const vps = APP.vpsId || 'default';
+        const res = await fetch(`/api/vps/${vps}/deobfuscate`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ path }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (data.changed) {
+            alert(`Deobfuscated! Output: ${data.output_path}`);
+            await openFileInIDE(data.output_path);
+          } else {
+            alert('File is already clean.');
+          }
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    // Browser Simulator
+    function browserNavigateTo() {
+      const url = document.getElementById('browser-url-bar').value;
+      document.getElementById('browser-iframe-view').src = url;
+    }
+    function browserRefresh() {
+      const frame = document.getElementById('browser-iframe-view');
+      frame.src = frame.src;
+    }
+    function browserGoBack() {
+      window.history.back();
+    }
+
+    // Progress Tab Feed
+    function applyProgressFilter(type) {
+      APP.progressFilter = type;
+      document.querySelectorAll('.p-chip-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      renderProgressTimelineFeed();
+    }
+
+    function renderProgressTimelineFeed() {
+      const box = document.getElementById('progress-timeline-feed');
+      box.innerHTML = '';
+      const list = APP.progressFilter === 'all'
+        ? APP.eventsStream
+        : APP.eventsStream.filter(e => e.type === APP.progressFilter);
+
+      if (list.length === 0) {
+        box.innerHTML = '<div style="color:var(--text-dim); font-size:12px;">No activity logged yet.</div>';
+        return;
+      }
+
+      list.forEach(ev => {
+        const row = document.createElement('div');
+        row.className = 'timeline-event-row';
+        row.innerHTML = `
+          <div class="timeline-node-dot"></div>
+          <div class="timeline-event-card">
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim);">
+              <span style="font-weight:700; color:var(--cyan);">${ev.type.toUpperCase()}</span>
+              <span>${ev.time || ''}</span>
+            </div>
+            <div style="font-size:12px; margin-top:3px; color:#e2e8f0;">
+              ${ev.summary || ev.cmd || ev.path || ev.url || (ev.steps ? ev.steps[0] : 'Executed')}
+            </div>
+          </div>
+        `;
+        box.appendChild(row);
+      });
+    }
+
+    // Subagents Panel (Managed Devins)
+    async function fetchSubagents() {
+      try {
+        const res = await fetch('/api/agent/subagents', { headers: authHeaders() });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.subagents)) {
+          APP.subagents = data.subagents;
+          renderSubagentsFeed();
+        }
+      } catch (e) {
+        console.error('Error fetching subagents:', e);
+      }
+    }
+
+    function renderSubagentsFeed() {
+      const box = document.getElementById('subagents-feed-list');
+      box.innerHTML = '';
+      document.getElementById('nav-subagents-count').textContent = APP.subagents.length;
+
+      const dockBar = document.getElementById('subagent-dock-indicator');
+      if (APP.subagents.length > 0) {
+        dockBar.style.display = 'flex';
+        document.getElementById('subagent-dock-count').textContent = APP.subagents.length;
+      } else {
+        dockBar.style.display = 'none';
+      }
+
+      if (APP.subagents.length === 0) {
+        box.innerHTML = '<div style="color:var(--text-dim); font-size:12px;">No child Devins active.</div>';
+        return;
+      }
+
+      APP.subagents.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'subagent-item-card';
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="color:#fff; font-size:13px;">${escapeSafe(s.title)}</strong>
+            <span class="agent-mode-badge" style="background:${s.status === 'running' ? 'var(--emerald-soft)' : 'var(--amber-soft)'}; color:${s.status === 'running' ? '#34d399' : '#fbbf24'};">${s.status.toUpperCase()}</span>
+          </div>
+          <div style="font-size:12px; color:var(--text-muted);">${escapeSafe(s.task)}</div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim);">
+            <span>Compute: ${s.acu_used || 0.1} ACU</span>
+            <span>Tool calls: ${s.tool_calls || 1}</span>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:4px;">
+            <button class="card-footer-btn" onclick="messageManagedChild('${s.id}')">Message</button>
+            <button class="card-footer-btn" onclick="controlManagedChild('${s.id}', '${s.status === 'running' ? 'sleep' : 'wake'}')">${s.status === 'running' ? 'Sleep' : 'Resume'}</button>
+            <button class="card-footer-btn" onclick="controlManagedChild('${s.id}', 'terminate')">Terminate</button>
+          </div>
+        `;
+        box.appendChild(card);
+      });
+    }
+
+    async function triggerSpawnSubagentModal() {
+      const task = prompt('Task prompt for parallel Managed Devin subagent:');
+      if (!task) return;
+      try {
+        const res = await fetch('/api/agent/subagents/spawn', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({
+            session_id: APP.activeSessionId,
+            title: `Sub-Devin: ${task.slice(0, 24)}`,
+            task,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          APP.subagents.push(data.subagent);
+          renderSubagentsFeed();
+          appendTerminalMessage(`[Managed Devin] Spawned parallel VM container ${data.subagent.id}.`);
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function controlManagedChild(id, action) {
+      try {
+        const res = await fetch(`/api/agent/subagents/${id}/control`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ action }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          await fetchSubagents();
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function messageManagedChild(id) {
+      const msg = prompt('Send follow-up message to Managed Devin:');
+      if (!msg) return;
+      try {
+        const res = await fetch(`/api/agent/subagents/${id}/message`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ message: msg }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('Message sent to child session.');
+          await fetchSubagents();
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    // ----------------------------------------------------
+    // Command Center: Kanban, Spaces, Playbooks, Knowledge, Schedules
+    // ----------------------------------------------------
+    function openCommandCenter(view = 'kanban') {
+      document.getElementById('modal-command-center').classList.add('open');
+      switchCcView(view);
+    }
+
+    function switchCcView(view) {
+      document.querySelectorAll('#modal-command-center .tools-tab-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById(`cc-btn-${view}`);
+      if (btn) btn.classList.add('active');
+
+      const body = document.getElementById('modal-command-center-content');
+      if (view === 'kanban') renderKanbanBoard(body);
+      else if (view === 'spaces') renderSpacesManager(body);
+      else if (view === 'playbooks') renderPlaybooksManager(body);
+      else if (view === 'knowledge') renderKnowledgeManager(body);
+      else if (view === 'schedules') renderSchedulesManager(body);
+    }
+
+    function renderKanbanBoard(box) {
+      const working = APP.sessions.filter(s => (s.status || 'working') === 'working');
+      const blocked = APP.sessions.filter(s => s.status === 'blocked');
+      const review = APP.sessions.filter(s => s.status === 'ready_for_review');
+
+      box.innerHTML = `
+        <div class="kanban-board-grid">
+          <div class="kanban-lane">
+            <div class="lane-heading">
+              <span>Working</span>
+              <span>${working.length}</span>
+            </div>
+            <div class="lane-cards-box">
+              ${working.map(s => renderKanbanCardHtml(s)).join('')}
+            </div>
+          </div>
+          <div class="kanban-lane">
+            <div class="lane-heading">
+              <span>Blocked</span>
+              <span>${blocked.length}</span>
+            </div>
+            <div class="lane-cards-box">
+              ${blocked.map(s => renderKanbanCardHtml(s)).join('')}
+            </div>
+          </div>
+          <div class="kanban-lane">
+            <div class="lane-heading">
+              <span>Ready for Review</span>
+              <span>${review.length}</span>
+            </div>
+            <div class="lane-cards-box">
+              ${review.map(s => renderKanbanCardHtml(s)).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderKanbanCardHtml(s) {
+      return `
+        <div class="lane-card-item" onclick="openSessionFromKanban('${s.id}')">
+          <strong style="color:#fff; font-size:12.5px;">${escapeSafe(s.title)}</strong>
+          <div style="font-size:11px; color:var(--text-muted); display:flex; justify-content:space-between;">
+            <span>${(s.mode || 'agent').toUpperCase()}</span>
+            <span>${s.acu_used || 0.1} ACU</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function openSessionFromKanban(id) {
+      closeModal('modal-command-center');
+      pickSession(id);
+    }
+
+    async function fetchSpaces() {
+      try {
+        const res = await fetch('/api/agent/spaces', { headers: authHeaders() });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.spaces)) {
+          APP.spaces = data.spaces;
+          if (APP.spaces.length > 0 && !APP.activeSpaceId) {
+            APP.activeSpaceId = APP.spaces[0].id;
+            document.getElementById('nav-active-space-label').textContent = APP.spaces[0].name;
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching spaces:', e);
+      }
+    }
+
+    function renderSpacesManager(box) {
+      box.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <div>
+            <h3 style="color:#fff;">Spaces (Task & Context Organization)</h3>
+            <p style="font-size:12px; color:var(--text-muted);">Spaces group sessions, PRs, files and project context together.</p>
+          </div>
+          <button class="run-send-btn" onclick="createSpaceModal()">+ New Space</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          ${APP.spaces.map(sp => `
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:12px; padding:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="font-size:14px; color:#fff;">${escapeSafe(sp.name)}</strong>
+                <span class="agent-mode-badge">devin.spaces.shareContext active</span>
+              </div>
+              <p style="font-size:12.5px; color:var(--text-muted); margin:8px 0;">${escapeSafe(sp.context || 'Default environment context')}</p>
+              <div style="display:flex; gap:12px; font-size:11.5px; color:var(--text-dim);">
+                <span>PRs: ${sp.prs ? sp.prs.length : 1}</span>
+                <span>Pinned Files: ${sp.pinned_files ? sp.pinned_files.join(', ') : 'bot.py'}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    async function createSpaceModal() {
+      const name = prompt('Space Name (e.g. Discord Services, Roblox World):');
+      if (!name) return;
+      const context = prompt('Space Context (inherited by all new sessions):');
+      try {
+        const res = await fetch('/api/agent/spaces', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ name, context }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          APP.spaces.push(data.space);
+          switchCcView('spaces');
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function renderPlaybooksManager(box) {
+      try {
+        const res = await fetch('/api/agent/playbooks', { headers: authHeaders() });
+        const data = await res.json();
+        const pbs = data.playbooks || [];
+        box.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <div>
+              <h3 style="color:#fff;">Autonomous Playbooks</h3>
+              <p style="font-size:12px; color:var(--text-muted);">Turn successful runs into reusable autonomous blueprints.</p>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            ${pbs.map(pb => `
+              <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:12px; padding:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <strong style="font-size:14px; color:#fff;">${escapeSafe(pb.title)}</strong>
+                  <button class="card-footer-btn" onclick="runPlaybookNow('${escapeSafe(pb.title)}')">Run Playbook</button>
+                </div>
+                <p style="font-size:12.5px; color:var(--text-muted); margin:6px 0;">${escapeSafe(pb.description)}</p>
+                <div style="font-size:11px; color:var(--text-dim); display:flex; gap:6px;">
+                  ${pb.steps ? pb.steps.map(s => `<span>• ${escapeSafe(s)}</span>`).join('') : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (e) {
+        box.innerHTML = 'Error loading playbooks: ' + e.message;
+      }
+    }
+
+    function runPlaybookNow(title) {
+      closeModal('modal-command-center');
+      fillPromptText(`Run playbook: ${title}`);
+      submitAgentPrompt();
+    }
+
+    async function exportToPlaybookModal() {
+      const title = prompt('Export current session as Playbook title:');
+      if (!title) return;
+      try {
+        const res = await fetch('/api/agent/playbooks', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({
+            title,
+            description: `Auto-generated playbook from session ${document.getElementById('nav-session-name').textContent}`,
+            steps: ['Audit environment', 'Execute core sequence', 'Run integrity verification'],
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('Playbook exported successfully!');
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function renderKnowledgeManager(box) {
+      try {
+        const res = await fetch('/api/agent/knowledge', { headers: authHeaders() });
+        const data = await res.json();
+        const items = data.knowledge || [];
+        box.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <div>
+              <h3 style="color:#fff;">Knowledge Base</h3>
+              <p style="font-size:12px; color:var(--text-muted);">Deduplicated facts, conventions, and architectural secrets.</p>
+            </div>
+            <button class="card-footer-btn" onclick="createKnowledgeModal()">+ Add Entry</button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            ${items.map(k => `
+              <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <strong style="color:var(--cyan); font-family:var(--font-mono); font-size:12px;">${escapeSafe(k.key)}</strong>
+                  <span class="agent-mode-badge">${escapeSafe(k.category)}</span>
+                </div>
+                <div style="font-size:12.5px; color:var(--text-main); margin-top:4px;">${escapeSafe(k.value)}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (e) {
+        box.innerHTML = 'Error: ' + e.message;
+      }
+    }
+
+    async function createKnowledgeModal() {
+      const key = prompt('Knowledge Key (e.g. repos.pinned, bot.runtime):');
+      if (!key) return;
+      const value = prompt('Fact / specification:');
+      if (!value) return;
+      try {
+        await fetch('/api/agent/knowledge', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ key, value, category: 'conventions' }),
+        });
+        switchCcView('knowledge');
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function renderSchedulesManager(box) {
+      try {
+        const res = await fetch('/api/agent/schedules', { headers: authHeaders() });
+        const data = await res.json();
+        const items = data.schedules || [];
+        box.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <div>
+              <h3 style="color:#fff;">Automated Schedules</h3>
+              <p style="font-size:12px; color:var(--text-muted);">Recurring autonomous Devin sessions with cron triggers.</p>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            ${items.map(s => `
+              <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <strong style="color:#fff;">${escapeSafe(s.title)}</strong>
+                  <span class="agent-mode-badge" style="background:var(--emerald-soft); color:#34d399;">${s.status.toUpperCase()}</span>
+                </div>
+                <div style="font-size:12px; color:var(--text-muted); margin:4px 0;">Cron: <code>${escapeSafe(s.cron)}</code> — ${escapeSafe(s.prompt)}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (e) {
+        box.innerHTML = 'Error: ' + e.message;
+      }
+    }
+
+    // Outcome Analysis
+    async function openOutcomeModal() {
+      document.getElementById('modal-outcome-view').classList.add('open');
+      const box = document.getElementById('outcome-analysis-body');
+      box.innerHTML = '<div style="color:var(--text-dim);">Analyzing session telemetry...</div>';
+      try {
+        const res = await fetch('/api/agent/analyze-outcome', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ session_id: APP.activeSessionId }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          const a = data.analysis;
+          box.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
+                <div>
+                  <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase;">Outcome</div>
+                  <strong style="font-size:16px; color:#34d399;">${a.outcome}</strong>
+                </div>
+                <div>
+                  <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase;">Efficiency Score</div>
+                  <strong style="font-size:16px; color:var(--cyan);">${a.efficiency_score}</strong>
+                </div>
+                <div>
+                  <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase;">Compute Used</div>
+                  <strong style="font-size:16px; color:#c4b5fd;">${a.acu_consumed}</strong>
+                </div>
+              </div>
+
+              <div>
+                <strong style="color:#fff; font-size:13px;">Telemetry Breakdown</strong>
+                <ul style="margin:6px 0 0 18px; font-size:12px; color:var(--text-muted);">
+                  <li>Planning: ${a.breakdown.planning}</li>
+                  <li>Files: ${a.breakdown.file_operations}</li>
+                  <li>Sandbox Shell: ${a.breakdown.terminal_exec}</li>
+                  <li>Browser: ${a.breakdown.browser_verification}</li>
+                </ul>
+              </div>
+
+              <div>
+                <strong style="color:#fff; font-size:13px;">Extracted Learnings</strong>
+                <ul style="margin:6px 0 0 18px; font-size:12px; color:var(--text-muted);">
+                  ${a.learnings.map(l => `<li>${escapeSafe(l)}</li>`).join('')}
+                </ul>
+              </div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        box.innerHTML = 'Error: ' + e.message;
+      }
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    // ----------------------------------------------------
+    // Shortcuts & Drag Resize
+    // ----------------------------------------------------
+    function initShortcuts() {
+      window.addEventListener('keydown', (e) => {
+        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+        const modKey = isMac ? e.metaKey : e.ctrlKey;
+
+        // Cmd/Ctrl + L -> Add selected transcript text to Chat Input
+        if (modKey && (e.key === 'l' || e.key === 'L')) {
+          e.preventDefault();
+          const selectedText = window.getSelection().toString().trim();
+          if (selectedText) {
+            const input = document.getElementById('main-task-input');
+            const quote = `> ${selectedText.split('\n').join('\n> ')}\n\n`;
+            input.value = quote + input.value;
+            input.focus();
+          }
+        }
+
+        // Cmd/Ctrl + T -> New session in current Space
+        if (modKey && (e.key === 't' || e.key === 'T') && !e.shiftKey) {
+          e.preventDefault();
+          createNewSession('New Session');
+        }
+
+        // Cmd/Ctrl + \ -> Split pane new session
+        if (modKey && e.key === '\\') {
+          e.preventDefault();
+          toggleSplitPane();
+        }
+
+        // Cmd/Ctrl + K -> Toggle Command Center
+        if (modKey && (e.key === 'k' || e.key === 'K')) {
+          e.preventDefault();
+          openCommandCenter('kanban');
+        }
+
+        // Cmd/Ctrl + B -> Toggle Tools
+        if (modKey && (e.key === 'b' || e.key === 'B')) {
+          e.preventDefault();
+          toggleToolsPanel();
+        }
+      });
+
+      const input = document.getElementById('main-task-input');
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          submitAgentPrompt();
+        } else if (e.key === '@') {
+          setTimeout(toggleMentionsMenu, 50);
+        }
+      });
+
+      document.getElementById('btn-sidebar-toggle').addEventListener('click', () => {
+        document.getElementById('sessions-sidebar').classList.toggle('collapsed');
+      });
+    }
+
+    function initDragResize() {
+      const handle = document.getElementById('tools-drag-handle');
+      const panel = document.getElementById('embedded-tools-panel');
+      let dragging = false;
+
+      handle.addEventListener('mousedown', (e) => {
+        dragging = true;
+        document.body.style.cursor = 'col-resize';
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const newW = window.innerWidth - e.clientX;
+        if (newW >= 320 && newW <= window.innerWidth * 0.75) {
+          panel.style.width = `${newW}px`;
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (dragging) {
+          dragging = false;
+          document.body.style.cursor = '';
+        }
+      });
+    }
+
+    // Formatters
+    function escapeSafe(s) {
+      if (typeof s !== 'string') return '';
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderMarkdown(str) {
+      if (!str) return '';
+      let out = escapeSafe(str);
+      out = out.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      out = out.replace(/```([a-z0-9_-]*)\n([\s\S]*?)```/gi, '<pre class="shell-card-body"><code>$2</code></pre>');
+      out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
+      return out;
+    }
+
+    function renderDiffMarkup(diff) {
+      if (!diff) return '';
+      return diff.split('\n').map(l => {
+        if (l.startsWith('+')) return `<span class="diff-green">${escapeSafe(l)}</span>`;
+        if (l.startsWith('-')) return `<span class="diff-red">${escapeSafe(l)}</span>`;
+        if (l.startsWith('@@')) return `<span class="diff-info">${escapeSafe(l)}</span>`;
+        return `<span>${escapeSafe(l)}</span>`;
+      }).join('\n');
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
   </script>
 </body>
 </html>

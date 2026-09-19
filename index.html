@@ -3,24 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cloud Agent — Autonomous AI Teammate</title>
-  <meta name="description" content="Cloud Agent — Devin-style autonomous AI agent. Free forever, isolated VM sandbox, real shell access, embedded IDE, live browser control, parallel subagents, 24/7 Discord bots, Roblox Luau generation, and deep deobfuscation.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2306b6d4'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%230c0e17'/%3E%3Cpath d='M25 50L45 70L75 30' stroke='url(%23g)' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+  <title>Cloud Agent — Autonomous AI Software Engineer</title>
+  <meta name="description" content="Devin-style autonomous AI agent. Free forever, isolated VM per session, real shell streaming, embedded IDE, live browser control, parallel Managed Devins, 24/7 Discord bots, Roblox Luau generation, and deep deobfuscation.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2306b6d4'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%2308090f'/%3E%3Cpath d='M25 50L45 70L75 30' stroke='url(%23g)' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
   <style>
     /* ================================================================
-       CLOUD AGENT — DEVIN-STYLE DESIGN SYSTEM (GLASS AURORA OBSIDIAN)
+       CLOUD AGENT — DEVIN-STYLE DESIGN SYSTEM
+       Obsidian Dark, Cyan/Violet Glow, Ultra-Clean Responsive Layout
        ================================================================ */
     :root {
       --bg-base: #06070a;
-      --bg-panel: #0b0d14;
-      --bg-card: rgba(18, 21, 32, 0.75);
-      --bg-elevated: #131722;
-      --bg-input: rgba(13, 16, 26, 0.9);
+      --bg-surface: #0a0c14;
+      --bg-panel: #0d101a;
+      --bg-card: rgba(16, 20, 32, 0.75);
+      --bg-elevated: #151928;
+      --bg-input: rgba(11, 14, 24, 0.95);
+
       --border-subtle: rgba(255, 255, 255, 0.07);
       --border-light: rgba(255, 255, 255, 0.12);
-      --border-accent: rgba(6, 182, 212, 0.35);
+      --border-focus: rgba(6, 182, 212, 0.5);
 
-      --text-main: #f1f5f9;
+      --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --text-dim: #64748b;
 
@@ -43,7 +46,7 @@
       --radius-lg: 14px;
       --radius-xl: 18px;
 
-      --panel-width: 480px;
+      --tools-width: 520px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -65,13 +68,13 @@
     a:hover { text-decoration: underline; }
 
     /* Scrollbars */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 99px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); }
 
-    /* Layout Shell */
-    #app-container {
+    /* App Root Shell */
+    #app-root {
       display: flex;
       flex-direction: column;
       height: 100vh;
@@ -79,36 +82,36 @@
       overflow: hidden;
     }
 
-    /* Top Navigation Header */
+    /* Top Navigation Bar */
     #top-nav {
-      height: 48px;
-      min-height: 48px;
+      height: 46px;
+      min-height: 46px;
       border-bottom: 1px solid var(--border-subtle);
-      background: rgba(11, 13, 20, 0.85);
-      backdrop-filter: blur(12px);
+      background: rgba(10, 12, 19, 0.85);
+      backdrop-filter: blur(14px);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 14px;
-      z-index: 40;
+      z-index: 50;
     }
 
-    .nav-left, .nav-center, .nav-right {
+    .nav-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
-    .brand-pill {
+    .brand-logo {
       display: flex;
       align-items: center;
       gap: 8px;
       font-weight: 700;
       font-size: 14px;
-      letter-spacing: -0.2px;
       color: #fff;
+      cursor: pointer;
     }
-    .brand-icon {
+    .brand-mark {
       width: 22px;
       height: 22px;
       border-radius: 6px;
@@ -118,7 +121,7 @@
       justify-content: center;
       color: #000;
       font-weight: 900;
-      font-size: 13px;
+      font-size: 12px;
     }
 
     /* Mode Toggle */
@@ -132,9 +135,9 @@
       gap: 2px;
     }
     .mode-btn {
-      padding: 4px 11px;
+      padding: 3px 10px;
       border-radius: 16px;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
       color: var(--text-muted);
       transition: all 0.15s ease;
@@ -143,24 +146,19 @@
       gap: 5px;
     }
     .mode-btn:hover { color: var(--text-main); }
-    .mode-btn.active {
-      background: var(--bg-elevated);
-      color: #fff;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-    }
     .mode-btn.active.mode-agent {
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.25));
-      border: 1px solid rgba(6, 182, 212, 0.35);
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(139, 92, 246, 0.28));
+      border: 1px solid rgba(6, 182, 212, 0.4);
       color: #38bdf8;
     }
     .mode-btn.active.mode-ask {
-      background: rgba(245, 158, 11, 0.15);
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: rgba(245, 158, 11, 0.18);
+      border: 1px solid rgba(245, 158, 11, 0.35);
       color: #fbbf24;
     }
 
-    /* Space Selector */
-    .space-badge {
+    /* Space Selector Pill */
+    .space-pill {
       display: flex;
       align-items: center;
       gap: 6px;
@@ -170,17 +168,14 @@
       border: 1px solid var(--border-subtle);
       font-size: 12px;
       cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.12s;
     }
-    .space-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--violet);
-    }
+    .space-pill:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+    .space-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--violet); }
 
-    /* Header Nav Action Buttons */
     .nav-btn {
-      padding: 5px 10px;
+      padding: 4px 10px;
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border-subtle);
@@ -190,19 +185,12 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.15s;
+      transition: all 0.12s;
     }
-    .nav-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
-    }
-    .nav-btn.active {
-      background: var(--cyan-soft);
-      border-color: var(--cyan);
-      color: var(--cyan);
-    }
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--text-main); }
+    .nav-btn.active { background: var(--cyan-soft); border-color: var(--cyan); color: var(--cyan); }
 
-    .acu-pill {
+    .acu-chip {
       font-family: var(--font-mono);
       font-size: 11px;
       padding: 3px 8px;
@@ -215,63 +203,63 @@
       gap: 4px;
     }
 
-    /* Main Body Area (Workspace) */
-    #workspace-body {
+    /* Workspace Body Area */
+    #workspace-container {
       flex: 1;
       display: flex;
       position: relative;
       overflow: hidden;
     }
 
-    /* Sessions Sidebar (collapsible) */
+    /* Sessions Sidebar */
     #sessions-sidebar {
       width: 250px;
       min-width: 250px;
       border-right: 1px solid var(--border-subtle);
-      background: rgba(10, 12, 19, 0.95);
+      background: rgba(8, 10, 16, 0.98);
       display: flex;
       flex-direction: column;
-      transition: margin-left 0.2s ease;
-      z-index: 20;
+      transition: margin-left 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 30;
     }
-    #sessions-sidebar.collapsed {
-      margin-left: -250px;
-    }
+    #sessions-sidebar.collapsed { margin-left: -250px; }
+
     .sidebar-head {
-      padding: 12px 14px;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--border-subtle);
     }
     .sidebar-title {
-      font-size: 11.5px;
+      font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       color: var(--text-dim);
       font-weight: 700;
     }
-    .sidebar-action-btn {
-      width: 26px;
-      height: 26px;
+    .icon-action-btn {
+      width: 24px;
+      height: 24px;
       border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
       color: var(--text-muted);
       background: rgba(255, 255, 255, 0.04);
+      transition: all 0.12s;
     }
-    .sidebar-action-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+    .icon-action-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
-    .sessions-list {
+    .sessions-list-wrap {
       flex: 1;
       overflow-y: auto;
-      padding: 8px;
+      padding: 6px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
-    .session-item {
+    .session-card {
       padding: 8px 10px;
       border-radius: 8px;
       cursor: pointer;
@@ -280,20 +268,24 @@
       gap: 3px;
       border: 1px solid transparent;
       transition: all 0.12s;
+      position: relative;
     }
-    .session-item:hover {
-      background: rgba(255, 255, 255, 0.03);
-    }
-    .session-item.active {
-      background: rgba(255, 255, 255, 0.06);
+    .session-card:hover { background: rgba(255, 255, 255, 0.04); }
+    .session-card.active {
+      background: rgba(255, 255, 255, 0.07);
       border-color: var(--border-light);
     }
-    .session-item-row {
+    .session-card.drag-over {
+      border: 1px dashed var(--cyan);
+      background: var(--cyan-soft);
+    }
+    .session-card-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
     }
-    .session-item-title {
+    .session-title-text {
       font-weight: 500;
       font-size: 12.5px;
       color: var(--text-main);
@@ -302,28 +294,20 @@
       white-space: nowrap;
       flex: 1;
     }
-    .session-item-time {
-      font-size: 10.5px;
-      color: var(--text-dim);
-    }
-    .session-item-meta {
+    .session-meta-text {
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 10.5px;
       color: var(--text-dim);
     }
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
     .status-dot.working { background: var(--cyan); }
     .status-dot.blocked { background: var(--amber); }
     .status-dot.ready_for_review { background: var(--emerald); }
 
-    /* Center Chat Workspace */
-    #chat-workspace {
+    /* Center Chat Workspace (Primary) */
+    #chat-main-area {
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -333,68 +317,88 @@
       min-width: 0;
     }
 
-    /* Chat Messages Thread */
-    #chat-transcript {
+    /* Split Pane Support */
+    #panes-wrapper {
       flex: 1;
-      overflow-y: auto;
-      padding: 24px 20px 30px;
+      display: flex;
+      overflow: hidden;
+      width: 100%;
+    }
+    .chat-pane {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      overflow: hidden;
+      min-width: 0;
+      position: relative;
+    }
+    .chat-pane.split-pane {
+      border-left: 1px solid var(--border-subtle);
+    }
+
+    /* Scrolling Transcript */
+    .chat-transcript {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
       max-width: 860px;
       width: 100%;
       margin: 0 auto;
     }
 
-    /* Zero State / Entry Prompt */
-    #chat-entry-hero {
+    /* Zero State / Entry Screen */
+    .entry-zero-state {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 40px 20px;
+      padding: 60px 20px 40px;
       margin: auto 0;
       gap: 16px;
     }
-    .entry-badge {
+    .entry-tag-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 5px 12px;
+      padding: 4px 12px;
       border-radius: 99px;
       background: rgba(6, 182, 212, 0.08);
       border: 1px solid rgba(6, 182, 212, 0.25);
       color: #38bdf8;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
     }
-    .entry-title {
+    .entry-headline {
       font-size: 26px;
       font-weight: 700;
       letter-spacing: -0.5px;
       color: #fff;
-      line-height: 1.25;
+      line-height: 1.3;
     }
-    .entry-sub {
+    .entry-description {
       color: var(--text-muted);
-      font-size: 14px;
+      font-size: 13.5px;
       max-width: 520px;
+      line-height: 1.6;
     }
-    .starter-chips {
+    .entry-prompt-chips {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       justify-content: center;
-      max-width: 620px;
-      margin-top: 8px;
+      max-width: 640px;
+      margin-top: 10px;
     }
-    .starter-chip {
+    .prompt-chip {
       padding: 8px 14px;
       border-radius: 12px;
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.035);
       border: 1px solid var(--border-subtle);
-      font-size: 12.5px;
+      font-size: 12px;
       color: var(--text-main);
       display: flex;
       align-items: center;
@@ -402,26 +406,24 @@
       transition: all 0.15s ease;
       cursor: pointer;
     }
-    .starter-chip:hover {
+    .prompt-chip:hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: var(--border-light);
       transform: translateY(-1px);
     }
 
     /* Message Bubbles */
-    .msg-wrap {
+    .msg-row {
       display: flex;
       flex-direction: column;
-      gap: 6px;
       width: 100%;
+      gap: 6px;
     }
-    .msg-user {
+    .msg-user-bubble {
       align-self: flex-end;
-      max-width: 82%;
-    }
-    .msg-user .msg-content {
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.16), rgba(139, 92, 246, 0.18));
-      border: 1px solid rgba(6, 182, 212, 0.3);
+      max-width: 84%;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.16), rgba(139, 92, 246, 0.2));
+      border: 1px solid rgba(6, 182, 212, 0.32);
       padding: 12px 16px;
       border-radius: 16px 16px 4px 16px;
       font-size: 13.5px;
@@ -430,99 +432,71 @@
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     }
 
-    .msg-agent {
+    .msg-agent-card {
       align-self: flex-start;
       width: 100%;
-    }
-    .msg-agent-card {
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       border-radius: 16px;
       padding: 18px;
       backdrop-filter: blur(14px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
       display: flex;
       flex-direction: column;
       gap: 14px;
     }
-    .msg-agent-header {
+    .agent-card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--border-subtle);
       padding-bottom: 10px;
     }
-    .agent-header-left {
+    .agent-header-meta {
       display: flex;
       align-items: center;
       gap: 8px;
       font-weight: 600;
       font-size: 13px;
     }
-    .agent-tag {
-      font-size: 11px;
+    .agent-mode-badge {
+      font-size: 10.5px;
       padding: 2px 7px;
       border-radius: 4px;
       background: rgba(6, 182, 212, 0.12);
       color: var(--cyan);
-      font-weight: 600;
-    }
-    .msg-text-body {
-      font-size: 13.5px;
-      color: var(--text-main);
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-    .msg-text-body h3 {
-      font-size: 14.5px;
-      margin: 10px 0 6px;
-      color: #fff;
-    }
-    .msg-text-body ul, .msg-text-body ol {
-      margin-left: 18px;
-      margin-bottom: 8px;
-    }
-    .msg-text-body code {
-      font-family: var(--font-mono);
-      background: rgba(255, 255, 255, 0.08);
-      padding: 2px 5px;
-      border-radius: 4px;
-      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
     }
 
-    /* Inline Plans Checklist */
-    .plan-card {
+    /* Plans Checklist Card */
+    .inline-plan-card {
       border: 1px solid var(--border-subtle);
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.3);
       border-radius: 10px;
       padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
-    .plan-head {
+    .inline-plan-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
     }
-    .plan-steps-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .plan-step-row {
+    .plan-step-item {
       display: flex;
       align-items: center;
       gap: 8px;
       font-size: 12.5px;
       color: var(--text-main);
     }
-    .step-icon {
+    .step-badge-icon {
       width: 16px;
       height: 16px;
       border-radius: 50%;
@@ -532,26 +506,26 @@
       font-size: 10px;
       flex-shrink: 0;
     }
-    .step-icon.done { background: var(--emerald-soft); color: #34d399; }
-    .step-icon.running { background: var(--cyan-soft); color: var(--cyan); animation: pulse 1.2s infinite; }
-    .step-icon.pending { background: rgba(255, 255, 255, 0.06); color: var(--text-dim); }
+    .step-badge-icon.done { background: var(--emerald-soft); color: #34d399; }
+    .step-badge-icon.running { background: var(--cyan-soft); color: var(--cyan); animation: pulseGlow 1.2s infinite; }
+    .step-badge-icon.pending { background: rgba(255, 255, 255, 0.06); color: var(--text-dim); }
 
-    @keyframes pulse {
-      0% { opacity: 0.5; }
+    @keyframes pulseGlow {
+      0% { opacity: 0.4; }
       50% { opacity: 1; }
-      100% { opacity: 0.5; }
+      100% { opacity: 0.4; }
     }
 
-    /* Inline Code Diff Box */
-    .diff-box {
+    /* Code Diff Box */
+    .inline-diff-card {
       border-radius: 10px;
       border: 1px solid var(--border-subtle);
-      background: #090b12;
+      background: #080a11;
       overflow: hidden;
       font-family: var(--font-mono);
       font-size: 12px;
     }
-    .diff-header {
+    .diff-card-head {
       padding: 7px 12px;
       background: rgba(255, 255, 255, 0.03);
       border-bottom: 1px solid var(--border-subtle);
@@ -559,28 +533,29 @@
       align-items: center;
       justify-content: space-between;
       color: var(--text-muted);
+      font-size: 11.5px;
     }
-    .diff-body {
+    .diff-lines-scroll {
       padding: 10px 14px;
       overflow-x: auto;
       max-height: 280px;
       white-space: pre;
       line-height: 1.5;
     }
-    .diff-line-add { color: #34d399; background: rgba(16, 185, 129, 0.08); display: block; }
-    .diff-line-del { color: #fb7185; background: rgba(244, 63, 94, 0.08); display: block; }
-    .diff-line-info { color: #38bdf8; display: block; }
+    .diff-green { color: #34d399; background: rgba(16, 185, 129, 0.09); display: block; }
+    .diff-red { color: #fb7185; background: rgba(244, 63, 94, 0.09); display: block; }
+    .diff-info { color: #38bdf8; display: block; }
 
-    /* Inline Shell Box */
-    .shell-box {
+    /* Shell Box */
+    .inline-shell-card {
       border-radius: 10px;
       border: 1px solid var(--border-subtle);
-      background: #07080d;
+      background: #05060b;
       overflow: hidden;
       font-family: var(--font-mono);
       font-size: 11.5px;
     }
-    .shell-header {
+    .shell-card-head {
       padding: 6px 12px;
       background: rgba(255, 255, 255, 0.03);
       border-bottom: 1px solid var(--border-subtle);
@@ -589,7 +564,7 @@
       justify-content: space-between;
       color: var(--text-dim);
     }
-    .shell-output {
+    .shell-card-body {
       padding: 10px 14px;
       max-height: 220px;
       overflow-y: auto;
@@ -597,14 +572,14 @@
       color: #94a3b8;
     }
 
-    /* Inline Browser Preview Box */
-    .browser-box {
+    /* Browser Box */
+    .inline-browser-card {
       border-radius: 10px;
       border: 1px solid var(--border-subtle);
-      background: #090b12;
+      background: #080a11;
       overflow: hidden;
     }
-    .browser-head {
+    .browser-card-head {
       display: flex;
       align-items: center;
       gap: 10px;
@@ -613,7 +588,7 @@
       border-bottom: 1px solid var(--border-subtle);
       font-size: 11.5px;
     }
-    .browser-url-bar {
+    .browser-url-pill {
       flex: 1;
       padding: 3px 10px;
       border-radius: 6px;
@@ -626,52 +601,51 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .browser-preview-body {
+    .browser-card-body {
       padding: 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.35);
     }
 
     /* Response Footer (Branch Session / Add to Chat / Actions) */
-    .msg-footer {
+    .msg-card-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-top: 8px;
+      padding-top: 10px;
       border-top: 1px solid var(--border-subtle);
       font-size: 11.5px;
       color: var(--text-dim);
+      flex-wrap: wrap;
+      gap: 8px;
     }
-    .footer-actions {
+    .footer-btn-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
-    .footer-btn {
+    .card-footer-btn {
       padding: 4px 8px;
       border-radius: 6px;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
       color: var(--text-muted);
       cursor: pointer;
       font-size: 11px;
       transition: all 0.12s;
     }
-    .footer-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
-    }
+    .card-footer-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
 
-    /* Pinned Bottom Input Area */
-    #input-dock {
-      padding: 12px 20px 16px;
+    /* Pinned Bottom Input Dock */
+    .input-dock-container {
+      padding: 10px 20px 16px;
       background: linear-gradient(to top, var(--bg-base) 80%, transparent);
-      z-index: 30;
+      z-index: 40;
       position: relative;
       max-width: 860px;
       width: 100%;
@@ -679,25 +653,25 @@
     }
 
     /* Queued Messages Tray */
-    #queued-tray {
+    #queued-messages-tray {
       display: none;
       flex-direction: column;
       gap: 6px;
       margin-bottom: 8px;
-      background: rgba(18, 22, 34, 0.95);
+      background: rgba(16, 20, 32, 0.95);
       border: 1px solid var(--border-light);
       border-radius: 12px;
       padding: 10px 14px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
-    .queue-item {
+    .queued-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      font-size: 12.5px;
+      font-size: 12px;
     }
-    .queue-text {
+    .queued-text-span {
       flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -705,8 +679,8 @@
       color: var(--text-muted);
     }
 
-    /* Input Bar Shell */
-    .input-box {
+    /* Chat Input Card */
+    .chat-input-box {
       border: 1px solid var(--border-light);
       border-radius: 16px;
       background: var(--bg-input);
@@ -718,12 +692,12 @@
       transition: border-color 0.2s, box-shadow 0.2s;
       position: relative;
     }
-    .input-box:focus-within {
+    .chat-input-box:focus-within {
       border-color: var(--cyan);
       box-shadow: 0 8px 32px rgba(6, 182, 212, 0.15), 0 0 0 1px var(--cyan);
     }
 
-    #chat-prompt-input {
+    .main-task-textarea {
       width: 100%;
       background: transparent;
       border: none;
@@ -735,20 +709,20 @@
       max-height: 180px;
       min-height: 44px;
     }
-    #chat-prompt-input::placeholder { color: var(--text-dim); }
+    .main-task-textarea::placeholder { color: var(--text-dim); }
 
-    .input-bottom-bar {
+    .input-controls-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding-top: 4px;
     }
-    .input-left-controls {
+    .input-left-items {
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .mention-trigger-btn {
+    .mention-btn {
       padding: 4px 8px;
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.04);
@@ -759,9 +733,9 @@
       align-items: center;
       gap: 4px;
     }
-    .mention-trigger-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+    .mention-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
 
-    .input-send-btn {
+    .run-send-btn {
       padding: 7px 16px;
       border-radius: 10px;
       background: linear-gradient(135deg, var(--cyan), var(--violet));
@@ -774,11 +748,11 @@
       box-shadow: 0 2px 10px rgba(6, 182, 212, 0.3);
       transition: transform 0.1s, opacity 0.15s;
     }
-    .input-send-btn:hover { transform: translateY(-1px); }
-    .input-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .run-send-btn:hover { transform: translateY(-1px); }
+    .run-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-    /* Subagent Indicator bar below input */
-    #subagent-indicator-bar {
+    /* Subagent Indicator below input */
+    #subagent-dock-indicator {
       display: none;
       align-items: center;
       justify-content: space-between;
@@ -791,24 +765,24 @@
       color: #c4b5fd;
     }
 
-    /* @ Mentions Dropdown Popover */
-    #mentions-dropdown {
+    /* @ Mentions Popover Dropdown */
+    #mentions-popover {
       position: absolute;
       bottom: calc(100% + 8px);
       left: 14px;
       width: 320px;
       max-height: 280px;
       overflow-y: auto;
-      background: #0f121c;
+      background: #0e111b;
       border: 1px solid var(--border-light);
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.6);
       display: none;
       flex-direction: column;
-      z-index: 50;
+      z-index: 60;
       padding: 6px;
     }
-    .mention-group-title {
+    .mention-category-title {
       font-size: 10.5px;
       text-transform: uppercase;
       letter-spacing: 0.6px;
@@ -816,7 +790,7 @@
       padding: 6px 8px 3px;
       font-weight: 700;
     }
-    .mention-option {
+    .mention-item {
       padding: 6px 10px;
       border-radius: 6px;
       font-size: 12px;
@@ -826,14 +800,14 @@
       cursor: pointer;
       color: var(--text-main);
     }
-    .mention-option:hover, .mention-option.selected {
+    .mention-item:hover {
       background: rgba(6, 182, 212, 0.14);
       color: #38bdf8;
     }
 
     /* Right Embedded Tools Panel (PC: Resizable / Mobile: Bottom Sheet) */
     #embedded-tools-panel {
-      width: var(--panel-width);
+      width: var(--tools-width);
       min-width: 320px;
       max-width: 80vw;
       border-left: 1px solid var(--border-subtle);
@@ -841,42 +815,42 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      z-index: 25;
-      transition: margin-right 0.2s ease;
+      z-index: 35;
+      transition: margin-right 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     #embedded-tools-panel.collapsed {
-      margin-right: calc(-1 * var(--panel-width));
+      margin-right: calc(-1 * var(--tools-width));
     }
 
     /* Drag Handle for Resizing on PC */
-    #tools-resize-handle {
+    #tools-drag-handle {
       position: absolute;
       left: -4px;
       top: 0;
       bottom: 0;
       width: 8px;
       cursor: col-resize;
-      z-index: 35;
+      z-index: 45;
     }
-    #tools-resize-handle:hover {
+    #tools-drag-handle:hover {
       background: rgba(6, 182, 212, 0.3);
     }
 
-    .tools-header {
+    .tools-nav-bar {
       height: 42px;
       border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 10px;
-      background: rgba(13, 16, 26, 0.9);
+      background: rgba(12, 15, 25, 0.95);
     }
-    .tool-tabs {
+    .tools-tab-group {
       display: flex;
       align-items: center;
       gap: 2px;
     }
-    .tool-tab-btn {
+    .tools-tab-btn {
       padding: 5px 10px;
       border-radius: 6px;
       font-size: 12px;
@@ -886,30 +860,30 @@
       align-items: center;
       gap: 6px;
     }
-    .tool-tab-btn:hover { color: var(--text-main); }
-    .tool-tab-btn.active {
+    .tools-tab-btn:hover { color: var(--text-main); }
+    .tools-tab-btn.active {
       background: var(--bg-elevated);
       color: #fff;
     }
 
-    .tool-body {
+    .tool-tab-content {
       flex: 1;
       display: none;
       flex-direction: column;
       overflow: hidden;
       position: relative;
     }
-    .tool-body.active { display: flex; }
+    .tool-tab-content.active { display: flex; }
 
     /* Tool 1: Shell */
-    #shell-view {
+    .terminal-container {
       display: flex;
       flex-direction: column;
       height: 100%;
-      background: #06070a;
+      background: #05060b;
       font-family: var(--font-mono);
     }
-    .terminal-output {
+    .terminal-scroll-area {
       flex: 1;
       padding: 12px;
       overflow-y: auto;
@@ -918,16 +892,16 @@
       color: #cbd5e1;
       white-space: pre-wrap;
     }
-    .terminal-input-bar {
+    .terminal-prompt-bar {
       display: flex;
       align-items: center;
       padding: 8px 12px;
-      background: #0b0d14;
+      background: #090c14;
       border-top: 1px solid var(--border-subtle);
       gap: 8px;
     }
-    .terminal-prompt { color: var(--cyan); font-weight: 700; }
-    #terminal-cli-input {
+    .terminal-cli-prompt { color: var(--cyan); font-weight: 700; }
+    .terminal-cli-input {
       flex: 1;
       background: transparent;
       border: none;
@@ -938,36 +912,36 @@
     }
 
     /* Tool 2: IDE / Code Editor */
-    #ide-view {
+    .ide-container {
       display: flex;
       flex-direction: column;
       height: 100%;
-      background: #090b12;
+      background: #080a11;
     }
-    .ide-toolbar {
+    .ide-top-bar {
       padding: 6px 12px;
-      background: #0e111a;
+      background: #0c0f18;
       border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    .ide-content {
+    .ide-workspace-body {
       flex: 1;
       display: flex;
       overflow: hidden;
     }
-    .ide-files-sidebar {
-      width: 140px;
+    .ide-tree-sidebar {
+      width: 150px;
       border-right: 1px solid var(--border-subtle);
       overflow-y: auto;
       padding: 6px;
       display: flex;
       flex-direction: column;
       gap: 2px;
-      background: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.25);
     }
-    .ide-file-item {
+    .ide-file-node {
       padding: 4px 8px;
       border-radius: 4px;
       font-size: 11.5px;
@@ -980,21 +954,21 @@
       align-items: center;
       justify-content: space-between;
     }
-    .ide-file-item:hover, .ide-file-item.active {
+    .ide-file-node:hover, .ide-file-node.active {
       background: rgba(255, 255, 255, 0.06);
       color: #fff;
     }
-    .ide-editor-area {
+    .ide-editor-wrapper {
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
-    #ide-code-textarea {
+    .ide-textarea-editor {
       flex: 1;
       width: 100%;
       padding: 12px;
-      background: #080a10;
+      background: #06080e;
       border: none;
       outline: none;
       color: #f8fafc;
@@ -1006,13 +980,13 @@
     }
 
     /* Tool 3: Browser */
-    #browser-view {
+    .browser-container {
       display: flex;
       flex-direction: column;
       height: 100%;
       background: #0b0d14;
     }
-    .browser-toolbar {
+    .browser-url-strip {
       display: flex;
       align-items: center;
       gap: 6px;
@@ -1020,7 +994,7 @@
       background: #0e111a;
       border-bottom: 1px solid var(--border-subtle);
     }
-    #browser-url-input {
+    .browser-url-input {
       flex: 1;
       padding: 4px 10px;
       border-radius: 6px;
@@ -1030,16 +1004,15 @@
       color: #fff;
       font-family: var(--font-mono);
     }
-    .browser-canvas {
+    .browser-viewport-frame {
       flex: 1;
       overflow: auto;
       background: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #000;
     }
-    #browser-iframe {
+    .browser-iframe-element {
       width: 100%;
       height: 100%;
       border: none;
@@ -1047,7 +1020,7 @@
     }
 
     /* Tool 4: Progress Tab */
-    #progress-view {
+    .progress-container {
       display: flex;
       flex-direction: column;
       height: 100%;
@@ -1055,31 +1028,31 @@
       padding: 14px;
       gap: 12px;
     }
-    .progress-filters {
+    .progress-filter-strip {
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
       margin-bottom: 8px;
     }
-    .pfilter-btn {
+    .p-chip-btn {
       padding: 3px 8px;
       border-radius: 6px;
       font-size: 11px;
       background: rgba(255, 255, 255, 0.04);
       color: var(--text-muted);
     }
-    .pfilter-btn.active {
+    .p-chip-btn.active {
       background: var(--cyan-soft);
       color: var(--cyan);
       font-weight: 600;
     }
-    .timeline-item {
+    .timeline-event-row {
       display: flex;
       gap: 10px;
       font-size: 12px;
       position: relative;
     }
-    .timeline-dot {
+    .timeline-node-dot {
       width: 9px;
       height: 9px;
       border-radius: 50%;
@@ -1087,7 +1060,7 @@
       margin-top: 4px;
       flex-shrink: 0;
     }
-    .timeline-card {
+    .timeline-event-card {
       flex: 1;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border-subtle);
@@ -1095,8 +1068,8 @@
       padding: 8px 10px;
     }
 
-    /* Subagent Panel */
-    #subagents-view {
+    /* Tool 5: Subagents Panel */
+    .subagents-container {
       display: flex;
       flex-direction: column;
       height: 100%;
@@ -1104,8 +1077,8 @@
       padding: 12px;
       gap: 10px;
     }
-    .subagent-card {
-      background: rgba(18, 22, 34, 0.8);
+    .subagent-item-card {
+      background: rgba(18, 22, 34, 0.85);
       border: 1px solid var(--border-light);
       border-radius: 10px;
       padding: 12px;
@@ -1114,24 +1087,24 @@
       gap: 8px;
     }
 
-    /* Modals & Overlays */
-    .modal-overlay {
+    /* Command Center Modal */
+    .overlay-modal {
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
       z-index: 100;
       display: none;
       align-items: center;
       justify-content: center;
       padding: 16px;
     }
-    .modal-overlay.open { display: flex; }
-    .modal-sheet {
+    .overlay-modal.open { display: flex; }
+    .modal-frame {
       width: 100%;
-      max-width: 920px;
+      max-width: 940px;
       max-height: 90vh;
-      background: #0d101a;
+      background: #0b0e17;
       border: 1px solid var(--border-light);
       border-radius: 18px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.8);
@@ -1139,28 +1112,28 @@
       flex-direction: column;
       overflow: hidden;
     }
-    .modal-head {
+    .modal-header-bar {
       padding: 14px 18px;
       border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    .modal-body {
+    .modal-scroll-body {
       flex: 1;
       overflow-y: auto;
       padding: 18px;
     }
 
-    /* Kanban Board */
-    .kanban-grid {
+    /* Kanban Grid */
+    .kanban-board-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 14px;
       min-height: 420px;
     }
-    .kanban-col {
-      background: rgba(0, 0, 0, 0.25);
+    .kanban-lane {
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-subtle);
       border-radius: 12px;
       padding: 12px;
@@ -1168,7 +1141,7 @@
       flex-direction: column;
       gap: 10px;
     }
-    .col-title {
+    .lane-heading {
       font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
@@ -1178,14 +1151,14 @@
       justify-content: space-between;
       color: var(--text-muted);
     }
-    .col-cards {
+    .lane-cards-box {
       flex: 1;
       display: flex;
       flex-direction: column;
       gap: 8px;
       overflow-y: auto;
     }
-    .kanban-card {
+    .lane-card-item {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border-subtle);
       border-radius: 8px;
@@ -1196,20 +1169,20 @@
       gap: 6px;
       transition: all 0.15s;
     }
-    .kanban-card:hover {
+    .lane-card-item:hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: var(--border-light);
       transform: translateY(-1px);
     }
 
-    /* Responsive / Mobile Sheet Rules */
+    /* Mobile Sheet Adaptation */
     @media (max-width: 768px) {
       #sessions-sidebar {
         position: fixed;
         left: 0;
-        top: 48px;
+        top: 46px;
         bottom: 0;
-        z-index: 60;
+        z-index: 70;
       }
       #embedded-tools-panel {
         position: fixed;
@@ -1218,68 +1191,73 @@
         bottom: 0;
         width: 100vw !important;
         max-width: 100vw;
-        height: 65vh;
+        height: 70vh;
         margin-right: 0 !important;
         border-left: none;
         border-top: 1px solid var(--border-light);
         transform: translateY(100%);
-        transition: transform 0.25s ease;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       }
       #embedded-tools-panel.open-mobile {
         transform: translateY(0);
       }
-      #tools-resize-handle { display: none; }
-      .kanban-grid { grid-template-columns: 1fr; }
+      #tools-drag-handle { display: none; }
+      .kanban-board-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <div id="app-container">
-    <!-- Top Nav Header -->
+  <div id="app-root">
+    <!-- Top Navigation Header -->
     <header id="top-nav">
-      <div class="nav-left">
-        <button class="sidebar-action-btn" id="btn-toggle-sidebar" title="Toggle Sessions Sidebar">☰</button>
-        <div class="brand-pill">
-          <div class="brand-icon">⚡</div>
+      <div class="nav-group">
+        <button class="icon-action-btn" id="btn-sidebar-toggle" title="Toggle Sessions Sidebar">☰</button>
+        <div class="brand-logo" onclick="resetToNewSession()">
+          <div class="brand-mark">⚡</div>
           <span>Cloud<span>Agent</span></span>
         </div>
 
         <!-- Mode Toggle (Top, Always Visible) -->
         <div class="mode-toggle">
-          <button class="mode-btn mode-ask" id="top-mode-ask" onclick="setAgentMode('ask')">
+          <button class="mode-btn mode-ask" id="top-toggle-ask" onclick="switchAgentMode('ask')">
             <span>Ask</span>
           </button>
-          <button class="mode-btn mode-agent active" id="top-mode-agent" onclick="setAgentMode('agent')">
+          <button class="mode-btn mode-agent active" id="top-toggle-agent" onclick="switchAgentMode('agent')">
             <span>Agent</span>
           </button>
         </div>
 
-        <!-- Active Space Selector -->
-        <div class="space-badge" id="btn-open-spaces" onclick="openCommandCenter('spaces')" title="Switch or create Space">
-          <div class="space-dot"></div>
-          <span id="nav-space-name">Core Infrastructure</span>
-          <span style="font-size:10px; color:var(--text-dim);">▾</span>
+        <!-- Space Selector -->
+        <div class="space-pill" id="nav-space-pill" onclick="openCommandCenter('spaces')" title="Switch or create Space">
+          <div class="space-pill-dot"></div>
+          <span id="nav-active-space-label">Core Infrastructure</span>
+          <span style="font-size:9px; color:var(--text-dim);">▾</span>
         </div>
       </div>
 
-      <div class="nav-center">
-        <!-- Active Session Title (Click or double-click to rename) -->
-        <span id="nav-session-title" style="font-weight:600; font-size:13px; color:var(--text-muted); cursor:pointer;" title="Double-click to rename" ondblclick="renameCurrentSession()">
-          Main Session
+      <div class="nav-group">
+        <!-- Active Session Title (Click to rename) -->
+        <span id="nav-session-name" style="font-weight:600; font-size:13px; color:var(--text-muted); cursor:pointer;" title="Double-click to rename" ondblclick="inlineRenameSession()">
+          New Session
         </span>
       </div>
 
-      <div class="nav-right">
-        <!-- ACU Usage Pill -->
-        <div class="acu-pill" id="nav-acu-meter" title="Agent Compute Units consumed">
+      <div class="nav-group">
+        <!-- ACU Compute Meter -->
+        <div class="acu-chip" id="nav-acu-chip" title="Agent Compute Units consumed">
           <span>⚡</span>
-          <span id="nav-acu-val">0.2 ACU</span>
+          <span id="nav-acu-counter">0.2 ACU</span>
         </div>
 
-        <!-- Subagent Active Indicator -->
-        <button class="nav-btn" id="btn-nav-subagents" onclick="openEmbeddedTool('subagents')">
-          <span>Managed Devins</span>
-          <span id="nav-subagent-badge" style="background:var(--violet-soft); color:#c4b5fd; padding:1px 5px; border-radius:10px; font-size:10px;">0</span>
+        <!-- Split Pane Toggle Button -->
+        <button class="nav-btn" onclick="toggleSplitPane()" title="Split Pane in Same Space (Cmd+\)">
+          <span>Split</span>
+        </button>
+
+        <!-- Managed Devins Badge -->
+        <button class="nav-btn" onclick="showEmbeddedTool('subagents')" title="Managed Devins">
+          <span>Subagents</span>
+          <span id="nav-subagents-count" style="background:var(--violet-soft); color:#c4b5fd; padding:1px 5px; border-radius:10px; font-size:10px;">0</span>
         </button>
 
         <!-- Command Center Toggle -->
@@ -1287,376 +1265,391 @@
           <span>Kanban</span>
         </button>
 
-        <!-- Embedded Tools Toggle -->
-        <button class="nav-btn active" id="btn-toggle-tools" onclick="toggleEmbeddedTools()" title="Toggle Tools (Cmd+B)">
+        <!-- Embedded Tools Dock Toggle -->
+        <button class="nav-btn active" id="nav-tools-toggle" onclick="toggleToolsPanel()" title="Toggle Tools (Cmd+B)">
           <span>Tools</span>
           <span style="font-size:10px;">⇄</span>
         </button>
 
         <!-- Account Pill -->
-        <button class="nav-btn" id="btn-account-pill" onclick="openAccountModal()">
-          <span id="nav-username">Account</span>
+        <button class="nav-btn" id="nav-account-btn" onclick="openModal('modal-account-view')">
+          <span id="nav-account-username">Account</span>
         </button>
       </div>
     </header>
 
-    <!-- Workspace Body -->
-    <div id="workspace-body">
+    <!-- Main Workspace Container -->
+    <div id="workspace-container">
       <!-- Sessions Sidebar -->
       <aside id="sessions-sidebar">
         <div class="sidebar-head">
           <span class="sidebar-title">Sessions</span>
-          <button class="sidebar-action-btn" onclick="startNewSession()" title="New Session (Cmd+T)">+</button>
+          <button class="icon-action-btn" onclick="createNewSession()" title="New Session (Cmd+T)">+</button>
         </div>
-        <div class="sessions-list" id="sidebar-sessions-list">
-          <!-- Rendered dynamically -->
+        <div class="sessions-list-wrap" id="sidebar-sessions-container">
+          <!-- Dynamically populated -->
         </div>
-        <div style="padding:10px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+        <div style="padding:10px 14px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
           <span style="font-size:11px; color:var(--text-dim);">100-Yr Storage Active</span>
-          <button class="sidebar-action-btn" onclick="openCommandCenter('playbooks')" title="Playbooks">📚</button>
+          <button class="icon-action-btn" onclick="openCommandCenter('playbooks')" title="Playbooks">📚</button>
         </div>
       </aside>
 
-      <!-- Center Chat Workspace -->
-      <main id="chat-workspace">
-        <div id="chat-transcript">
-          <!-- Zero state or messages -->
-          <div id="chat-entry-hero">
-            <div class="entry-badge">Devin-style Autonomous Agent · Free Forever</div>
-            <h1 class="entry-title">What would you like Cloud Agent<br/>to build or run today?</h1>
-            <p class="entry-sub">Instant isolated VM sandbox. Autonomous execution or research. Live shell streaming, embedded IDE, Roblox Luau generation, Discord bots 24/7, and deep deobfuscation.</p>
-            <div class="starter-chips">
-              <button class="starter-chip" onclick="quickFillPrompt('keep my bots online')">
-                <span>🤖</span> Keep Discord bots online 24/7
-              </button>
-              <button class="starter-chip" onclick="quickFillPrompt('make me a discord bot')">
-                <span>⚡</span> Write Discord bot (discord.py / discord.js)
-              </button>
-              <button class="starter-chip" onclick="quickFillPrompt('create a roblox shop script')">
-                <span>🎮</span> Create Roblox Luau shop GUI
-              </button>
-              <button class="starter-chip" onclick="quickFillPrompt('deobfuscate all')">
-                <span>🛡️</span> Deobfuscate obfuscated scripts
-              </button>
-              <button class="starter-chip" onclick="quickFillPrompt('clone kers0ne/1LuhhCrim')">
-                <span>📦</span> Clone kers0ne/1LuhhCrim (pinned)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Pinned Input Dock -->
-        <div id="input-dock">
-          <!-- Editable Queued Messages Tray -->
-          <div id="queued-tray">
-            <div style="font-size:11px; font-weight:700; color:var(--cyan); text-transform:uppercase;">Queued Messages (Will run next)</div>
-            <div id="queue-items-container"></div>
-          </div>
-
-          <!-- Input Box -->
-          <div class="input-box">
-            <!-- Mentions popover -->
-            <div id="mentions-dropdown">
-              <div class="mention-group-title">@ Repositories</div>
-              <div class="mention-option" onclick="insertMention('@Repos/kers0ne/1LuhhCrim')">kers0ne/1LuhhCrim (pinned)</div>
-              <div class="mention-group-title">@ Files</div>
-              <div class="mention-option" onclick="insertMention('@Files/bot.py')">bot.py</div>
-              <div class="mention-option" onclick="insertMention('@Files/roblox/welcome.luau')">roblox/welcome.luau</div>
-              <div class="mention-group-title">@ Skills & Tools</div>
-              <div class="mention-option" onclick="insertMention('@Skills/discord-watchdog')">discord-watchdog 24/7</div>
-              <div class="mention-option" onclick="insertMention('@Skills/roblox-luau')">roblox-luau generator</div>
-              <div class="mention-option" onclick="insertMention('@Skills/deobfuscator')">deep deobfuscator</div>
-              <div class="mention-group-title">@ Playbooks</div>
-              <div class="mention-option" onclick="insertMention('@Playbooks/deploy-discord')">Deploy 24/7 Discord Bot</div>
-              <div class="mention-option" onclick="insertMention('@Playbooks/roblox-economy')">Roblox Economy System</div>
-            </div>
-
-            <textarea id="chat-prompt-input" placeholder="Type a task, @ mention context, or ask a question... (Cmd+L adds selected text)" rows="2"></textarea>
-
-            <div class="input-bottom-bar">
-              <div class="input-left-controls">
-                <!-- Mode Toggle next to input -->
-                <div class="mode-toggle" style="transform:scale(0.95); transform-origin:left center;">
-                  <button class="mode-btn mode-ask" id="dock-mode-ask" onclick="setAgentMode('ask')">Ask</button>
-                  <button class="mode-btn mode-agent active" id="dock-mode-agent" onclick="setAgentMode('agent')">Agent</button>
+      <!-- Center Chat Area (Primary) -->
+      <main id="chat-main-area">
+        <div id="panes-wrapper">
+          <!-- Main Chat Pane -->
+          <div class="chat-pane" id="pane-primary">
+            <div class="chat-transcript" id="transcript-primary">
+              <!-- Entry screen or transcript items -->
+              <div class="entry-zero-state" id="entry-zero-state">
+                <div class="entry-tag-pill">Cloud Agent · Devin-Style Teammate</div>
+                <h1 class="entry-headline">What would you like Cloud Agent<br/>to build or run today?</h1>
+                <p class="entry-description">Isolated VM dev environment. Autonomous execution, real terminal streaming, embedded IDE, Roblox Luau generation, 24/7 Discord bots, and deep multi-layer deobfuscation.</p>
+                <div class="entry-prompt-chips">
+                  <button class="prompt-chip" onclick="fillPromptText('keep my bots online')">
+                    <span>🤖</span> Keep Discord bots online 24/7
+                  </button>
+                  <button class="prompt-chip" onclick="fillPromptText('make me a discord bot')">
+                    <span>⚡</span> Write Discord bot (discord.py / discord.js)
+                  </button>
+                  <button class="prompt-chip" onclick="fillPromptText('create a roblox shop script')">
+                    <span>🎮</span> Create Roblox Luau shop GUI
+                  </button>
+                  <button class="prompt-chip" onclick="fillPromptText('deobfuscate all')">
+                    <span>🛡️</span> Deobfuscate workspace scripts
+                  </button>
+                  <button class="prompt-chip" onclick="fillPromptText('clone kers0ne/1LuhhCrim')">
+                    <span>📦</span> Clone kers0ne/1LuhhCrim (pinned)
+                  </button>
                 </div>
+              </div>
+            </div>
 
-                <button class="mention-trigger-btn" onclick="toggleMentionsDropdown()" title="@ mentions for context">
-                  <span>@</span> Mention
-                </button>
+            <!-- Pinned Bottom Input Dock -->
+            <div class="input-dock-container">
+              <!-- Queued Messages Tray -->
+              <div id="queued-messages-tray">
+                <div style="font-size:11px; font-weight:700; color:var(--cyan); text-transform:uppercase;">Up Next (Queued while agent runs)</div>
+                <div id="queued-rows-box" style="display:flex; flex-direction:column; gap:4px;"></div>
               </div>
 
-              <button class="input-send-btn" id="btn-send-prompt" onclick="submitUserPrompt()">
-                <span>Run</span>
-                <span>↵</span>
-              </button>
+              <!-- Input Box Card -->
+              <div class="chat-input-box">
+                <!-- Mentions Popover -->
+                <div id="mentions-popover">
+                  <div class="mention-category-title">@ Repositories</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Repos/kers0ne/1LuhhCrim')">kers0ne/1LuhhCrim (pinned forever)</div>
+                  <div class="mention-category-title">@ Files</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Files/bot.py')">bot.py</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Files/roblox/welcome.luau')">roblox/welcome.luau</div>
+                  <div class="mention-category-title">@ Skills & Primitives</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Skills/discord-watchdog')">discord-watchdog 24/7</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Skills/roblox-luau')">roblox-luau generator</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Skills/deobfuscator')">deep deobfuscator</div>
+                  <div class="mention-category-title">@ Playbooks</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Playbooks/deploy-discord')">Deploy 24/7 Discord Bot</div>
+                  <div class="mention-item" onclick="insertMentionTag('@Playbooks/roblox-economy')">Roblox Economy System</div>
+                </div>
+
+                <textarea class="main-task-textarea" id="main-task-input" placeholder="Type a task, @ mention context, or ask a question... (Cmd+L adds selected text)" rows="2"></textarea>
+
+                <div class="input-controls-row">
+                  <div class="input-left-items">
+                    <!-- Mode Toggle next to input -->
+                    <div class="mode-toggle" style="transform:scale(0.95); transform-origin:left center;">
+                      <button class="mode-btn mode-ask" id="dock-toggle-ask" onclick="switchAgentMode('ask')">Ask</button>
+                      <button class="mode-btn mode-agent active" id="dock-toggle-agent" onclick="switchAgentMode('agent')">Agent</button>
+                    </div>
+
+                    <button class="mention-btn" onclick="toggleMentionsMenu()" title="@ mentions for context">
+                      <span>@</span> Mention
+                    </button>
+                  </div>
+
+                  <button class="run-send-btn" id="btn-run-prompt" onclick="submitAgentPrompt()">
+                    <span>Run</span>
+                    <span>↵</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Subagents Running Indicator -->
+              <div id="subagent-dock-indicator">
+                <span>⚡ <strong id="subagent-dock-count">2</strong> Managed Devins active in parallel VMs</span>
+                <button class="card-footer-btn" onclick="showEmbeddedTool('subagents')">Inspect Subagents →</button>
+              </div>
             </div>
           </div>
 
-          <!-- Subagent Indicator Bar -->
-          <div id="subagent-indicator-bar">
-            <span>⚡ <strong id="subagent-indicator-count">2</strong> Managed Devins active in parallel VMs</span>
-            <button class="footer-btn" onclick="openEmbeddedTool('subagents')">Inspect Subagents →</button>
+          <!-- Secondary Split Pane (Hidden unless split pane activated) -->
+          <div class="chat-pane split-pane" id="pane-secondary" style="display:none;">
+            <div style="padding:8px 14px; border-bottom:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-size:12px; color:var(--text-muted);">Split Session View</strong>
+              <button class="icon-action-btn" onclick="toggleSplitPane()">✕</button>
+            </div>
+            <div class="chat-transcript" id="transcript-secondary">
+              <div style="color:var(--text-dim); text-align:center; padding:40px 10px;">Dual execution pane ready. New sessions in Space inherit shared context.</div>
+            </div>
           </div>
         </div>
       </main>
 
       <!-- Right Embedded Tools Panel -->
       <aside id="embedded-tools-panel">
-        <div id="tools-resize-handle"></div>
-        <div class="tools-header">
-          <div class="tool-tabs">
-            <button class="tool-tab-btn active" id="tab-btn-shell" onclick="openEmbeddedTool('shell')">Shell</button>
-            <button class="tool-tab-btn" id="tab-btn-ide" onclick="openEmbeddedTool('ide')">IDE</button>
-            <button class="tool-tab-btn" id="tab-btn-browser" onclick="openEmbeddedTool('browser')">Browser</button>
-            <button class="tool-tab-btn" id="tab-btn-progress" onclick="openEmbeddedTool('progress')">Progress</button>
-            <button class="tool-tab-btn" id="tab-btn-subagents" onclick="openEmbeddedTool('subagents')">Subagents</button>
+        <div id="tools-drag-handle"></div>
+        <div class="tools-nav-bar">
+          <div class="tools-tab-group">
+            <button class="tools-tab-btn active" id="btn-tab-shell" onclick="showEmbeddedTool('shell')">Shell</button>
+            <button class="tools-tab-btn" id="btn-tab-ide" onclick="showEmbeddedTool('ide')">IDE</button>
+            <button class="tools-tab-btn" id="btn-tab-browser" onclick="showEmbeddedTool('browser')">Browser</button>
+            <button class="tools-tab-btn" id="btn-tab-progress" onclick="showEmbeddedTool('progress')">Progress</button>
+            <button class="tools-tab-btn" id="btn-tab-subagents" onclick="showEmbeddedTool('subagents')">Subagents</button>
           </div>
-          <button class="sidebar-action-btn" onclick="toggleEmbeddedTools()" title="Collapse Panel">✕</button>
+          <button class="icon-action-btn" onclick="toggleToolsPanel()" title="Collapse Tools Panel">✕</button>
         </div>
 
         <!-- Tool 1: Shell -->
-        <div class="tool-body active" id="view-tool-shell">
-          <div id="shell-view">
-            <div class="terminal-output" id="shell-terminal-logs">
+        <div class="tool-tab-content active" id="tab-content-shell">
+          <div class="terminal-container">
+            <div class="terminal-scroll-area" id="terminal-stdout-log">
 [Cloud Agent VM Host] Ubuntu 22.04 LTS container initialized.
-[Watchdog] Active 24/7 supervisor ready.
+[Watchdog] Active 24/7 supervisor armed.
 [System] Real interactive shell connected. Type commands below.
             </div>
-            <div class="terminal-input-bar">
-              <span class="terminal-prompt">$</span>
-              <input type="text" id="terminal-cli-input" placeholder="Type shell command (e.g. ls -la, python3 --version)..." onkeydown="handleTerminalCliEnter(event)">
+            <div class="terminal-prompt-bar">
+              <span class="terminal-cli-prompt">$</span>
+              <input type="text" class="terminal-cli-input" id="terminal-cli-field" placeholder="Type shell command (e.g. ls -la, python3 --version)..." onkeydown="onTerminalKeydown(event)">
             </div>
           </div>
         </div>
 
         <!-- Tool 2: Embedded IDE -->
-        <div class="tool-body" id="view-tool-ide">
-          <div id="ide-view">
-            <div class="ide-toolbar">
+        <div class="tool-tab-content" id="tab-content-ide">
+          <div class="ide-container">
+            <div class="ide-top-bar">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span id="ide-current-file" style="font-weight:600; font-size:12px; color:var(--text-main);">bot.py</span>
-                <span id="ide-file-status" style="font-size:11px; color:var(--text-dim);">synced</span>
+                <span id="ide-filename-label" style="font-weight:600; font-size:12px; color:var(--text-main);">bot.py</span>
+                <span id="ide-sync-badge" style="font-size:11px; color:var(--text-dim);">synced</span>
               </div>
               <div style="display:flex; align-items:center; gap:6px;">
-                <button class="footer-btn" onclick="saveIdeFile()" title="Save edits directly to VPS">Save</button>
-                <button class="footer-btn" onclick="deobfuscateActiveFile()" title="Deobfuscate this file">✨ Deobfuscate</button>
-                <button class="footer-btn" onclick="refreshWorkspaceFiles()">Refresh</button>
+                <button class="card-footer-btn" onclick="saveActiveIdeFile()">Save</button>
+                <button class="card-footer-btn" onclick="deobfuscateActiveIdeFile()">✨ Deobfuscate</button>
+                <button class="card-footer-btn" onclick="reloadIdeFiles()">Refresh</button>
               </div>
             </div>
-            <div class="ide-content">
-              <div class="ide-files-sidebar" id="ide-files-tree">
-                <!-- File list -->
+            <div class="ide-workspace-body">
+              <div class="ide-tree-sidebar" id="ide-files-container">
+                <!-- Dynamically loaded file tree -->
               </div>
-              <div class="ide-editor-area">
-                <textarea id="ide-code-textarea" spellcheck="false"></textarea>
+              <div class="ide-editor-wrapper">
+                <textarea class="ide-textarea-editor" id="ide-editor-textarea" spellcheck="false"></textarea>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Tool 3: Browser Control -->
-        <div class="tool-body" id="view-tool-browser">
-          <div id="browser-view">
-            <div class="browser-toolbar">
-              <button class="sidebar-action-btn" onclick="browserNavBack()">←</button>
-              <button class="sidebar-action-btn" onclick="browserReload()">↻</button>
-              <input type="text" id="browser-url-input" value="http://localhost:3000">
-              <button class="footer-btn" onclick="browserNavigate()">Go</button>
+        <!-- Tool 3: Browser Simulator -->
+        <div class="tool-tab-content" id="tab-content-browser">
+          <div class="browser-container">
+            <div class="browser-url-strip">
+              <button class="icon-action-btn" onclick="browserGoBack()">←</button>
+              <button class="icon-action-btn" onclick="browserRefresh()">↻</button>
+              <input type="text" class="browser-url-input" id="browser-url-bar" value="http://localhost:3000">
+              <button class="card-footer-btn" onclick="browserNavigateTo()">Go</button>
             </div>
-            <div class="browser-canvas">
-              <iframe id="browser-iframe" src="about:blank"></iframe>
+            <div class="browser-viewport-frame">
+              <iframe class="browser-iframe-element" id="browser-iframe-view" src="about:blank"></iframe>
             </div>
           </div>
         </div>
 
-        <!-- Tool 4: Progress Timeline -->
-        <div class="tool-body" id="view-tool-progress">
-          <div id="progress-view">
-            <div class="progress-filters">
-              <button class="pfilter-btn active" onclick="filterProgress('all')">All</button>
-              <button class="pfilter-btn" onclick="filterProgress('shell')">Shell</button>
-              <button class="pfilter-btn" onclick="filterProgress('file_edit')">Files</button>
-              <button class="pfilter-btn" onclick="filterProgress('browser')">Browser</button>
-              <button class="pfilter-btn" onclick="filterProgress('subagent')">Subagents</button>
-              <button class="pfilter-btn" onclick="filterProgress('plan')">Plans</button>
+        <!-- Tool 4: Unified Progress Tab -->
+        <div class="tool-tab-content" id="tab-content-progress">
+          <div class="progress-container">
+            <div class="progress-filter-strip">
+              <button class="p-chip-btn active" onclick="applyProgressFilter('all')">All</button>
+              <button class="p-chip-btn" onclick="applyProgressFilter('shell')">Shell</button>
+              <button class="p-chip-btn" onclick="applyProgressFilter('file_edit')">Files</button>
+              <button class="p-chip-btn" onclick="applyProgressFilter('browser')">Browser</button>
+              <button class="p-chip-btn" onclick="applyProgressFilter('subagent')">Subagents</button>
+              <button class="p-chip-btn" onclick="applyProgressFilter('plan')">Plans</button>
             </div>
-            <div id="timeline-events-container" style="display:flex; flex-direction:column; gap:10px;">
-              <!-- Events rendered here -->
+            <div id="progress-timeline-feed" style="display:flex; flex-direction:column; gap:10px;">
+              <!-- Timeline events -->
             </div>
           </div>
         </div>
 
         <!-- Tool 5: Managed Devins Subagents -->
-        <div class="tool-body" id="view-tool-subagents">
-          <div id="subagents-view">
+        <div class="tool-tab-content" id="tab-content-subagents">
+          <div class="subagents-container">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
               <span style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Managed Devins</span>
-              <button class="footer-btn" onclick="promptSpawnSubagent()">+ Spawn Subagent</button>
+              <button class="card-footer-btn" onclick="triggerSpawnSubagentModal()">+ Spawn Subagent</button>
             </div>
-            <div id="subagent-cards-container" style="display:flex; flex-direction:column; gap:8px;">
-              <!-- Subagents rendered dynamically -->
+            <div id="subagents-feed-list" style="display:flex; flex-direction:column; gap:8px;">
+              <!-- Subagents list -->
             </div>
           </div>
         </div>
       </aside>
     </div>
 
-    <!-- Agent Command Center Modal (Kanban / Spaces / Playbooks / Knowledge / Schedules) -->
-    <div class="modal-overlay" id="modal-command-center">
-      <div class="modal-sheet">
-        <div class="modal-head">
+    <!-- Agent Command Center Modal (Kanban, Spaces, Playbooks, Knowledge, Schedules) -->
+    <div class="overlay-modal" id="modal-command-center">
+      <div class="modal-frame">
+        <div class="modal-header-bar">
           <div style="display:flex; align-items:center; gap:12px;">
             <strong style="font-size:15px; color:#fff;">Agent Command Center</strong>
-            <div class="tool-tabs">
-              <button class="tool-tab-btn active" id="cc-tab-kanban" onclick="switchCcTab('kanban')">Kanban</button>
-              <button class="tool-tab-btn" id="cc-tab-spaces" onclick="switchCcTab('spaces')">Spaces</button>
-              <button class="tool-tab-btn" id="cc-tab-playbooks" onclick="switchCcTab('playbooks')">Playbooks</button>
-              <button class="tool-tab-btn" id="cc-tab-knowledge" onclick="switchCcTab('knowledge')">Knowledge</button>
-              <button class="tool-tab-btn" id="cc-tab-schedules" onclick="switchCcTab('schedules')">Schedules</button>
+            <div class="tools-tab-group">
+              <button class="tools-tab-btn active" id="cc-btn-kanban" onclick="switchCcView('kanban')">Kanban</button>
+              <button class="tools-tab-btn" id="cc-btn-spaces" onclick="switchCcView('spaces')">Spaces</button>
+              <button class="tools-tab-btn" id="cc-btn-playbooks" onclick="switchCcView('playbooks')">Playbooks</button>
+              <button class="tools-tab-btn" id="cc-btn-knowledge" onclick="switchCcView('knowledge')">Knowledge</button>
+              <button class="tools-tab-btn" id="cc-btn-schedules" onclick="switchCcView('schedules')">Schedules</button>
             </div>
           </div>
-          <button class="sidebar-action-btn" onclick="closeModal('modal-command-center')">✕</button>
+          <button class="icon-action-btn" onclick="closeModal('modal-command-center')">✕</button>
         </div>
-        <div class="modal-body" id="command-center-body">
+        <div class="modal-scroll-body" id="modal-command-center-content">
           <!-- Dynamic Content -->
         </div>
       </div>
     </div>
 
     <!-- Outcome Analysis Modal -->
-    <div class="modal-overlay" id="modal-outcome">
-      <div class="modal-sheet" style="max-width:600px;">
-        <div class="modal-head">
+    <div class="overlay-modal" id="modal-outcome-view">
+      <div class="modal-frame" style="max-width:620px;">
+        <div class="modal-header-bar">
           <strong style="font-size:15px; color:#fff;">Session Outcome Analysis</strong>
-          <button class="sidebar-action-btn" onclick="closeModal('modal-outcome')">✕</button>
+          <button class="icon-action-btn" onclick="closeModal('modal-outcome-view')">✕</button>
         </div>
-        <div class="modal-body" id="outcome-modal-content">
-          <!-- Rendered dynamically -->
+        <div class="modal-scroll-body" id="outcome-analysis-body">
+          <!-- Dynamic Analysis -->
         </div>
       </div>
     </div>
 
-    <!-- Account / Login Modal -->
-    <div class="modal-overlay" id="modal-account">
-      <div class="modal-sheet" style="max-width:440px;">
-        <div class="modal-head">
+    <!-- Account Modal -->
+    <div class="overlay-modal" id="modal-account-view">
+      <div class="modal-frame" style="max-width:440px;">
+        <div class="modal-header-bar">
           <strong style="font-size:15px; color:#fff;">Account & 100-Year Sessions</strong>
-          <button class="sidebar-action-btn" onclick="closeModal('modal-account')">✕</button>
+          <button class="icon-action-btn" onclick="closeModal('modal-account-view')">✕</button>
         </div>
-        <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
+        <div class="modal-scroll-body" style="display:flex; flex-direction:column; gap:14px;">
           <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
             <div style="font-size:11.5px; color:var(--text-dim); text-transform:uppercase;">Active Account</div>
-            <div style="font-size:14px; font-weight:700; color:#fff; margin-top:2px;" id="acc-username-display">-</div>
-            <div style="font-size:11.5px; color:var(--cyan); margin-top:4px;" id="acc-vps-display">Isolated VM: Active</div>
+            <div style="font-size:14px; font-weight:700; color:#fff; margin-top:2px;" id="account-card-username">-</div>
+            <div style="font-size:11.5px; color:var(--cyan); margin-top:4px;" id="account-card-vps">Isolated VM: Ready</div>
           </div>
 
-          <div style="display:flex; flex-direction:column; gap:4px;">
-            <label style="font-size:12px; color:var(--text-muted);">Sign In to Existing Account</label>
-            <input type="text" id="auth-username-input" placeholder="Username" style="padding:8px 12px; border-radius:8px; background:var(--bg-elevated); border:1px solid var(--border-subtle);">
-            <input type="password" id="auth-password-input" placeholder="Password" style="padding:8px 12px; border-radius:8px; background:var(--bg-elevated); border:1px solid var(--border-subtle); margin-top:4px;">
-            <div style="display:flex; gap:8px; margin-top:8px;">
-              <button class="input-send-btn" style="flex:1; justify-content:center;" onclick="loginNamedAccount()">Log In</button>
-              <button class="footer-btn" style="flex:1; justify-content:center;" onclick="registerNamedAccount()">Sign Up Free</button>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:12px; color:var(--text-muted);">Sign In to Named Account</label>
+            <input type="text" id="auth-field-username" placeholder="Username" style="padding:8px 12px; border-radius:8px; background:var(--bg-elevated); border:1px solid var(--border-subtle);">
+            <input type="password" id="auth-field-password" placeholder="Password" style="padding:8px 12px; border-radius:8px; background:var(--bg-elevated); border:1px solid var(--border-subtle);">
+            <div style="display:flex; gap:8px; margin-top:4px;">
+              <button class="run-send-btn" style="flex:1; justify-content:center;" onclick="performAccountLogin()">Log In</button>
+              <button class="card-footer-btn" style="flex:1; justify-content:center;" onclick="performAccountSignup()">Sign Up Free</button>
             </div>
           </div>
 
           <div style="font-size:11px; color:var(--text-dim); line-height:1.4; border-top:1px solid var(--border-subtle); padding-top:10px;">
-            🔒 <strong>Strict Privacy:</strong> Account switching and public user listings have been permanently deleted. Nobody can auto-login to your account. Your login cookie is saved for 100 years.
+            🔒 <strong>Strict Privacy:</strong> Public user directories and insecure account-switching have been permanently deleted. Only your password grants access. Sessions are saved for 100 years.
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Main JavaScript App Logic -->
+  <!-- Application Logic -->
   <script>
     /* ================================================================
-       CLOUD AGENT CLIENT STATE & CORE ENGINE
+       CLOUD AGENT CLIENT ENGINE & EVENT BUS
        ================================================================ */
-    const STATE = {
+    const APP = {
       user: null,
       apiKey: null,
       vpsId: null,
       mode: 'agent', // 'agent' | 'ask'
-      currentSessionId: null,
+      activeSessionId: null,
       sessions: [],
       spaces: [],
       playbooks: [],
       knowledge: [],
       schedules: [],
       subagents: [],
-      currentSpaceId: null,
+      activeSpaceId: null,
       activeTool: 'shell',
-      isToolsOpen: true,
-      isAgentThinking: false,
-      queuedMessages: [],
-      currentFile: 'bot.py',
+      isToolsOpen: false, // Starts collapsed: Rule 1 (Chat is primary, tools expand on demand)
+      isExecuting: false,
+      queuedPrompts: [],
+      activeFile: 'bot.py',
       files: [],
-      allEvents: [],
+      eventsStream: [],
       progressFilter: 'all',
+      isSplitPaneOpen: false,
     };
 
-    // Helper: Auth headers
-    function getHeaders() {
+    function authHeaders() {
       const h = { 'Content-Type': 'application/json' };
-      if (STATE.apiKey) {
-        h['X-API-Key'] = STATE.apiKey;
+      if (APP.apiKey) {
+        h['X-API-Key'] = APP.apiKey;
       }
       return h;
     }
 
-    // Initialize App on DOM Ready
     document.addEventListener('DOMContentLoaded', async () => {
-      setupShortcuts();
-      setupResizeHandle();
-      await initSessionAndUser();
-      await loadSpaces();
-      await loadSessions();
-      await loadSubagents();
-      await loadIdeWorkspace();
+      initShortcuts();
+      initDragResize();
+      await initUserAuth();
+      await fetchSpaces();
+      await fetchSessions();
+      await fetchSubagents();
+      await reloadIdeFiles();
     });
 
     // ----------------------------------------------------
-    // Auth & Quick Start (0-Friction Entry Page)
+    // User Initialization & Instant Quick Start
     // ----------------------------------------------------
-    async function initSessionAndUser() {
+    async function initUserAuth() {
       try {
         const res = await fetch('/api/session');
         const data = await res.json();
         if (data.authenticated && data.user) {
-          STATE.user = data.user;
-          STATE.apiKey = data.user.api_key;
+          APP.user = data.user;
+          APP.apiKey = data.user.api_key;
         } else {
-          // Instant Quick Start: auto provision guest session
-          const qsRes = await fetch('/api/agent/quick-start', { method: 'POST' });
-          const qsData = await qsRes.json();
-          if (qsData.success) {
-            STATE.user = { id: qsData.user_id, username: qsData.username };
-            STATE.apiKey = qsData.api_key;
-            STATE.vpsId = qsData.vps_id;
+          // Instant Quick Start: zero friction anonymous guest setup
+          const qs = await fetch('/api/agent/quick-start', { method: 'POST' });
+          const qsd = await qs.json();
+          if (qsd.success) {
+            APP.user = { id: qsd.user_id, username: qsd.username };
+            APP.apiKey = qsd.api_key;
+            APP.vpsId = qsd.vps_id;
           }
         }
-        updateAccountHeader();
+        syncNavAccount();
       } catch (err) {
         console.error('Session init error:', err);
       }
     }
 
-    function updateAccountHeader() {
-      if (STATE.user) {
-        document.getElementById('nav-username').textContent = STATE.user.username;
-        document.getElementById('acc-username-display').textContent = STATE.user.username;
-        if (STATE.vpsId) {
-          document.getElementById('acc-vps-display').textContent = `Isolated VM: ${STATE.vpsId}`;
+    function syncNavAccount() {
+      if (APP.user) {
+        document.getElementById('nav-account-username').textContent = APP.user.username;
+        document.getElementById('account-card-username').textContent = APP.user.username;
+        if (APP.vpsId) {
+          document.getElementById('account-card-vps').textContent = `Isolated VM: ${APP.vpsId}`;
         }
       }
     }
 
-    async function loginNamedAccount() {
-      const u = document.getElementById('auth-username-input').value.trim();
-      const p = document.getElementById('auth-password-input').value;
-      if (!u || !p) return alert('Enter username and password');
+    async function performAccountLogin() {
+      const u = document.getElementById('auth-field-username').value.trim();
+      const p = document.getElementById('auth-field-password').value;
+      if (!u || !p) return alert('Please enter both username and password.');
       try {
         const res = await fetch('/api/login', {
           method: 'POST',
@@ -1664,23 +1657,23 @@
           body: JSON.stringify({ username: u, password: p }),
         });
         const data = await res.json();
-        if (!data.success) return alert(data.error || 'Login failed');
-        STATE.user = { id: data.user_id, username: data.username };
-        STATE.apiKey = data.api_key;
-        closeModal('modal-account');
-        updateAccountHeader();
-        await loadSessions();
-        await loadIdeWorkspace();
-        appendShellLog(`[Auth] Logged into ${data.username}. Adopted ${data.adopted_vps || 0} VPS.`);
+        if (!data.success) return alert(data.error || 'Login failed.');
+        APP.user = { id: data.user_id, username: data.username };
+        APP.apiKey = data.api_key;
+        closeModal('modal-account-view');
+        syncNavAccount();
+        await fetchSessions();
+        await reloadIdeFiles();
+        appendTerminalMessage(`[Auth] Logged into ${data.username}. Adopted ${data.adopted_vps || 0} VPS.`);
       } catch (e) {
         alert(e.message);
       }
     }
 
-    async function registerNamedAccount() {
-      const u = document.getElementById('auth-username-input').value.trim();
-      const p = document.getElementById('auth-password-input').value;
-      if (!u || !p) return alert('Enter username and password (6+ chars)');
+    async function performAccountSignup() {
+      const u = document.getElementById('auth-field-username').value.trim();
+      const p = document.getElementById('auth-field-password').value;
+      if (!u || !p) return alert('Please enter username and password (6+ characters).');
       try {
         const res = await fetch('/api/register', {
           method: 'POST',
@@ -1688,124 +1681,147 @@
           body: JSON.stringify({ username: u, password: p }),
         });
         const data = await res.json();
-        if (!data.success) return alert(data.error || 'Sign up failed');
-        STATE.user = { id: data.user_id, username: data.username };
-        STATE.apiKey = data.api_key;
-        closeModal('modal-account');
-        updateAccountHeader();
-        await loadSessions();
-        await loadIdeWorkspace();
-        appendShellLog(`[Auth] Created permanent account ${data.username}. Ready forever.`);
+        if (!data.success) return alert(data.error || 'Registration failed.');
+        APP.user = { id: data.user_id, username: data.username };
+        APP.apiKey = data.api_key;
+        closeModal('modal-account-view');
+        syncNavAccount();
+        await fetchSessions();
+        await reloadIdeFiles();
+        appendTerminalMessage(`[Auth] Registered permanent account ${data.username}. Ready forever.`);
       } catch (e) {
         alert(e.message);
       }
     }
 
     // ----------------------------------------------------
-    // Mode Switching (Ask vs Agent)
+    // Mode Switcher: Ask vs Agent
     // ----------------------------------------------------
-    function setAgentMode(mode) {
-      STATE.mode = mode;
+    function switchAgentMode(mode) {
+      APP.mode = mode;
       document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
       if (mode === 'ask') {
-        document.getElementById('top-mode-ask').classList.add('active');
-        document.getElementById('dock-mode-ask').classList.add('active');
+        document.getElementById('top-toggle-ask').classList.add('active');
+        document.getElementById('dock-toggle-ask').classList.add('active');
       } else {
-        document.getElementById('top-mode-agent').classList.add('active');
-        document.getElementById('dock-mode-agent').classList.add('active');
+        document.getElementById('top-toggle-agent').classList.add('active');
+        document.getElementById('dock-toggle-agent').classList.add('active');
       }
-      appendShellLog(`[Mode] Switched to ${mode.toUpperCase()} mode (takes effect next prompt).`);
+      appendTerminalMessage(`[Mode] Switched to ${mode.toUpperCase()} mode (takes effect next prompt).`);
     }
 
     // ----------------------------------------------------
-    // Sessions Management & Spaces
+    // Sessions Management & HTML5 Drag to Create Spaces
     // ----------------------------------------------------
-    async function loadSessions() {
+    async function fetchSessions() {
       try {
-        const res = await fetch('/api/agent/sessions', { headers: getHeaders() });
+        const res = await fetch('/api/agent/sessions', { headers: authHeaders() });
         const data = await res.json();
         if (data.success && Array.isArray(data.sessions)) {
-          STATE.sessions = data.sessions;
-          renderSessionsList();
-          if (STATE.sessions.length > 0 && !STATE.currentSessionId) {
-            selectSession(STATE.sessions[0].id);
-          } else if (STATE.sessions.length === 0) {
-            await startNewSession('Core Session');
+          APP.sessions = data.sessions;
+          renderSidebarSessions();
+          if (APP.sessions.length > 0 && !APP.activeSessionId) {
+            pickSession(APP.sessions[0].id);
+          } else if (APP.sessions.length === 0) {
+            await createNewSession('Core Session');
           }
         }
       } catch (e) {
-        console.error('Error loading sessions:', e);
+        console.error('Error fetching sessions:', e);
       }
     }
 
-    function renderSessionsList() {
-      const container = document.getElementById('sidebar-sessions-list');
+    function renderSidebarSessions() {
+      const container = document.getElementById('sidebar-sessions-container');
       container.innerHTML = '';
-      STATE.sessions.forEach(s => {
-        const item = document.createElement('div');
-        item.className = `session-item ${s.id === STATE.currentSessionId ? 'active' : ''}`;
-        item.onclick = () => selectSession(s.id);
-        item.innerHTML = `
-          <div class="session-item-row">
-            <span class="session-item-title">${escapeHtml(s.title || 'Untitled Session')}</span>
+      APP.sessions.forEach(s => {
+        const card = document.createElement('div');
+        card.className = `session-card ${s.id === APP.activeSessionId ? 'active' : ''}`;
+        card.draggable = true;
+        card.dataset.sessionId = s.id;
+
+        // Drag to create Space: drag session onto another session
+        card.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', s.id);
+        });
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          card.classList.add('drag-over');
+        });
+        card.addEventListener('dragleave', () => {
+          card.classList.remove('drag-over');
+        });
+        card.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          card.classList.remove('drag-over');
+          const sourceId = e.dataTransfer.getData('text/plain');
+          if (sourceId && sourceId !== s.id) {
+            await mergeSessionsIntoSpace(sourceId, s.id);
+          }
+        });
+
+        card.onclick = () => pickSession(s.id);
+        card.innerHTML = `
+          <div class="session-card-row">
+            <span class="session-title-text">${escapeSafe(s.title || 'Untitled Session')}</span>
             <span class="status-dot ${s.status || 'working'}"></span>
           </div>
-          <div class="session-item-meta">
+          <div class="session-meta-text">
             <span>${(s.mode || 'agent').toUpperCase()}</span>
             <span>·</span>
             <span>${s.acu_used ? s.acu_used + ' ACU' : '0.1 ACU'}</span>
           </div>
         `;
-        container.appendChild(item);
+        container.appendChild(card);
       });
     }
 
-    async function startNewSession(title = 'New Agent Task') {
+    async function createNewSession(title = 'New Agent Task') {
       try {
         const res = await fetch('/api/agent/sessions', {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({
             title,
-            mode: STATE.mode,
-            space_id: STATE.currentSpaceId,
+            mode: APP.mode,
+            space_id: APP.activeSpaceId,
             status: 'working',
           }),
         });
         const data = await res.json();
         if (data.success) {
-          STATE.sessions.unshift(data.session);
-          renderSessionsList();
-          selectSession(data.session.id);
+          APP.sessions.unshift(data.session);
+          renderSidebarSessions();
+          pickSession(data.session.id);
         }
       } catch (e) {
         console.error('Failed to create session:', e);
       }
     }
 
-    function selectSession(id) {
-      STATE.currentSessionId = id;
-      const sess = STATE.sessions.find(s => s.id === id);
-      if (!sess) return;
-      document.getElementById('nav-session-title').textContent = sess.title;
-      document.getElementById('nav-acu-val').textContent = `${sess.acu_used || 0.1} ACU`;
-      renderSessionsList();
-      renderSessionChat(sess);
+    function pickSession(id) {
+      APP.activeSessionId = id;
+      const s = APP.sessions.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('nav-session-name').textContent = s.title;
+      document.getElementById('nav-acu-counter').textContent = `${s.acu_used || 0.1} ACU`;
+      renderSidebarSessions();
+      renderChatTranscript(s);
     }
 
-    function renderSessionChat(sess) {
-      const transcript = document.getElementById('chat-transcript');
-      if (!sess.messages || sess.messages.length === 0) {
+    function renderChatTranscript(session) {
+      const transcript = document.getElementById('transcript-primary');
+      if (!session.messages || session.messages.length === 0) {
         transcript.innerHTML = `
-          <div id="chat-entry-hero">
-            <div class="entry-badge">Cloud Agent · ${sess.mode.toUpperCase()} Mode Active</div>
-            <h1 class="entry-title">${escapeHtml(sess.title)}</h1>
-            <p class="entry-sub">Ready to execute tasks. Type a task below to begin.</p>
-            <div class="starter-chips">
-              <button class="starter-chip" onclick="quickFillPrompt('keep my bots online')">🤖 Keep Discord bots online</button>
-              <button class="starter-chip" onclick="quickFillPrompt('make me a discord bot')">⚡ Write Discord bot</button>
-              <button class="starter-chip" onclick="quickFillPrompt('create a roblox shop script')">🎮 Roblox shop GUI</button>
-              <button class="starter-chip" onclick="quickFillPrompt('deobfuscate all')">🛡️ Deobfuscate scripts</button>
+          <div class="entry-zero-state" id="entry-zero-state">
+            <div class="entry-tag-pill">Cloud Agent · ${session.mode.toUpperCase()} Mode Active</div>
+            <h1 class="entry-headline">${escapeSafe(session.title)}</h1>
+            <p class="entry-description">Isolated VM dev environment. Enter any prompt or task below to begin.</p>
+            <div class="entry-prompt-chips">
+              <button class="prompt-chip" onclick="fillPromptText('keep my bots online')">🤖 Keep Discord bots online</button>
+              <button class="prompt-chip" onclick="fillPromptText('make me a discord bot')">⚡ Write Discord bot</button>
+              <button class="prompt-chip" onclick="fillPromptText('create a roblox shop script')">🎮 Roblox shop GUI</button>
+              <button class="prompt-chip" onclick="fillPromptText('deobfuscate all')">🛡️ Deobfuscate scripts</button>
             </div>
           </div>
         `;
@@ -1813,110 +1829,145 @@
       }
 
       transcript.innerHTML = '';
-      sess.messages.forEach(msg => {
-        if (msg.role === 'user') {
-          transcript.appendChild(createUserMsgElement(msg.text));
+      session.messages.forEach(m => {
+        if (m.role === 'user') {
+          transcript.appendChild(buildUserBubble(m.text));
         } else {
-          transcript.appendChild(createAgentMsgElement(msg));
+          transcript.appendChild(buildAgentResponseCard(m));
         }
       });
       transcript.scrollTop = transcript.scrollHeight;
     }
 
-    async function renameCurrentSession() {
-      const sess = STATE.sessions.find(s => s.id === STATE.currentSessionId);
-      if (!sess) return;
-      const newTitle = prompt('Rename session:', sess.title);
-      if (!newTitle || newTitle === sess.title) return;
+    async function inlineRenameSession() {
+      const s = APP.sessions.find(x => x.id === APP.activeSessionId);
+      if (!s) return;
+      const newTitle = prompt('Rename session:', s.title);
+      if (!newTitle || newTitle === s.title) return;
       try {
-        const res = await fetch(`/api/agent/sessions/${sess.id}/rename`, {
+        const res = await fetch(`/api/agent/sessions/${s.id}/rename`, {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({ title: newTitle }),
         });
         const data = await res.json();
         if (data.success) {
-          sess.title = newTitle;
-          document.getElementById('nav-session-title').textContent = newTitle;
-          renderSessionsList();
+          s.title = newTitle;
+          document.getElementById('nav-session-name').textContent = newTitle;
+          renderSidebarSessions();
         }
       } catch (e) {
         alert(e.message);
       }
     }
 
-    async function duplicateCurrentSession() {
-      if (!STATE.currentSessionId) return;
+    async function duplicateActiveSession() {
+      if (!APP.activeSessionId) return;
       try {
-        const res = await fetch(`/api/agent/sessions/${STATE.currentSessionId}/duplicate`, {
+        const res = await fetch(`/api/agent/sessions/${APP.activeSessionId}/duplicate`, {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
         });
         const data = await res.json();
         if (data.success) {
-          STATE.sessions.unshift(data.session);
-          renderSessionsList();
-          selectSession(data.session.id);
-          appendShellLog(`[Branch] Created branched session ${data.session.id}.`);
+          APP.sessions.unshift(data.session);
+          renderSidebarSessions();
+          pickSession(data.session.id);
+          appendTerminalMessage(`[Branch] Branched session ${data.session.id}.`);
         }
       } catch (e) {
         alert(e.message);
       }
     }
 
+    async function mergeSessionsIntoSpace(sourceId, targetId) {
+      const spaceName = prompt('Create a new Space grouping these sessions (Name):', 'Grouped Space');
+      if (!spaceName) return;
+      try {
+        const res = await fetch('/api/agent/spaces', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({
+            name: spaceName,
+            context: 'Inherited project context across grouped sessions.',
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          APP.spaces.push(data.space);
+          alert(`Created Space "${spaceName}". Sessions linked.`);
+          await fetchSpaces();
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    function toggleSplitPane() {
+      const p2 = document.getElementById('pane-secondary');
+      APP.isSplitPaneOpen = !APP.isSplitPaneOpen;
+      p2.style.display = APP.isSplitPaneOpen ? 'flex' : 'none';
+      if (APP.isSplitPaneOpen) {
+        appendTerminalMessage('[Split Pane] Opened dual session view in active Space.');
+      }
+    }
+
+    function resetToNewSession() {
+      createNewSession('New Session');
+    }
+
     // ----------------------------------------------------
-    // Chat & Prompt Submission Engine
+    // Prompt Submission & Execution Engine
     // ----------------------------------------------------
-    function quickFillPrompt(text) {
-      const input = document.getElementById('chat-prompt-input');
-      input.value = text;
+    function fillPromptText(str) {
+      const input = document.getElementById('main-task-input');
+      input.value = str;
       input.focus();
     }
 
-    async function submitUserPrompt() {
-      const input = document.getElementById('chat-prompt-input');
+    async function submitAgentPrompt() {
+      const input = document.getElementById('main-task-input');
       const text = input.value.trim();
       if (!text) return;
 
-      // If agent is currently executing, push to editable queue!
-      if (STATE.isAgentThinking) {
-        STATE.queuedMessages.push(text);
+      // If agent is currently executing, place in editable queued messages tray!
+      if (APP.isExecuting) {
+        APP.queuedPrompts.push(text);
         input.value = '';
-        renderQueuedMessages();
+        renderQueuedTray();
         return;
       }
 
       input.value = '';
-      STATE.isAgentThinking = true;
-      document.getElementById('btn-send-prompt').disabled = true;
+      APP.isExecuting = true;
+      document.getElementById('btn-run-prompt').disabled = true;
 
-      const transcript = document.getElementById('chat-transcript');
-      // Remove zero state hero if present
-      const hero = document.getElementById('chat-entry-hero');
-      if (hero) hero.remove();
+      const transcript = document.getElementById('transcript-primary');
+      const zeroHero = document.getElementById('entry-zero-state');
+      if (zeroHero) zeroHero.remove();
 
-      // Append user bubble
-      transcript.appendChild(createUserMsgElement(text));
+      // User Message
+      transcript.appendChild(buildUserBubble(text));
       transcript.scrollTop = transcript.scrollHeight;
 
-      // Append agent thinking placeholder
-      const thinkingElem = createAgentThinkingElement();
-      transcript.appendChild(thinkingElem);
+      // Agent Executing Card
+      const pendingCard = buildAgentThinkingCard();
+      transcript.appendChild(pendingCard);
       transcript.scrollTop = transcript.scrollHeight;
 
       try {
         const res = await fetch('/api/agent/run', {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({
             instruction: text,
-            mode: STATE.mode,
-            session_id: STATE.currentSessionId,
-            space_id: STATE.currentSpaceId,
+            mode: APP.mode,
+            session_id: APP.activeSessionId,
+            space_id: APP.activeSpaceId,
           }),
         });
         const data = await res.json();
-        thinkingElem.remove();
+        pendingCard.remove();
 
         if (data.success) {
           const agentMsg = {
@@ -1926,89 +1977,88 @@
             events: data.events || [],
             preview: data.preview || null,
           };
-          transcript.appendChild(createAgentMsgElement(agentMsg));
+          transcript.appendChild(buildAgentResponseCard(agentMsg));
           transcript.scrollTop = transcript.scrollHeight;
 
           // Dispatch events to tools
           if (Array.isArray(data.events)) {
-            dispatchAgentEvents(data.events);
+            ingestEvents(data.events);
           }
 
-          // Reload session state & ACU
-          await loadSessions();
+          await fetchSessions();
         } else {
-          transcript.appendChild(createAgentMsgElement({ role: 'agent', text: 'Error: ' + (data.error || 'Execution failed') }));
+          transcript.appendChild(buildAgentResponseCard({ role: 'agent', text: 'Error: ' + (data.error || 'Execution encountered an issue.') }));
         }
       } catch (err) {
-        thinkingElem.remove();
-        transcript.appendChild(createAgentMsgElement({ role: 'agent', text: 'Network exception: ' + err.message }));
+        pendingCard.remove();
+        transcript.appendChild(buildAgentResponseCard({ role: 'agent', text: 'Network exception: ' + err.message }));
       } finally {
-        STATE.isAgentThinking = false;
-        document.getElementById('btn-send-prompt').disabled = false;
-        // Check if there are queued messages to run next
-        if (STATE.queuedMessages.length > 0) {
-          const nextMsg = STATE.queuedMessages.shift();
-          renderQueuedMessages();
-          input.value = nextMsg;
-          submitUserPrompt();
+        APP.isExecuting = false;
+        document.getElementById('btn-run-prompt').disabled = false;
+        // Process next queued message if present
+        if (APP.queuedPrompts.length > 0) {
+          const nextPrompt = APP.queuedPrompts.shift();
+          renderQueuedTray();
+          input.value = nextPrompt;
+          submitAgentPrompt();
         }
       }
     }
 
-    function createUserMsgElement(text) {
-      const wrap = document.createElement('div');
-      wrap.className = 'msg-wrap msg-user';
-      wrap.innerHTML = `<div class="msg-content">${escapeHtml(text)}</div>`;
-      return wrap;
+    function buildUserBubble(text) {
+      const row = document.createElement('div');
+      row.className = 'msg-row';
+      row.innerHTML = `<div class="msg-user-bubble">${escapeSafe(text)}</div>`;
+      return row;
     }
 
-    function createAgentThinkingElement() {
-      const wrap = document.createElement('div');
-      wrap.className = 'msg-wrap msg-agent';
-      wrap.innerHTML = `
+    function buildAgentThinkingCard() {
+      const row = document.createElement('div');
+      row.className = 'msg-row';
+      row.innerHTML = `
         <div class="msg-agent-card">
-          <div class="msg-agent-header">
-            <div class="agent-header-left">
-              <span class="step-icon running">⚡</span>
-              <span>Cloud Agent executing (${STATE.mode.toUpperCase()} Mode)...</span>
+          <div class="agent-card-header">
+            <div class="agent-header-meta">
+              <span class="step-badge-icon running">⚡</span>
+              <span>Cloud Agent executing (${APP.mode.toUpperCase()} Mode)...</span>
             </div>
           </div>
-          <div style="font-size:12.5px; color:var(--text-dim);">Consulting isolated VM, analyzing workspace AST, and executing tools...</div>
+          <div style="font-size:12.5px; color:var(--text-dim);">Running isolated VM sandbox, analyzing codebase AST, and synthesizing tools...</div>
         </div>
       `;
-      return wrap;
+      return row;
     }
 
-    function createAgentMsgElement(msg) {
-      const wrap = document.createElement('div');
-      wrap.className = 'msg-wrap msg-agent';
+    function buildAgentResponseCard(msg) {
+      const row = document.createElement('div');
+      row.className = 'msg-row';
 
-      let innerHtml = `
+      let inner = `
         <div class="msg-agent-card">
-          <div class="msg-agent-header">
-            <div class="agent-header-left">
-              <span class="step-icon done">✓</span>
+          <div class="agent-card-header">
+            <div class="agent-header-meta">
+              <span class="step-badge-icon done">✓</span>
               <span>Cloud Agent</span>
-              <span class="agent-tag">${STATE.mode.toUpperCase()}</span>
+              <span class="agent-mode-badge">${APP.mode.toUpperCase()}</span>
             </div>
             <div style="font-size:11px; color:var(--text-dim);">${new Date().toLocaleTimeString()}</div>
           </div>
       `;
 
-      // Inline Plans checklist if present
+      // Inline Plan checklist
       if (msg.events && msg.events.some(e => e.type === 'plan')) {
-        const planEv = msg.events.find(e => e.type === 'plan');
-        innerHtml += `
-          <div class="plan-card">
-            <div class="plan-head">
+        const pEv = msg.events.find(e => e.type === 'plan');
+        inner += `
+          <div class="inline-plan-card">
+            <div class="inline-plan-header">
               <span>Execution Plan</span>
               <span style="color:var(--cyan);">Autonomous</span>
             </div>
-            <div class="plan-steps-list">
-              ${planEv.steps.map(s => `
-                <div class="plan-step-row">
-                  <span class="step-icon done">✓</span>
-                  <span>${escapeHtml(s)}</span>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              ${pEv.steps.map(s => `
+                <div class="plan-step-item">
+                  <span class="step-badge-icon done">✓</span>
+                  <span>${escapeSafe(s)}</span>
                 </div>
               `).join('')}
             </div>
@@ -2016,48 +2066,48 @@
         `;
       }
 
-      // Inline Shell Output if present
+      // Inline Shell Output
       if (msg.events && msg.events.some(e => e.type === 'shell')) {
-        const shellEv = msg.events.find(e => e.type === 'shell');
-        innerHtml += `
-          <div class="shell-box">
-            <div class="shell-header">
-              <span>$ ${escapeHtml(shellEv.cmd)}</span>
+        const shEv = msg.events.find(e => e.type === 'shell');
+        inner += `
+          <div class="inline-shell-card">
+            <div class="shell-card-head">
+              <span>$ ${escapeSafe(shEv.cmd)}</span>
               <span style="color:var(--emerald);">exit 0</span>
             </div>
-            <div class="shell-output">${escapeHtml(shellEv.output)}</div>
+            <div class="shell-card-body">${escapeSafe(shEv.output)}</div>
           </div>
         `;
       }
 
-      // Inline Diff View if present
+      // Inline Code Diff
       if (msg.events && msg.events.some(e => e.type === 'file_edit')) {
-        const editEv = msg.events.find(e => e.type === 'file_edit');
-        innerHtml += `
-          <div class="diff-box">
-            <div class="diff-header">
-              <span>${escapeHtml(editEv.path)}</span>
-              <button class="footer-btn" onclick="openFileInIde('${escapeHtml(editEv.path)}')">Open in IDE</button>
+        const edEv = msg.events.find(e => e.type === 'file_edit');
+        inner += `
+          <div class="inline-diff-card">
+            <div class="diff-card-head">
+              <span>${escapeSafe(edEv.path)}</span>
+              <button class="card-footer-btn" onclick="openFileInIDE('${escapeSafe(edEv.path)}')">Open in IDE</button>
             </div>
-            <div class="diff-body">${formatDiffLines(editEv.diff)}</div>
+            <div class="diff-lines-scroll">${renderDiffMarkup(edEv.diff)}</div>
           </div>
         `;
       }
 
-      // Inline Browser Preview if present
+      // Inline Browser Preview
       if (msg.events && msg.events.some(e => e.type === 'browser')) {
-        const browserEv = msg.events.find(e => e.type === 'browser');
-        innerHtml += `
-          <div class="browser-box">
-            <div class="browser-head">
+        const bEv = msg.events.find(e => e.type === 'browser');
+        inner += `
+          <div class="inline-browser-card">
+            <div class="browser-card-head">
               <span>🌐</span>
-              <div class="browser-url-bar">${escapeHtml(browserEv.url)}</div>
-              <button class="footer-btn" onclick="openEmbeddedTool('browser')">Open Live Browser</button>
+              <div class="browser-url-pill">${escapeSafe(bEv.url)}</div>
+              <button class="card-footer-btn" onclick="showEmbeddedTool('browser')">Open Live Browser</button>
             </div>
-            <div class="browser-preview-body">
+            <div class="browser-card-body">
               <div>
-                <strong style="color:#fff;">${escapeHtml(browserEv.title || 'Live Preview')}</strong>
-                <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Tested with 0 console warnings</div>
+                <strong style="color:#fff;">${escapeSafe(bEv.title || 'Live Web Test')}</strong>
+                <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Render verified with 0 console warnings</div>
               </div>
               <span style="color:var(--emerald); font-size:11px;">Interactive Ready</span>
             </div>
@@ -2066,19 +2116,19 @@
       }
 
       // Main Text Body
-      innerHtml += `<div class="msg-text-body">${formatMarkdown(msg.text)}</div>`;
+      inner += `<div style="font-size:13.5px; color:var(--text-main); line-height:1.6; white-space:pre-wrap;">${renderMarkdown(msg.text)}</div>`;
 
-      // Footer Actions: Branch Session, Add to Chat, Outcome Analysis
-      innerHtml += `
-          <div class="msg-footer">
-            <div class="footer-actions">
-              <button class="footer-btn" onclick="duplicateCurrentSession()" title="Branch this session into an alternative path">
+      // Footer Actions: Branch, Add to Chat, Outcome Analysis, Export Playbook
+      inner += `
+          <div class="msg-card-footer">
+            <div class="footer-btn-group">
+              <button class="card-footer-btn" onclick="duplicateActiveSession()" title="Branch session into alternative path">
                 <span>🔀</span> Duplicate / Branch
               </button>
-              <button class="footer-btn" onclick="openOutcomeAnalysis()" title="Analyze prompt efficiency and ACU cost">
+              <button class="card-footer-btn" onclick="openOutcomeModal()" title="Analyze prompt efficiency & ACU">
                 <span>📊</span> Analyze Outcome
               </button>
-              <button class="footer-btn" onclick="saveAsPlaybook()" title="Turn this run into a reusable playbook">
+              <button class="card-footer-btn" onclick="exportToPlaybookModal()" title="Export as reusable playbook">
                 <span>📚</span> Export Playbook
               </button>
             </div>
@@ -2087,237 +2137,237 @@
         </div>
       `;
 
-      wrap.innerHTML = innerHtml;
-      return wrap;
+      row.innerHTML = inner;
+      return row;
     }
 
     // ----------------------------------------------------
-    // Editable Queued Messages
+    // Queued Messages Tray (Editable Before Send)
     // ----------------------------------------------------
-    function renderQueuedMessages() {
-      const tray = document.getElementById('queued-tray');
-      const container = document.getElementById('queue-items-container');
-      if (STATE.queuedMessages.length === 0) {
+    function renderQueuedTray() {
+      const tray = document.getElementById('queued-messages-tray');
+      const box = document.getElementById('queued-rows-box');
+      if (APP.queuedPrompts.length === 0) {
         tray.style.display = 'none';
         return;
       }
       tray.style.display = 'flex';
-      container.innerHTML = '';
-      STATE.queuedMessages.forEach((msg, idx) => {
+      box.innerHTML = '';
+      APP.queuedPrompts.forEach((p, i) => {
         const row = document.createElement('div');
-        row.className = 'queue-item';
+        row.className = 'queued-row';
         row.innerHTML = `
-          <span class="queue-text">${escapeHtml(msg)}</span>
+          <span class="queued-text-span">${escapeSafe(p)}</span>
           <div style="display:flex; gap:6px;">
-            <button class="footer-btn" onclick="editQueuedMessage(${idx})">Edit</button>
-            <button class="footer-btn" onclick="removeQueuedMessage(${idx})">Cancel</button>
+            <button class="card-footer-btn" onclick="editQueuedPrompt(${i})">Edit</button>
+            <button class="card-footer-btn" onclick="cancelQueuedPrompt(${i})">Cancel</button>
           </div>
         `;
-        container.appendChild(row);
+        box.appendChild(row);
       });
     }
 
-    function editQueuedMessage(idx) {
-      const current = STATE.queuedMessages[idx];
-      const edited = prompt('Edit queued message:', current);
-      if (edited !== null && edited.trim()) {
-        STATE.queuedMessages[idx] = edited.trim();
-        renderQueuedMessages();
+    function editQueuedPrompt(i) {
+      const orig = APP.queuedPrompts[i];
+      const mod = prompt('Edit queued message before execution:', orig);
+      if (mod !== null && mod.trim()) {
+        APP.queuedPrompts[i] = mod.trim();
+        renderQueuedTray();
       }
     }
 
-    function removeQueuedMessage(idx) {
-      STATE.queuedMessages.splice(idx, 1);
-      renderQueuedMessages();
+    function cancelQueuedPrompt(i) {
+      APP.queuedPrompts.splice(i, 1);
+      renderQueuedTray();
     }
 
     // ----------------------------------------------------
-    // Mentions & Context Dropdown
+    // @ Mentions Popover
     // ----------------------------------------------------
-    function toggleMentionsDropdown() {
-      const dd = document.getElementById('mentions-dropdown');
-      dd.style.display = dd.style.display === 'flex' ? 'none' : 'flex';
+    function toggleMentionsMenu() {
+      const menu = document.getElementById('mentions-popover');
+      menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    function insertMention(token) {
-      const input = document.getElementById('chat-prompt-input');
+    function insertMentionTag(token) {
+      const input = document.getElementById('main-task-input');
       input.value = (input.value ? input.value + ' ' : '') + token + ' ';
       input.focus();
-      document.getElementById('mentions-dropdown').style.display = 'none';
+      document.getElementById('mentions-popover').style.display = 'none';
     }
 
     // ----------------------------------------------------
     // Embedded Tools Navigation & Interaction
     // ----------------------------------------------------
-    function toggleEmbeddedTools() {
+    function toggleToolsPanel() {
       const panel = document.getElementById('embedded-tools-panel');
+      APP.isToolsOpen = !APP.isToolsOpen;
       if (window.innerWidth <= 768) {
-        panel.classList.toggle('open-mobile');
+        panel.classList.toggle('open-mobile', APP.isToolsOpen);
       } else {
-        panel.classList.toggle('collapsed');
+        panel.classList.toggle('collapsed', !APP.isToolsOpen);
       }
+      document.getElementById('nav-tools-toggle').classList.toggle('active', APP.isToolsOpen);
     }
 
-    function openEmbeddedTool(toolName) {
-      STATE.activeTool = toolName;
-      document.querySelectorAll('.tool-tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tool-body').forEach(b => b.classList.remove('active'));
+    function showEmbeddedTool(toolName) {
+      APP.activeTool = toolName;
+      document.querySelectorAll('.tools-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tool-tab-content').forEach(b => b.classList.remove('active'));
 
-      const tabBtn = document.getElementById(`tab-btn-${toolName}`);
-      if (tabBtn) tabBtn.classList.add('active');
+      const tBtn = document.getElementById(`btn-tab-${toolName}`);
+      if (tBtn) tBtn.classList.add('active');
 
-      const bodyView = document.getElementById(`view-tool-${toolName}`);
-      if (bodyView) bodyView.classList.add('active');
+      const tView = document.getElementById(`tab-content-${toolName}`);
+      if (tView) tView.classList.add('active');
 
       // Expand panel if collapsed
       const panel = document.getElementById('embedded-tools-panel');
+      APP.isToolsOpen = true;
       panel.classList.remove('collapsed');
       if (window.innerWidth <= 768) {
         panel.classList.add('open-mobile');
       }
+      document.getElementById('nav-tools-toggle').classList.add('active');
     }
 
-    // Dispatch Events into Tools
-    function dispatchAgentEvents(events) {
+    // Ingest Event Stream
+    function ingestEvents(events) {
       events.forEach(ev => {
-        STATE.allEvents.unshift({ ...ev, time: new Date().toLocaleTimeString() });
+        APP.eventsStream.unshift({ ...ev, time: new Date().toLocaleTimeString() });
         if (ev.type === 'shell') {
-          appendShellLog(`$ ${ev.cmd}\n${ev.output}`);
+          appendTerminalMessage(`$ ${ev.cmd}\n${ev.output}`);
         } else if (ev.type === 'file_edit') {
-          STATE.currentFile = ev.path;
-          document.getElementById('ide-current-file').textContent = ev.path;
+          APP.activeFile = ev.path;
+          document.getElementById('ide-filename-label').textContent = ev.path;
           if (ev.content) {
-            document.getElementById('ide-code-textarea').value = ev.content;
+            document.getElementById('ide-editor-textarea').value = ev.content;
           }
-          refreshWorkspaceFiles();
+          reloadIdeFiles();
         } else if (ev.type === 'browser') {
-          document.getElementById('browser-url-input').value = ev.url;
-          document.getElementById('browser-iframe').src = ev.url;
+          document.getElementById('browser-url-bar').value = ev.url;
+          document.getElementById('browser-iframe-view').src = ev.url;
         } else if (ev.type === 'subagent') {
-          STATE.subagents.push(ev);
-          renderSubagents();
+          APP.subagents.push(ev);
+          renderSubagentsFeed();
         }
       });
-      renderProgressTimeline();
+      renderProgressTimelineFeed();
     }
 
-    // Terminal Execution
-    async function handleTerminalCliEnter(e) {
+    // Terminal Commands
+    async function onTerminalKeydown(e) {
       if (e.key !== 'Enter') return;
-      const input = document.getElementById('terminal-cli-input');
-      const cmd = input.value.trim();
+      const f = document.getElementById('terminal-cli-field');
+      const cmd = f.value.trim();
       if (!cmd) return;
-      input.value = '';
-      appendShellLog(`$ ${cmd}`);
+      f.value = '';
+      appendTerminalMessage(`$ ${cmd}`);
 
       try {
-        const vps = STATE.vpsId || 'default';
+        const vps = APP.vpsId || 'default';
         const res = await fetch(`/api/vps/${vps}/terminal/exec`, {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({ command: cmd }),
         });
         const data = await res.json();
-        appendShellLog(data.output || '(no output)');
+        appendTerminalMessage(data.output || '(exit 0)');
       } catch (err) {
-        appendShellLog(`Error executing command: ${err.message}`);
+        appendTerminalMessage(`Error: ${err.message}`);
       }
     }
 
-    function appendShellLog(text) {
-      const out = document.getElementById('shell-terminal-logs');
-      out.textContent += `\n${text}`;
-      out.scrollTop = out.scrollHeight;
+    function appendTerminalMessage(str) {
+      const area = document.getElementById('terminal-stdout-log');
+      area.textContent += `\n${str}`;
+      area.scrollTop = area.scrollHeight;
     }
 
     // IDE Functions
-    async function loadIdeWorkspace() {
-      await refreshWorkspaceFiles();
-    }
-
-    async function refreshWorkspaceFiles() {
+    async function reloadIdeFiles() {
       try {
-        const vps = STATE.vpsId || 'default';
-        const res = await fetch(`/api/vps/${vps}/files`, { headers: getHeaders() });
+        const vps = APP.vpsId || 'default';
+        const res = await fetch(`/api/vps/${vps}/files`, { headers: authHeaders() });
         const data = await res.json();
         if (data.success && Array.isArray(data.files)) {
-          STATE.files = data.files;
-          renderFilesTree();
+          APP.files = data.files;
+          renderIdeTree();
         }
       } catch (e) {
-        console.error('File tree error:', e);
+        console.error('File load error:', e);
       }
     }
 
-    function renderFilesTree() {
-      const container = document.getElementById('ide-files-tree');
-      container.innerHTML = '';
-      STATE.files.forEach(f => {
-        const item = document.createElement('div');
-        item.className = `ide-file-item ${f.name === STATE.currentFile ? 'active' : ''}`;
-        item.onclick = () => openFileInIde(f.name);
-        item.innerHTML = `
-          <span>${escapeHtml(f.name)}</span>
+    function renderIdeTree() {
+      const box = document.getElementById('ide-files-container');
+      box.innerHTML = '';
+      APP.files.forEach(f => {
+        const node = document.createElement('div');
+        node.className = `ide-file-node ${f.name === APP.activeFile ? 'active' : ''}`;
+        node.onclick = () => openFileInIDE(f.name);
+        node.innerHTML = `
+          <span>${escapeSafe(f.name)}</span>
           <span style="font-size:10px; color:var(--text-dim);">${f.size ? formatBytes(f.size) : ''}</span>
         `;
-        container.appendChild(item);
+        box.appendChild(node);
       });
     }
 
-    async function openFileInIde(path) {
-      STATE.currentFile = path;
-      document.getElementById('ide-current-file').textContent = path;
-      openEmbeddedTool('ide');
-      renderFilesTree();
+    async function openFileInIDE(relPath) {
+      APP.activeFile = relPath;
+      document.getElementById('ide-filename-label').textContent = relPath;
+      showEmbeddedTool('ide');
+      renderIdeTree();
       try {
-        const vps = STATE.vpsId || 'default';
-        const res = await fetch(`/api/vps/${vps}/file?path=${encodeURIComponent(path)}`, { headers: getHeaders() });
+        const vps = APP.vpsId || 'default';
+        const res = await fetch(`/api/vps/${vps}/file?path=${encodeURIComponent(relPath)}`, { headers: authHeaders() });
         const data = await res.json();
         if (data.success && typeof data.content === 'string') {
-          document.getElementById('ide-code-textarea').value = data.content;
+          document.getElementById('ide-editor-textarea').value = data.content;
         }
       } catch (e) {
-        console.error('Error opening file:', e);
+        console.error('Open file error:', e);
       }
     }
 
-    async function saveIdeFile() {
-      const path = STATE.currentFile;
-      const content = document.getElementById('ide-code-textarea').value;
+    async function saveActiveIdeFile() {
+      const path = APP.activeFile;
+      const content = document.getElementById('ide-editor-textarea').value;
       try {
-        const vps = STATE.vpsId || 'default';
+        const vps = APP.vpsId || 'default';
         const res = await fetch(`/api/vps/${vps}/file`, {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({ path, content }),
         });
         const data = await res.json();
         if (data.success) {
-          document.getElementById('ide-file-status').textContent = 'saved';
-          setTimeout(() => { document.getElementById('ide-file-status').textContent = 'synced'; }, 2000);
-          appendShellLog(`[IDE] Saved ${path} to workspace.`);
+          document.getElementById('ide-sync-badge').textContent = 'saved';
+          setTimeout(() => { document.getElementById('ide-sync-badge').textContent = 'synced'; }, 2000);
+          appendTerminalMessage(`[IDE] Saved ${path}.`);
         }
       } catch (e) {
         alert(e.message);
       }
     }
 
-    async function deobfuscateActiveFile() {
-      const path = STATE.currentFile;
+    async function deobfuscateActiveIdeFile() {
+      const path = APP.activeFile;
       try {
-        const vps = STATE.vpsId || 'default';
+        const vps = APP.vpsId || 'default';
         const res = await fetch(`/api/vps/${vps}/deobfuscate`, {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({ path }),
         });
         const data = await res.json();
         if (data.success) {
           if (data.changed) {
-            alert(`Deobfuscated! Output saved to: ${data.output_path}`);
-            await openFileInIde(data.output_path);
+            alert(`Deobfuscated! Output: ${data.output_path}`);
+            await openFileInIDE(data.output_path);
           } else {
-            alert('File is already clean and readable.');
+            alert('File is already clean.');
           }
         }
       } catch (e) {
@@ -2325,45 +2375,45 @@
       }
     }
 
-    // Browser Functions
-    function browserNavigate() {
-      const url = document.getElementById('browser-url-input').value;
-      document.getElementById('browser-iframe').src = url;
+    // Browser Simulator
+    function browserNavigateTo() {
+      const url = document.getElementById('browser-url-bar').value;
+      document.getElementById('browser-iframe-view').src = url;
     }
-    function browserReload() {
-      const f = document.getElementById('browser-iframe');
-      f.src = f.src;
+    function browserRefresh() {
+      const frame = document.getElementById('browser-iframe-view');
+      frame.src = frame.src;
     }
-    function browserNavBack() {
+    function browserGoBack() {
       window.history.back();
     }
 
-    // Progress Tab
-    function filterProgress(type) {
-      STATE.progressFilter = type;
-      document.querySelectorAll('.pfilter-btn').forEach(b => b.classList.remove('active'));
+    // Progress Tab Feed
+    function applyProgressFilter(type) {
+      APP.progressFilter = type;
+      document.querySelectorAll('.p-chip-btn').forEach(b => b.classList.remove('active'));
       event.target.classList.add('active');
-      renderProgressTimeline();
+      renderProgressTimelineFeed();
     }
 
-    function renderProgressTimeline() {
-      const c = document.getElementById('timeline-events-container');
-      c.innerHTML = '';
-      const list = STATE.progressFilter === 'all'
-        ? STATE.allEvents
-        : STATE.allEvents.filter(e => e.type === STATE.progressFilter);
+    function renderProgressTimelineFeed() {
+      const box = document.getElementById('progress-timeline-feed');
+      box.innerHTML = '';
+      const list = APP.progressFilter === 'all'
+        ? APP.eventsStream
+        : APP.eventsStream.filter(e => e.type === APP.progressFilter);
 
       if (list.length === 0) {
-        c.innerHTML = '<div style="color:var(--text-dim); font-size:12px;">No activity logged yet.</div>';
+        box.innerHTML = '<div style="color:var(--text-dim); font-size:12px;">No activity logged yet.</div>';
         return;
       }
 
       list.forEach(ev => {
         const row = document.createElement('div');
-        row.className = 'timeline-item';
+        row.className = 'timeline-event-row';
         row.innerHTML = `
-          <div class="timeline-dot"></div>
-          <div class="timeline-card">
+          <div class="timeline-node-dot"></div>
+          <div class="timeline-event-card">
             <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim);">
               <span style="font-weight:700; color:var(--cyan);">${ev.type.toUpperCase()}</span>
               <span>${ev.time || ''}</span>
@@ -2373,118 +2423,118 @@
             </div>
           </div>
         `;
-        c.appendChild(row);
+        box.appendChild(row);
       });
     }
 
-    // Subagents (Managed Devins)
-    async function loadSubagents() {
+    // Subagents Panel (Managed Devins)
+    async function fetchSubagents() {
       try {
-        const res = await fetch('/api/agent/subagents', { headers: getHeaders() });
+        const res = await fetch('/api/agent/subagents', { headers: authHeaders() });
         const data = await res.json();
         if (data.success && Array.isArray(data.subagents)) {
-          STATE.subagents = data.subagents;
-          renderSubagents();
+          APP.subagents = data.subagents;
+          renderSubagentsFeed();
         }
       } catch (e) {
-        console.error('Error loading subagents:', e);
+        console.error('Error fetching subagents:', e);
       }
     }
 
-    function renderSubagents() {
-      const c = document.getElementById('subagent-cards-container');
-      c.innerHTML = '';
-      document.getElementById('nav-subagent-badge').textContent = STATE.subagents.length;
+    function renderSubagentsFeed() {
+      const box = document.getElementById('subagents-feed-list');
+      box.innerHTML = '';
+      document.getElementById('nav-subagents-count').textContent = APP.subagents.length;
 
-      const indBar = document.getElementById('subagent-indicator-bar');
-      if (STATE.subagents.length > 0) {
-        indBar.style.display = 'flex';
-        document.getElementById('subagent-indicator-count').textContent = STATE.subagents.length;
+      const dockBar = document.getElementById('subagent-dock-indicator');
+      if (APP.subagents.length > 0) {
+        dockBar.style.display = 'flex';
+        document.getElementById('subagent-dock-count').textContent = APP.subagents.length;
       } else {
-        indBar.style.display = 'none';
+        dockBar.style.display = 'none';
       }
 
-      if (STATE.subagents.length === 0) {
-        c.innerHTML = '<div style="color:var(--text-dim); font-size:12px;">No subagents currently spawned.</div>';
+      if (APP.subagents.length === 0) {
+        box.innerHTML = '<div style="color:var(--text-dim); font-size:12px;">No child Devins active.</div>';
         return;
       }
 
-      STATE.subagents.forEach(s => {
+      APP.subagents.forEach(s => {
         const card = document.createElement('div');
-        card.className = 'subagent-card';
+        card.className = 'subagent-item-card';
         card.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong style="color:#fff; font-size:13px;">${escapeHtml(s.title)}</strong>
-            <span class="agent-tag" style="background:${s.status === 'running' ? 'var(--emerald-soft)' : 'var(--amber-soft)'}; color:${s.status === 'running' ? '#34d399' : '#fbbf24'};">${s.status.toUpperCase()}</span>
+            <strong style="color:#fff; font-size:13px;">${escapeSafe(s.title)}</strong>
+            <span class="agent-mode-badge" style="background:${s.status === 'running' ? 'var(--emerald-soft)' : 'var(--amber-soft)'}; color:${s.status === 'running' ? '#34d399' : '#fbbf24'};">${s.status.toUpperCase()}</span>
           </div>
-          <div style="font-size:12px; color:var(--text-muted);">${escapeHtml(s.task)}</div>
+          <div style="font-size:12px; color:var(--text-muted);">${escapeSafe(s.task)}</div>
           <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim);">
             <span>Compute: ${s.acu_used || 0.1} ACU</span>
             <span>Tool calls: ${s.tool_calls || 1}</span>
           </div>
           <div style="display:flex; gap:6px; margin-top:4px;">
-            <button class="footer-btn" onclick="messageSubagent('${s.id}')">Message</button>
-            <button class="footer-btn" onclick="controlSubagent('${s.id}', '${s.status === 'running' ? 'sleep' : 'wake'}')">${s.status === 'running' ? 'Sleep' : 'Resume'}</button>
-            <button class="footer-btn" onclick="controlSubagent('${s.id}', 'terminate')">Terminate</button>
+            <button class="card-footer-btn" onclick="messageManagedChild('${s.id}')">Message</button>
+            <button class="card-footer-btn" onclick="controlManagedChild('${s.id}', '${s.status === 'running' ? 'sleep' : 'wake'}')">${s.status === 'running' ? 'Sleep' : 'Resume'}</button>
+            <button class="card-footer-btn" onclick="controlManagedChild('${s.id}', 'terminate')">Terminate</button>
           </div>
         `;
-        c.appendChild(card);
+        box.appendChild(card);
       });
     }
 
-    async function promptSpawnSubagent() {
-      const promptText = prompt('Enter task prompt for parallel Managed Devin subagent:');
-      if (!promptText) return;
+    async function triggerSpawnSubagentModal() {
+      const task = prompt('Task prompt for parallel Managed Devin subagent:');
+      if (!task) return;
       try {
         const res = await fetch('/api/agent/subagents/spawn', {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({
-            session_id: STATE.currentSessionId,
-            title: `Sub-Devin: ${promptText.slice(0, 24)}`,
-            task: promptText,
+            session_id: APP.activeSessionId,
+            title: `Sub-Devin: ${task.slice(0, 24)}`,
+            task,
           }),
         });
         const data = await res.json();
         if (data.success) {
-          STATE.subagents.push(data.subagent);
-          renderSubagents();
-          appendShellLog(`[Subagent] Spawned parallel Managed Devin ${data.subagent.id}.`);
+          APP.subagents.push(data.subagent);
+          renderSubagentsFeed();
+          appendTerminalMessage(`[Managed Devin] Spawned parallel VM container ${data.subagent.id}.`);
         }
       } catch (e) {
         alert(e.message);
       }
     }
 
-    async function controlSubagent(id, action) {
+    async function controlManagedChild(id, action) {
       try {
         const res = await fetch(`/api/agent/subagents/${id}/control`, {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({ action }),
         });
         const data = await res.json();
         if (data.success) {
-          await loadSubagents();
+          await fetchSubagents();
         }
       } catch (e) {
         alert(e.message);
       }
     }
 
-    async function messageSubagent(id) {
-      const msg = prompt('Send instruction to child Managed Devin:');
+    async function messageManagedChild(id) {
+      const msg = prompt('Send follow-up message to Managed Devin:');
       if (!msg) return;
       try {
         const res = await fetch(`/api/agent/subagents/${id}/message`, {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({ message: msg }),
         });
         const data = await res.json();
         if (data.success) {
-          alert('Message sent to child subagent!');
-          await loadSubagents();
+          alert('Message sent to child session.');
+          await fetchSubagents();
         }
       } catch (e) {
         alert(e.message);
@@ -2492,68 +2542,68 @@
     }
 
     // ----------------------------------------------------
-    // Command Center & Modals (Kanban, Spaces, Playbooks, Knowledge, Schedules)
+    // Command Center: Kanban, Spaces, Playbooks, Knowledge, Schedules
     // ----------------------------------------------------
-    function openCommandCenter(tab = 'kanban') {
+    function openCommandCenter(view = 'kanban') {
       document.getElementById('modal-command-center').classList.add('open');
-      switchCcTab(tab);
+      switchCcView(view);
     }
 
-    function switchCcTab(tab) {
-      document.querySelectorAll('#modal-command-center .tool-tab-btn').forEach(b => b.classList.remove('active'));
-      const btn = document.getElementById(`cc-tab-${tab}`);
+    function switchCcView(view) {
+      document.querySelectorAll('#modal-command-center .tools-tab-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById(`cc-btn-${view}`);
       if (btn) btn.classList.add('active');
 
-      const body = document.getElementById('command-center-body');
-      if (tab === 'kanban') renderKanbanTab(body);
-      else if (tab === 'spaces') renderSpacesTab(body);
-      else if (tab === 'playbooks') renderPlaybooksTab(body);
-      else if (tab === 'knowledge') renderKnowledgeTab(body);
-      else if (tab === 'schedules') renderSchedulesTab(body);
+      const body = document.getElementById('modal-command-center-content');
+      if (view === 'kanban') renderKanbanBoard(body);
+      else if (view === 'spaces') renderSpacesManager(body);
+      else if (view === 'playbooks') renderPlaybooksManager(body);
+      else if (view === 'knowledge') renderKnowledgeManager(body);
+      else if (view === 'schedules') renderSchedulesManager(body);
     }
 
-    function renderKanbanTab(container) {
-      const working = STATE.sessions.filter(s => (s.status || 'working') === 'working');
-      const blocked = STATE.sessions.filter(s => s.status === 'blocked');
-      const review = STATE.sessions.filter(s => s.status === 'ready_for_review');
+    function renderKanbanBoard(box) {
+      const working = APP.sessions.filter(s => (s.status || 'working') === 'working');
+      const blocked = APP.sessions.filter(s => s.status === 'blocked');
+      const review = APP.sessions.filter(s => s.status === 'ready_for_review');
 
-      container.innerHTML = `
-        <div class="kanban-grid">
-          <div class="kanban-col">
-            <div class="col-title">
+      box.innerHTML = `
+        <div class="kanban-board-grid">
+          <div class="kanban-lane">
+            <div class="lane-heading">
               <span>Working</span>
               <span>${working.length}</span>
             </div>
-            <div class="col-cards">
-              ${working.map(s => renderKanbanCard(s)).join('')}
+            <div class="lane-cards-box">
+              ${working.map(s => renderKanbanCardHtml(s)).join('')}
             </div>
           </div>
-          <div class="kanban-col">
-            <div class="col-title">
+          <div class="kanban-lane">
+            <div class="lane-heading">
               <span>Blocked</span>
               <span>${blocked.length}</span>
             </div>
-            <div class="col-cards">
-              ${blocked.map(s => renderKanbanCard(s)).join('')}
+            <div class="lane-cards-box">
+              ${blocked.map(s => renderKanbanCardHtml(s)).join('')}
             </div>
           </div>
-          <div class="kanban-col">
-            <div class="col-title">
+          <div class="kanban-lane">
+            <div class="lane-heading">
               <span>Ready for Review</span>
               <span>${review.length}</span>
             </div>
-            <div class="col-cards">
-              ${review.map(s => renderKanbanCard(s)).join('')}
+            <div class="lane-cards-box">
+              ${review.map(s => renderKanbanCardHtml(s)).join('')}
             </div>
           </div>
         </div>
       `;
     }
 
-    function renderKanbanCard(s) {
+    function renderKanbanCardHtml(s) {
       return `
-        <div class="kanban-card" onclick="selectSessionFromKanban('${s.id}')">
-          <strong style="color:#fff; font-size:12.5px;">${escapeHtml(s.title)}</strong>
+        <div class="lane-card-item" onclick="openSessionFromKanban('${s.id}')">
+          <strong style="color:#fff; font-size:12.5px;">${escapeSafe(s.title)}</strong>
           <div style="font-size:11px; color:var(--text-muted); display:flex; justify-content:space-between;">
             <span>${(s.mode || 'agent').toUpperCase()}</span>
             <span>${s.acu_used || 0.1} ACU</span>
@@ -2562,45 +2612,44 @@
       `;
     }
 
-    function selectSessionFromKanban(id) {
+    function openSessionFromKanban(id) {
       closeModal('modal-command-center');
-      selectSession(id);
+      pickSession(id);
     }
 
-    // Spaces Tab
-    async function loadSpaces() {
+    async function fetchSpaces() {
       try {
-        const res = await fetch('/api/agent/spaces', { headers: getHeaders() });
+        const res = await fetch('/api/agent/spaces', { headers: authHeaders() });
         const data = await res.json();
         if (data.success && Array.isArray(data.spaces)) {
-          STATE.spaces = data.spaces;
-          if (STATE.spaces.length > 0 && !STATE.currentSpaceId) {
-            STATE.currentSpaceId = STATE.spaces[0].id;
-            document.getElementById('nav-space-name').textContent = STATE.spaces[0].name;
+          APP.spaces = data.spaces;
+          if (APP.spaces.length > 0 && !APP.activeSpaceId) {
+            APP.activeSpaceId = APP.spaces[0].id;
+            document.getElementById('nav-active-space-label').textContent = APP.spaces[0].name;
           }
         }
       } catch (e) {
-        console.error('Error loading spaces:', e);
+        console.error('Error fetching spaces:', e);
       }
     }
 
-    function renderSpacesTab(container) {
-      container.innerHTML = `
+    function renderSpacesManager(box) {
+      box.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
           <div>
             <h3 style="color:#fff;">Spaces (Task & Context Organization)</h3>
             <p style="font-size:12px; color:var(--text-muted);">Spaces group sessions, PRs, files and project context together.</p>
           </div>
-          <button class="input-send-btn" onclick="promptCreateSpace()">+ New Space</button>
+          <button class="run-send-btn" onclick="createSpaceModal()">+ New Space</button>
         </div>
         <div style="display:flex; flex-direction:column; gap:10px;">
-          ${STATE.spaces.map(sp => `
+          ${APP.spaces.map(sp => `
             <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:12px; padding:14px;">
               <div style="display:flex; justify-content:space-between; align-items:center;">
-                <strong style="font-size:14px; color:#fff;">${escapeHtml(sp.name)}</strong>
-                <span class="agent-tag">devin.spaces.shareContext active</span>
+                <strong style="font-size:14px; color:#fff;">${escapeSafe(sp.name)}</strong>
+                <span class="agent-mode-badge">devin.spaces.shareContext active</span>
               </div>
-              <p style="font-size:12.5px; color:var(--text-muted); margin:8px 0;">${escapeHtml(sp.context || 'Default environment context')}</p>
+              <p style="font-size:12.5px; color:var(--text-muted); margin:8px 0;">${escapeSafe(sp.context || 'Default environment context')}</p>
               <div style="display:flex; gap:12px; font-size:11.5px; color:var(--text-dim);">
                 <span>PRs: ${sp.prs ? sp.prs.length : 1}</span>
                 <span>Pinned Files: ${sp.pinned_files ? sp.pinned_files.join(', ') : 'bot.py'}</span>
@@ -2611,76 +2660,75 @@
       `;
     }
 
-    async function promptCreateSpace() {
-      const name = prompt('Space Name (e.g. Discord Bots, Roblox Experiences):');
+    async function createSpaceModal() {
+      const name = prompt('Space Name (e.g. Discord Services, Roblox World):');
       if (!name) return;
-      const context = prompt('Space Project Context (shared across all sessions):');
+      const context = prompt('Space Context (inherited by all new sessions):');
       try {
         const res = await fetch('/api/agent/spaces', {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({ name, context }),
         });
         const data = await res.json();
         if (data.success) {
-          STATE.spaces.push(data.space);
-          switchCcTab('spaces');
+          APP.spaces.push(data.space);
+          switchCcView('spaces');
         }
       } catch (e) {
         alert(e.message);
       }
     }
 
-    // Playbooks Tab
-    async function renderPlaybooksTab(container) {
+    async function renderPlaybooksManager(box) {
       try {
-        const res = await fetch('/api/agent/playbooks', { headers: getHeaders() });
+        const res = await fetch('/api/agent/playbooks', { headers: authHeaders() });
         const data = await res.json();
         const pbs = data.playbooks || [];
-        container.innerHTML = `
+        box.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <div>
               <h3 style="color:#fff;">Autonomous Playbooks</h3>
-              <p style="font-size:12px; color:var(--text-muted);">Reusable autonomous blueprints for recurring dev tasks.</p>
+              <p style="font-size:12px; color:var(--text-muted);">Turn successful runs into reusable autonomous blueprints.</p>
             </div>
           </div>
           <div style="display:flex; flex-direction:column; gap:10px;">
             ${pbs.map(pb => `
               <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:12px; padding:14px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <strong style="font-size:14px; color:#fff;">${escapeHtml(pb.title)}</strong>
-                  <button class="footer-btn" onclick="executePlaybook('${escapeHtml(pb.title)}')">Run Playbook</button>
+                  <strong style="font-size:14px; color:#fff;">${escapeSafe(pb.title)}</strong>
+                  <button class="card-footer-btn" onclick="runPlaybookNow('${escapeSafe(pb.title)}')">Run Playbook</button>
                 </div>
-                <p style="font-size:12.5px; color:var(--text-muted); margin:6px 0;">${escapeHtml(pb.description)}</p>
+                <p style="font-size:12.5px; color:var(--text-muted); margin:6px 0;">${escapeSafe(pb.description)}</p>
                 <div style="font-size:11px; color:var(--text-dim); display:flex; gap:6px;">
-                  ${pb.steps ? pb.steps.map(s => `<span>• ${escapeHtml(s)}</span>`).join('') : ''}
+                  ${pb.steps ? pb.steps.map(s => `<span>• ${escapeSafe(s)}</span>`).join('') : ''}
                 </div>
               </div>
             `).join('')}
           </div>
         `;
       } catch (e) {
-        container.innerHTML = 'Error loading playbooks: ' + e.message;
+        box.innerHTML = 'Error loading playbooks: ' + e.message;
       }
     }
 
-    function executePlaybook(title) {
+    function runPlaybookNow(title) {
       closeModal('modal-command-center');
-      quickFillPrompt(`Run playbook: ${title}`);
-      submitUserPrompt();
+      fillPromptText(`Run playbook: ${title}`);
+      submitAgentPrompt();
     }
 
-    async function saveAsPlaybook() {
-      const title = prompt('Export current session as reusable Playbook name:');
+    async function exportToPlaybookModal() {
+      const title = prompt('Export current session as Playbook title:');
       if (!title) return;
       try {
         const res = await fetch('/api/agent/playbooks', {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({
             title,
-            description: `Auto-generated playbook from session: ${document.getElementById('nav-session-title').textContent}`,
-            steps: ['Analyze environment', 'Run execution sequence', 'Verify integrity'],
+            description: `Auto-generated playbook from session ${document.getElementById('nav-session-name').textContent}`,
+            steps: ['Audit environment', 'Execute core sequence', 'Run integrity verification'],
           }),
         });
         const data = await res.json();
@@ -2692,61 +2740,59 @@
       }
     }
 
-    // Knowledge Tab
-    async function renderKnowledgeTab(container) {
+    async function renderKnowledgeManager(box) {
       try {
-        const res = await fetch('/api/agent/knowledge', { headers: getHeaders() });
+        const res = await fetch('/api/agent/knowledge', { headers: authHeaders() });
         const data = await res.json();
         const items = data.knowledge || [];
-        container.innerHTML = `
+        box.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <div>
-              <h3 style="color:#fff;">Codebase Knowledge Base</h3>
+              <h3 style="color:#fff;">Knowledge Base</h3>
               <p style="font-size:12px; color:var(--text-muted);">Deduplicated facts, conventions, and architectural secrets.</p>
             </div>
-            <button class="footer-btn" onclick="promptAddKnowledge()">+ Add Entry</button>
+            <button class="card-footer-btn" onclick="createKnowledgeModal()">+ Add Entry</button>
           </div>
           <div style="display:flex; flex-direction:column; gap:8px;">
             ${items.map(k => `
               <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <strong style="color:var(--cyan); font-family:var(--font-mono); font-size:12px;">${escapeHtml(k.key)}</strong>
-                  <span class="agent-tag">${escapeHtml(k.category)}</span>
+                  <strong style="color:var(--cyan); font-family:var(--font-mono); font-size:12px;">${escapeSafe(k.key)}</strong>
+                  <span class="agent-mode-badge">${escapeSafe(k.category)}</span>
                 </div>
-                <div style="font-size:12.5px; color:var(--text-main); margin-top:4px;">${escapeHtml(k.value)}</div>
+                <div style="font-size:12.5px; color:var(--text-main); margin-top:4px;">${escapeSafe(k.value)}</div>
               </div>
             `).join('')}
           </div>
         `;
       } catch (e) {
-        container.innerHTML = 'Error: ' + e.message;
+        box.innerHTML = 'Error: ' + e.message;
       }
     }
 
-    async function promptAddKnowledge() {
-      const key = prompt('Knowledge Key (e.g. repos.convention, token.spec):');
+    async function createKnowledgeModal() {
+      const key = prompt('Knowledge Key (e.g. repos.pinned, bot.runtime):');
       if (!key) return;
-      const value = prompt('Value / fact:');
+      const value = prompt('Fact / specification:');
       if (!value) return;
       try {
         await fetch('/api/agent/knowledge', {
           method: 'POST',
-          headers: getHeaders(),
+          headers: authHeaders(),
           body: JSON.stringify({ key, value, category: 'conventions' }),
         });
-        switchCcTab('knowledge');
+        switchCcView('knowledge');
       } catch (e) {
         alert(e.message);
       }
     }
 
-    // Schedules Tab
-    async function renderSchedulesTab(container) {
+    async function renderSchedulesManager(box) {
       try {
-        const res = await fetch('/api/agent/schedules', { headers: getHeaders() });
+        const res = await fetch('/api/agent/schedules', { headers: authHeaders() });
         const data = await res.json();
         const items = data.schedules || [];
-        container.innerHTML = `
+        box.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <div>
               <h3 style="color:#fff;">Automated Schedules</h3>
@@ -2757,34 +2803,34 @@
             ${items.map(s => `
               <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <strong style="color:#fff;">${escapeHtml(s.title)}</strong>
-                  <span class="agent-tag" style="background:var(--emerald-soft); color:#34d399;">${s.status.toUpperCase()}</span>
+                  <strong style="color:#fff;">${escapeSafe(s.title)}</strong>
+                  <span class="agent-mode-badge" style="background:var(--emerald-soft); color:#34d399;">${s.status.toUpperCase()}</span>
                 </div>
-                <div style="font-size:12px; color:var(--text-muted); margin:4px 0;">Cron: <code>${escapeHtml(s.cron)}</code> — ${escapeHtml(s.prompt)}</div>
+                <div style="font-size:12px; color:var(--text-muted); margin:4px 0;">Cron: <code>${escapeSafe(s.cron)}</code> — ${escapeSafe(s.prompt)}</div>
               </div>
             `).join('')}
           </div>
         `;
       } catch (e) {
-        container.innerHTML = 'Error: ' + e.message;
+        box.innerHTML = 'Error: ' + e.message;
       }
     }
 
-    // Outcome Analysis Modal
-    async function openOutcomeAnalysis() {
-      document.getElementById('modal-outcome').classList.add('open');
-      const c = document.getElementById('outcome-modal-content');
-      c.innerHTML = '<div style="color:var(--text-dim);">Analyzing session telemetry and token consumption...</div>';
+    // Outcome Analysis
+    async function openOutcomeModal() {
+      document.getElementById('modal-outcome-view').classList.add('open');
+      const box = document.getElementById('outcome-analysis-body');
+      box.innerHTML = '<div style="color:var(--text-dim);">Analyzing session telemetry...</div>';
       try {
         const res = await fetch('/api/agent/analyze-outcome', {
           method: 'POST',
-          headers: getHeaders(),
-          body: JSON.stringify({ session_id: STATE.currentSessionId }),
+          headers: authHeaders(),
+          body: JSON.stringify({ session_id: APP.activeSessionId }),
         });
         const data = await res.json();
         if (data.success) {
           const a = data.analysis;
-          c.innerHTML = `
+          box.innerHTML = `
             <div style="display:flex; flex-direction:column; gap:12px;">
               <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
                 <div>
@@ -2814,40 +2860,34 @@
               <div>
                 <strong style="color:#fff; font-size:13px;">Extracted Learnings</strong>
                 <ul style="margin:6px 0 0 18px; font-size:12px; color:var(--text-muted);">
-                  ${a.learnings.map(l => `<li>${escapeHtml(l)}</li>`).join('')}
+                  ${a.learnings.map(l => `<li>${escapeSafe(l)}</li>`).join('')}
                 </ul>
               </div>
             </div>
           `;
         }
       } catch (e) {
-        c.innerHTML = 'Error: ' + e.message;
+        box.innerHTML = 'Error: ' + e.message;
       }
     }
 
-    function openAccountModal() {
-      document.getElementById('modal-account').classList.add('open');
-    }
-
-    function closeModal(id) {
-      document.getElementById(id).classList.remove('open');
-    }
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
     // ----------------------------------------------------
-    // Keyboard Shortcuts & Interaction Patterns
+    // Shortcuts & Drag Resize
     // ----------------------------------------------------
-    function setupShortcuts() {
-      // Add to Chat: select text in transcript, Cmd/Ctrl+L sends it to input
+    function initShortcuts() {
       window.addEventListener('keydown', (e) => {
         const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
         const modKey = isMac ? e.metaKey : e.ctrlKey;
 
-        // Cmd/Ctrl + L -> Add selected text to Chat
+        // Cmd/Ctrl + L -> Add selected transcript text to Chat Input
         if (modKey && (e.key === 'l' || e.key === 'L')) {
           e.preventDefault();
           const selectedText = window.getSelection().toString().trim();
           if (selectedText) {
-            const input = document.getElementById('chat-prompt-input');
+            const input = document.getElementById('main-task-input');
             const quote = `> ${selectedText.split('\n').join('\n> ')}\n\n`;
             input.value = quote + input.value;
             input.focus();
@@ -2857,14 +2897,13 @@
         // Cmd/Ctrl + T -> New session in current Space
         if (modKey && (e.key === 't' || e.key === 'T') && !e.shiftKey) {
           e.preventDefault();
-          startNewSession('New Session');
+          createNewSession('New Session');
         }
 
         // Cmd/Ctrl + \ -> Split pane new session
         if (modKey && e.key === '\\') {
           e.preventDefault();
-          startNewSession('Branch in Space');
-          openEmbeddedTool('progress');
+          toggleSplitPane();
         }
 
         // Cmd/Ctrl + K -> Toggle Command Center
@@ -2873,82 +2912,76 @@
           openCommandCenter('kanban');
         }
 
-        // Cmd/Ctrl + B -> Toggle Embedded Tools
+        // Cmd/Ctrl + B -> Toggle Tools
         if (modKey && (e.key === 'b' || e.key === 'B')) {
           e.preventDefault();
-          toggleEmbeddedTools();
+          toggleToolsPanel();
         }
       });
 
-      // Shift+Enter vs Enter in Chat Input
-      const chatInput = document.getElementById('chat-prompt-input');
-      chatInput.addEventListener('keydown', (e) => {
+      const input = document.getElementById('main-task-input');
+      input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
-          submitUserPrompt();
+          submitAgentPrompt();
         } else if (e.key === '@') {
-          setTimeout(toggleMentionsDropdown, 50);
+          setTimeout(toggleMentionsMenu, 50);
         }
       });
 
-      // Sidebar Toggle Button
-      document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
+      document.getElementById('btn-sidebar-toggle').addEventListener('click', () => {
         document.getElementById('sessions-sidebar').classList.toggle('collapsed');
       });
     }
 
-    // PC Tools Resizing Drag Handle
-    function setupResizeHandle() {
-      const handle = document.getElementById('tools-resize-handle');
+    function initDragResize() {
+      const handle = document.getElementById('tools-drag-handle');
       const panel = document.getElementById('embedded-tools-panel');
-      let isResizing = false;
+      let dragging = false;
 
       handle.addEventListener('mousedown', (e) => {
-        isResizing = true;
+        dragging = true;
         document.body.style.cursor = 'col-resize';
       });
 
       window.addEventListener('mousemove', (e) => {
-        if (!isResizing) return;
-        const newWidth = window.innerWidth - e.clientX;
-        if (newWidth >= 320 && newWidth <= window.innerWidth * 0.75) {
-          panel.style.width = `${newWidth}px`;
+        if (!dragging) return;
+        const newW = window.innerWidth - e.clientX;
+        if (newW >= 320 && newW <= window.innerWidth * 0.75) {
+          panel.style.width = `${newW}px`;
         }
       });
 
       window.addEventListener('mouseup', () => {
-        if (isResizing) {
-          isResizing = false;
+        if (dragging) {
+          dragging = false;
           document.body.style.cursor = '';
         }
       });
     }
 
-    // Utility Formatters
-    function escapeHtml(s) {
+    // Formatters
+    function escapeSafe(s) {
       if (typeof s !== 'string') return '';
       return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function formatMarkdown(text) {
-      if (!text) return '';
-      let out = escapeHtml(text);
-      // bold
+    function renderMarkdown(str) {
+      if (!str) return '';
+      let out = escapeSafe(str);
       out = out.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      // code block
-      out = out.replace(/```([a-z0-9_-]*)\n([\s\S]*?)```/gi, '<pre class="shell-output"><code>$2</code></pre>');
-      // inline code
+      out = out.replace(/```([a-z0-9_-]*)\n([\s\S]*?)```/gi, '<pre class="shell-card-body"><code>$2</code></pre>');
       out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
       return out;
     }
 
-    function formatDiffLines(diff) {
+    function renderDiffMarkup(diff) {
       if (!diff) return '';
       return diff.split('\n').map(l => {
-        if (l.startsWith('+')) return `<span class="diff-line-add">${escapeHtml(l)}</span>`;
-        if (l.startsWith('-')) return `<span class="diff-line-del">${escapeHtml(l)}</span>`;
-        if (l.startsWith('@@')) return `<span class="diff-line-info">${escapeHtml(l)}</span>`;
-        return `<span>${escapeHtml(l)}</span>`;
+        if (l.startsWith('+')) return `<span class="diff-green">${escapeSafe(l)}</span>`;
+        if (l.startsWith('-')) return `<span class="diff-red">${escapeSafe(l)}</span>`;
+        if (l.startsWith('@@')) return `<span class="diff-info">${escapeSafe(l)}</span>`;
+        return `<span>${escapeSafe(l)}</span>`;
       }).join('\n');
     }
 

@@ -148,6 +148,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+  /api/session/switch:
+    post:
+      tags: [Authentication]
+      summary: Switch the active session to another account
+      description: >
+        Re-activates the session for an account the caller already holds a
+        valid api_key for (e.g. a second account previously logged into on
+        the same browser). Requires the real api_key as proof of ownership —
+        a username alone is never accepted, so this cannot be used to take
+        over an account you have not already authenticated as.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [api_key]
+              properties:
+                api_key:
+                  type: string
+      responses:
+        '200':
+          description: Switch successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Missing api_key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: api_key does not match any account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/vps:
     get:
       tags: [VPS Management]

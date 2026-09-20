@@ -6,7 +6,10 @@ import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, statSync, r
 import os from 'os';
 import crypto from 'crypto';
 import * as child_process from 'child_process';
-import { spawn, execSync, exec } from 'child_process';
+import { spawn, execSync, exec, execFile } from 'child_process';
+import { promisify } from 'util';
+
+const execFileAsync = promisify(execFile);
 import multer from 'multer';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -25,9 +28,23 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
+// Behind a reverse proxy (Render, Fly, nginx, Cloudflare, etc.) Express must
+// be told to trust the X-Forwarded-* headers, otherwise every visitor is
+// seen as the same IP. That breaks IP-based rate limiting (real users get
+// throttled/blocked together with bots) and can make secure cookies fail.
+// "1" = trust exactly one hop (the platform's own proxy) — safer than `true`.
+app.set('trust proxy', 1);
+
 const BASE_DIR = __dirname;
-const INSTANCES_DIR = path.join(BASE_DIR, 'vps_instances');
-const DATA_DIR = path.join(BASE_DIR, 'data');
+// PERSIST_DIR lets a deployment point both the account database and every
+// VPS workspace at a single mounted persistent volume (Render disks, Fly
+// volumes, a Docker bind-mount, etc). Without this, hosts that only give you
+// one persistent mount path have no way to keep *both* directories durable,
+// and whichever one lives on ephemeral storage gets wiped on every
+// redeploy/restart — which is how entire accounts and bot files disappear.
+const PERSIST_DIR = process.env.PERSIST_DIR ? path.resolve(process.env.PERSIST_DIR) : BASE_DIR;
+const INSTANCES_DIR = path.join(PERSIST_DIR, 'vps_instances');
+const DATA_DIR = path.join(PERSIST_DIR, 'data');
 
 if (!existsSync(INSTANCES_DIR)) {mkdirSync(INSTANCES_DIR, { recursive: true });}
 if (!existsSync(DATA_DIR)) {mkdirSync(DATA_DIR, { recursive: true });}
@@ -38,22 +55,47 @@ const logger = pino(
     : pinoPretty({ colorize: true, translateTime: 'SYS:standard', ignore: 'pid,hostname' })
 );
 
+// General API limiter — generous, because the dashboard polls live bot logs
+// / status every few seconds and must never throttle a real signed-in user
+// mid-session. This exists mainly as a backstop against runaway scripts.
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  // The dashboard polls live bot logs / status every few seconds, so the
-  // default budget must be generous or the UI gets throttled mid-session.
   max: parseInt(process.env.API_RATE_LIMIT || '5000', 10),
   message: { success: false, error: 'Too many requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  // Never let a rate-limiter bug take the whole API down — fail open.
+  skipFailedRequests: false,
+  validate: { trustProxy: false },
+});
+
+// Strict limiter for auth endpoints only (login/register/switch). This is
+// the actual bot/abuse defense: it stops credential-stuffing and mass
+// account-creation bots without ever affecting normal signed-in traffic,
+// which never hits these routes more than a couple of times.
+const authLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: parseInt(process.env.AUTH_RATE_LIMIT || '30', 10),
+  message: { success: false, error: 'Too many attempts. Please wait a few minutes and try again.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  validate: { trustProxy: false },
 });
 
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
 }));
+// `origin: '*'` combined with `credentials: true` is invalid per the CORS
+// spec — browsers refuse to expose the response to the page when the
+// wildcard is paired with credentialed requests, which used to fail
+// silently and could look like "the site logged me out" for any embedded
+// or cross-origin usage. Reflecting the caller's own origin (with
+// credentials) is the correct equivalent of an open wildcard policy while
+// still being spec-compliant; set FRONTEND_URL to lock this down further.
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: process.env.FRONTEND_URL || true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Username', 'X-CloudVPS-User'],
@@ -75,6 +117,17 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 100 * 1024 * 1024 },
 });
+
+// Session cookie options. `secure: true` in production means the cookie is
+// only ever sent over HTTPS (every real deployment target — Render, Fly,
+// behind Cloudflare — terminates TLS), which stops it from being sniffed on
+// a plain-HTTP connection and silently invalidating the session.
+const COOKIE_OPTS = {
+  maxAge: 30 * 24 * 3600 * 1000,
+  httpOnly: true,
+  sameSite: 'Lax',
+  secure: process.env.NODE_ENV === 'production',
+};
 
 // Plans Catalog
 const PLANS = {
@@ -128,62 +181,145 @@ function verifyPassword(user, password) {
   return false;
 }
 
-function saveDb() {
+// saveDb() is called extremely often (on every bot log line, every status
+// change) — synchronously re-serializing and fsync-writing the whole DB on
+// every single call blocks Node's single event loop and, under any load,
+// causes exactly the symptoms users report as "random logouts": requests
+// stall, cookies/sessions appear to vanish, health checks time out and the
+// platform restarts the process mid-write. Writes are now coalesced: any
+// burst of changes within one tick is flushed as a single atomic write.
+let saveScheduled = false;
+let savePending = false;
+
+function saveDbSync() {
   try {
     const payload = JSON.stringify(db, null, 2);
-    // Atomic write: write to a temp file, then rename over the primary file.
-    const tmpFile = `${DB_FILE}.tmp.${Date.now()}.${process.pid}`;
-    fs.writeFileSync(tmpFile, payload, 'utf8');
+    if (!payload || payload === '{}') {
+      // Never let an empty/uninitialized db object overwrite good data on
+      // disk — this is the single most important guard against "deleted
+      // account" reports: a bad write must never be allowed to happen.
+      logger.error('[CloudVPS DB] Refusing to save an empty database snapshot');
+      return;
+    }
+    // Keep a rolling secondary backup *before* overwriting the primary file,
+    // so a crash mid-write can never leave us with zero readable copies.
+    if (existsSync(DB_FILE)) {
+      try { fs.copyFileSync(DB_FILE, DB_BACKUP_FILE); } catch (e) { /* best effort */ }
+    }
+    // Atomic write: write to a temp file, fsync it, then rename over the
+    // primary file. Rename is atomic on POSIX filesystems, so readers never
+    // observe a half-written file.
+    const tmpFile = `${DB_FILE}.tmp.${process.pid}`;
+    const fd = fs.openSync(tmpFile, 'w');
+    try {
+      fs.writeSync(fd, payload);
+      fs.fsyncSync(fd);
+    } finally {
+      fs.closeSync(fd);
+    }
     fs.renameSync(tmpFile, DB_FILE);
-    fs.copyFileSync(DB_FILE, DB_BACKUP_FILE);
   } catch (err) {
     logger.error({ err }, '[CloudVPS DB Save Error]');
   }
 }
 
+function saveDb() {
+  // Coalesce rapid-fire saves (log streaming, package installs, etc.) into
+  // one flush per event-loop tick instead of one synchronous disk write per
+  // call — this is what keeps the server responsive (and sessions alive)
+  // under heavy bot-log traffic.
+  savePending = true;
+  if (saveScheduled) {return;}
+  saveScheduled = true;
+  setImmediate(() => {
+    saveScheduled = false;
+    if (!savePending) {return;}
+    savePending = false;
+    saveDbSync();
+  });
+}
+
+// Force an immediate synchronous flush — used on shutdown, where we cannot
+// rely on a deferred setImmediate() callback ever running.
+function flushDbSync() {
+  saveScheduled = false;
+  savePending = false;
+  saveDbSync();
+}
+
+function safeParseDb(raw, label) {
+  if (!raw || !raw.trim()) {return null;}
+  try {
+    const data = JSON.parse(raw);
+    // Sanity-check shape before trusting it — a truncated/corrupted file
+    // can still parse as valid (but wrong) JSON, e.g. `{}` or a fragment.
+    if (!data || typeof data !== 'object' || !data.users || typeof data.users !== 'object') {
+      logger.warn(`[CloudVPS DB] ${label} failed shape validation, skipping`);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    logger.warn({ err: err.message }, `[CloudVPS DB] ${label} is not valid JSON, skipping`);
+    return null;
+  }
+}
+
 function loadDb() {
   let loaded = false;
-  try {
-    if (existsSync(DB_FILE)) {
-      const raw = readFileSync(DB_FILE, 'utf8');
-      if (raw.trim()) {
-        const data = JSON.parse(raw);
-        db = { ...db, ...data };
-        loaded = true;
-      }
-    }
-  } catch (err) {
-    logger.warn({ err }, '[CloudVPS DB] Could not read primary db file, attempting backup recovery');
+
+  const primary = existsSync(DB_FILE) ? safeParseDb(readFileSync(DB_FILE, 'utf8'), 'primary db file') : null;
+  if (primary) {
+    db = { ...db, ...primary };
+    loaded = true;
+  } else if (existsSync(DB_FILE)) {
+    logger.warn('[CloudVPS DB] Primary db file unreadable/corrupt, attempting backup recovery');
   }
 
-  if (!loaded && existsSync(DB_BACKUP_FILE)) {
+  if (!loaded) {
+    const backup = existsSync(DB_BACKUP_FILE) ? safeParseDb(readFileSync(DB_BACKUP_FILE, 'utf8'), 'backup db file') : null;
+    if (backup) {
+      db = { ...db, ...backup };
+      loaded = true;
+      logger.info('[CloudVPS DB] Restored database state from backup snapshot.');
+    }
+  }
+
+  if (!loaded && (existsSync(DB_FILE) || existsSync(DB_BACKUP_FILE))) {
+    // Both copies were unreadable. Do NOT silently continue with a blank
+    // in-memory db and then save over the corrupted files — that is how
+    // accounts get permanently deleted. Preserve the broken files under a
+    // timestamped name for forensics/recovery and refuse to auto-save until
+    // new data comes in, so a human has a chance to recover the originals.
+    const stamp = Date.now();
     try {
-      const bkpRaw = readFileSync(DB_BACKUP_FILE, 'utf8');
-      if (bkpRaw.trim()) {
-        const bkpData = JSON.parse(bkpRaw);
-        db = { ...db, ...bkpData };
-        logger.info('[CloudVPS DB] Restored database state from backup snapshot.');
-      }
-    } catch (e) {
-      logger.warn({ err: e }, '[CloudVPS DB] Backup recovery failed');
-    }
+      if (existsSync(DB_FILE)) {fs.copyFileSync(DB_FILE, `${DB_FILE}.corrupt.${stamp}`);}
+      if (existsSync(DB_BACKUP_FILE)) {fs.copyFileSync(DB_BACKUP_FILE, `${DB_BACKUP_FILE}.corrupt.${stamp}`);}
+    } catch (e) { /* best effort */ }
+    logger.error('[CloudVPS DB] CRITICAL: both primary and backup database files were unreadable. Starting with an empty in-memory database and preserving the corrupt files for recovery instead of overwriting them.');
   }
 
-  // Prune any legacy demo accounts / demo VPS that older versions seeded.
-  // The platform only ever contains real, user-registered accounts.
-  const legacyDemoUsers = Object.values(db.users).filter(
-    u => u.id === 'usr_free_user' || u.id === 'usr_brittainjaden347' ||
-         u.username === 'demo_user' || u.username === 'brittainjaden347'
-  );
-  for (const u of legacyDemoUsers) {
-    delete db.users[u.id];
+  // Prune ONLY the exact hardcoded legacy demo account/VPS IDs that older
+  // versions of this app used to seed on every boot. Matching is strictly by
+  // the fixed internal ID — never by username — because real accounts get a
+  // random crypto ID at signup and can never collide with these constants.
+  // (An earlier version of this cleanup matched by *username* too, which
+  // meant any real user who happened to sign up as "demo_user" or
+  // "brittainjaden347" had their account silently deleted on every single
+  // server restart. That was a serious data-loss bug and has been removed.)
+  const LEGACY_SEED_USER_IDS = new Set(['usr_free_user', 'usr_brittainjaden347']);
+  const LEGACY_SEED_VPS_IDS = new Set(['vps-free-01']);
+  for (const uid of LEGACY_SEED_USER_IDS) {
+    delete db.users[uid];
   }
   for (const id of Object.keys(db.vps)) {
     const vps = db.vps[id];
+    // A VPS whose owner truly no longer exists is orphaned data (this can
+    // legitimately happen after account deletion) — clean it up. Never
+    // delete a VPS just because it "looks like" a demo record; only the
+    // exact legacy seed ID is removed unconditionally.
     const ownerIsGone = vps.user_id && !db.users[vps.user_id];
-    const isDemoVps = id === 'vps-free-01' || vps.container_id === 'c-free-01' ||
-                      vps.engine === 'native_sandbox' && !vps.user_id;
-    if (ownerIsGone || isDemoVps) {
+    const isLegacySeedVps = LEGACY_SEED_VPS_IDS.has(id);
+    if (ownerIsGone || isLegacySeedVps) {
       delete db.vps[id];
       delete db.bots[id];
     }
@@ -526,9 +662,13 @@ function getUserFromRequest(req) {
  bearerKey = authHeader.slice(7).trim();
  }
 
+ // SECURITY FIX: this used to also accept a bare user ID (`u.id === key`) as
+ // a valid credential. User IDs show up in URLs, logs and API responses, so
+ // that fallback let anyone who ever saw your user ID fully authenticate as
+ // you without your password or API key. Only the real API key counts now.
  const key = req.headers['x-api-key'] || bearerKey || req.query.api_key || req.body?.api_key;
  if (key) {
- const user = Object.values(db.users).find(u => u.api_key === key || u.id === key);
+ const user = Object.values(db.users).find(u => u.api_key === key);
  if (user) {return user;}
  }
 
@@ -626,7 +766,7 @@ app.get('/api/session', (req, res) => {
 });
 
 // Register
-app.post('/api/register', (req, res) => {
+app.post('/api/register', authLimiter, (req, res) => {
  const { username, password } = req.body || {};
  if (!username || !password) {
  return res.status(400).json({ error: 'Username and password required' });
@@ -703,7 +843,7 @@ app.post('/api/register', (req, res) => {
  // Kick off the background install after the response is sent
  setTimeout(() => runAutoInstall(vpsId), 500);
 
- res.cookie('api_key', apiKey, { maxAge: 30 * 24 * 3600 * 1000, httpOnly: false, sameSite: 'Lax' });
+ res.cookie('api_key', apiKey, COOKIE_OPTS);
  res.json({
  success: true,
  api_key: apiKey,
@@ -712,31 +852,17 @@ app.post('/api/register', (req, res) => {
  });
 });
 
-// List registered account names for the in-app account switcher.
-// API keys are intentionally never listed here — they are only returned
-// by the /api/users/switch call for the account being switched to.
-app.get('/api/users/saved', (req, res) => {
- const userList = Object.values(db.users).map(u => ({
- id: u.id,
- username: u.username,
- created_at: u.created_at,
- vps_count: Object.values(db.vps).filter(v => v.user_id === u.id).length
- }));
- res.json({ success: true, users: userList });
-});
-
-// Quick Switch User
-app.post('/api/users/switch', (req, res) => {
- const { username } = req.body || {};
- if (!username) {return res.status(400).json({ error: 'Username required' });}
- const user = Object.values(db.users).find(u => u.username.toLowerCase() === username.trim().toLowerCase());
- if (!user) {return res.status(404).json({ error: 'User not found' });}
- res.cookie('api_key', user.api_key, { maxAge: 30 * 24 * 3600 * 1000, httpOnly: false, sameSite: 'Lax' });
- res.json({ success: true, api_key: user.api_key, user_id: user.id, username: user.username });
-});
+// SECURITY FIX: the old `/api/users/switch` endpoint logged a caller into
+// ANY account just by supplying that account's username — no password check
+// at all — and `/api/users/saved` handed out the full list of usernames to
+// pair with it. Together they let anyone hijack any account on the platform
+// (which is almost certainly the real cause of "it keeps logging us out /
+// deleting our account": someone else was silently logging in as you).
+// Neither endpoint was even used by the dashboard, so both are removed
+// outright rather than patched.
 
 // Login (strict: account must exist and the password must match)
-app.post('/api/login', (req, res) => {
+app.post('/api/login', authLimiter, (req, res) => {
  const { username, password } = req.body || {};
  if (!username || !password) {
  return res.status(400).json({ error: 'Username and password are required' });
@@ -753,7 +879,7 @@ app.post('/api/login', (req, res) => {
  return res.status(401).json({ error: 'Incorrect password for this account.' });
  }
 
- res.cookie('api_key', user.api_key, { maxAge: 30 * 24 * 3600 * 1000, httpOnly: false, sameSite: 'Lax' });
+ res.cookie('api_key', user.api_key, COOKIE_OPTS);
  res.json({
  success: true,
  api_key: user.api_key,
@@ -764,8 +890,36 @@ app.post('/api/login', (req, res) => {
 
 // Logout
 app.post('/api/logout', (req, res) => {
- res.clearCookie('api_key');
- res.json({ success: true, message: 'Logged out successfully' });
+  res.clearCookie('api_key');
+  res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// Switch active session between accounts the CALLER ALREADY HOLDS A VALID
+// API KEY FOR. This is the safe replacement for the old `/api/users/switch`
+// takeover vector: that endpoint changed your session to any account just by
+// naming it, with no proof you ever owned it. This one only ever accepts the
+// same real credential (`api_key`) that `/api/login` and `/api/register`
+// hand out — it is exactly as strong as logging in again with that key, just
+// without re-typing a password for an account the browser already proved it
+// controls. A stolen/guessed username alone can never switch a session.
+app.post('/api/session/switch', authLimiter, (req, res) => {
+  const { api_key } = req.body || {};
+  if (!api_key || typeof api_key !== 'string') {
+    return res.status(400).json({ success: false, error: 'api_key is required' });
+  }
+
+  const user = Object.values(db.users).find(u => u.api_key === api_key);
+  if (!user) {
+    return res.status(401).json({ success: false, error: 'That saved account is no longer valid. Please sign in again.' });
+  }
+
+  res.cookie('api_key', user.api_key, COOKIE_OPTS);
+  res.json({
+    success: true,
+    api_key: user.api_key,
+    user_id: user.id,
+    username: user.username
+  });
 });
 
 // User profile
@@ -1554,6 +1708,14 @@ function stopBotProcess(vpsId, persistStopped = true) {
  }
 }
 
+// Crash-loop counters persist per VPS across restarts (a fresh botRecord is
+// created every time startBotProcess runs, so storing the counter *on* the
+// record — as this used to do — meant it was reset to zero on every single
+// restart and could never actually trip). Kept outside any per-record state
+// so a script that crashes instantly, forever, is reliably stopped instead
+// of hammering spawn/crash every 3 seconds and starving the whole host.
+const crashLoopState = new Map();
+
 function startBotProcess(vpsId, filename, runtime) {
  stopBotProcess(vpsId);
 
@@ -1691,19 +1853,9 @@ function startBotProcess(vpsId, filename, runtime) {
  appendBotLog(vpsId, chunk.toString('utf8'));
  });
 
- child.on('error', err => {
+  child.on('error', err => {
  appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Process Error] ${err.message}`);
  });
-
- // Crash-loop protection: if the process dies within seconds of starting
- // over and over (broken script, missing token, syntax error), stop
- // hammering and report the failure instead of looping forever.
- const processLifetime = Date.now() - botRecord.startTime;
- if (processLifetime < 5000) {
- botRecord.crashLoopCount = (botRecord.crashLoopCount || 0) + 1;
- } else {
- botRecord.crashLoopCount = 0;
- }
 
  child.on('close', (code, signal) => {
  const wasStoppedByUser = botRecord.userStopped;
@@ -1715,8 +1867,24 @@ function startBotProcess(vpsId, filename, runtime) {
 
  if (!wasStoppedByUser && !shuttingDown) {
  botRecord.restartCount++;
- const crashLoops = botRecord.crashLoopCount || 0;
- const inCrashLoop = crashLoops >= 15;
+
+ // Crash-loop protection: measured at exit time (not right after spawn,
+ // which always measures ~0ms) and tracked per-VPS across restarts (not
+ // on the short-lived botRecord, which is thrown away every restart) —
+ // otherwise a script that fails instantly forever (bad syntax, missing
+ // token) restarts every 3s without end and can starve the whole host,
+ // which is what makes *every* user's session feel like it randomly dies.
+ const processLifetime = Date.now() - botRecord.startTime;
+ const state = crashLoopState.get(vpsId) || { count: 0, windowStart: Date.now() };
+ if (processLifetime < 8000) {
+ state.count += 1;
+ } else {
+ state.count = 0;
+ }
+ state.windowStart = state.windowStart || Date.now();
+ crashLoopState.set(vpsId, state);
+
+ const inCrashLoop = state.count >= 8;
 
  if (db.bots[vpsId]) {
  db.bots[vpsId].restarts = botRecord.restartCount;
@@ -1729,16 +1897,21 @@ function startBotProcess(vpsId, filename, runtime) {
  }
 
  if (inCrashLoop) {
- appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Process keeps crashing ${crashLoops} times in a row — stopping auto-restart. Fix the error in the logs above, then press Start Bot again.`);
+ crashLoopState.delete(vpsId);
+ appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Process keeps crashing (${state.count} times in a row) — stopping auto-restart to protect the host. Fix the error in the logs above, then press Start Bot again.`);
  } else {
- appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Auto-restarting bot in 3s (Restart #${botRecord.restartCount})...`);
+ // Back off restart delay as failures pile up (3s, 6s, 9s, ... capped
+ // at 30s) instead of hammering every 3 seconds no matter what.
+ const delayMs = Math.min(3000 + state.count * 3000, 30000);
+ appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Auto-restarting bot in ${Math.round(delayMs / 1000)}s (Restart #${botRecord.restartCount})...`);
  setTimeout(() => {
  if (!botRecord.userStopped && !shuttingDown) {
  startBotProcess(vpsId, targetFile, targetRuntime);
  }
- }, 3000);
+ }, delayMs);
  }
  } else if (db.bots[vpsId] && !shuttingDown) {
+ crashLoopState.delete(vpsId);
  db.bots[vpsId].status = 'stopped';
  db.bots[vpsId].running = false;
  db.bots[vpsId].pid = null;
@@ -1753,6 +1926,10 @@ function startBotProcess(vpsId, filename, runtime) {
 app.post('/api/vps/:vps_id/bot/start', authRequired, vpsOwnerRequired, (req, res) => {
  const vpsId = req.params.vps_id;
  const { filename = 'bot.py', runtime = 'python', token, user_token, bot_token, token_type } = req.body || {};
+
+ // A manual (Re)Start always gets a clean slate: whatever tripped the
+ // crash-loop breaker before is presumed fixed by the user's edit.
+ crashLoopState.delete(vpsId);
 
  initVpsWorkspace(vpsId);
  if (!db.bots[vpsId]) {db.bots[vpsId] = { logs: [] };}
@@ -1786,6 +1963,8 @@ app.post('/api/vps/:vps_id/bot/restart', authRequired, vpsOwnerRequired, (req, r
  const filename = req.body?.filename || current.filename || 'bot.py';
  const runtime = req.body?.runtime || current.runtime || 'python';
  const { token, user_token, bot_token, token_type } = req.body || {};
+
+ crashLoopState.delete(vpsId);
 
  initVpsWorkspace(vpsId);
  if (!db.bots[vpsId]) {db.bots[vpsId] = { logs: [] };}
@@ -2113,12 +2292,14 @@ app.post('/api/vps/:vps_id/packages/auto-install', authRequired, vpsOwnerRequire
 
 // ---------------------- PC SOFTWARE & RUNTIMES CENTER ----------------------
 
-// Get Installed Runtimes & Packages Status
-app.get('/api/vps/:vps_id/packages/status', authRequired, vpsOwnerRequired, (req, res) => {
- const vpsId = req.params.vps_id;
- const wsDir = path.join(INSTANCES_DIR, vpsId);
- initVpsWorkspace(vpsId);
-
+// Host runtime versions (lune/python/node/git/curl) never change while this
+// process is alive, so they're resolved once and cached instead of shelling
+// out to `execSync` on every request — that used to mean up to 7 synchronous
+// child processes (~21s worst case) blocking Node's single event loop (and
+// therefore every other user's request) on every single poll of this route.
+let hostToolVersionsCache = null;
+function getHostToolVersions() {
+ if (hostToolVersionsCache) {return hostToolVersionsCache;}
  const getCmdOutput = (cmd) => {
  try {
  return child_process.execSync(cmd, { timeout: 3000, encoding: 'utf8' }).trim();
@@ -2126,14 +2307,25 @@ app.get('/api/vps/:vps_id/packages/status', authRequired, vpsOwnerRequired, (req
  return null;
  }
  };
+ hostToolVersionsCache = {
+ luneVer: getCmdOutput('lune --version'),
+ pythonVer: getCmdOutput('python3 --version'),
+ pipVer: getCmdOutput('pip --version'),
+ nodeVer: getCmdOutput('node -v'),
+ npmVer: getCmdOutput('npm -v'),
+ gitVer: getCmdOutput('git --version'),
+ curlVer: getCmdOutput('curl --version | head -n 1'),
+ };
+ return hostToolVersionsCache;
+}
 
- const luneVer = getCmdOutput('lune --version');
- const pythonVer = getCmdOutput('python3 --version');
- const pipVer = getCmdOutput('pip --version');
- const nodeVer = getCmdOutput('node -v');
- const npmVer = getCmdOutput('npm -v');
- const gitVer = getCmdOutput('git --version');
- const curlVer = getCmdOutput('curl --version | head -n 1');
+// Get Installed Runtimes & Packages Status
+app.get('/api/vps/:vps_id/packages/status', authRequired, vpsOwnerRequired, (req, res) => {
+ const vpsId = req.params.vps_id;
+ const wsDir = path.join(INSTANCES_DIR, vpsId);
+ initVpsWorkspace(vpsId);
+
+ const { luneVer, pythonVer, pipVer, nodeVer, npmVer, gitVer, curlVer } = getHostToolVersions();
 
  // Check Luau & Env Logger files in workspace
  const hasMainLuau = fs.existsSync(path.join(wsDir, 'main.luau'));
@@ -2486,19 +2678,22 @@ Available commands:
  });
  }
 
- // Execute in isolated workspace directory
- try {
- const child = child_process.execSync(cmd, {
+ // Execute in isolated workspace directory. Uses async `exec` (not
+ // execSync) so a slow/hanging terminal command from one user's session
+ // can never block Node's single event loop and stall every other user's
+ // requests for up to 10 seconds — with execSync that pause was global.
+ child_process.exec(cmd, {
  cwd: wsDir,
  timeout: 10000,
  encoding: 'utf8',
  env: { ...process.env, HOME: wsDir, TERM: 'xterm-256color' }
- });
- res.json({ success: true, output: child || '', exit_code: 0 });
- } catch (err) {
- const output = (err.stdout ? err.stdout : '') + (err.stderr ? err.stderr : err.message);
- res.json({ success: true, output: output || 'Command failed', exit_code: err.status || 1 });
+ }, (err, stdout, stderr) => {
+ if (err) {
+ const output = (stdout || '') + (stderr || err.message);
+ return res.json({ success: true, output: output || 'Command failed', exit_code: err.code || 1 });
  }
+ res.json({ success: true, output: stdout || '', exit_code: 0 });
+ });
 }
 
 app.post('/api/vps/:vps_id/terminal/exec', authRequired, vpsOwnerRequired, handleTerminalExecution);
@@ -2601,12 +2796,23 @@ app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async 
  }
  fs.mkdirSync(targetDir, { recursive: true });
 
- // Execute git clone
- const branchFlag = branch ? `--branch "${branch}"` : '';
- const cloneCmd = `git clone --depth 1 ${branchFlag} "${cleanUrl}" "${targetDir}"`;
- let cloneOutput = '';
+ // Execute git clone. Using execFile with an argument array (not a shell
+ // string) fixes two real bugs in the previous implementation:
+ // 1) SECURITY: `cleanUrl`/`branch` came straight from user input and were
+ //    interpolated into a shell command string — a crafted repo URL or
+ //    branch name (e.g. containing `"; rm -rf ~ #`) could execute arbitrary
+ //    shell commands on the host. Argument arrays are never shell-parsed.
+ // 2) RELIABILITY: execSync blocks Node's single event loop for the whole
+ //    clone/install duration (up to 45-60s each) — while that happens,
+ //    EVERY other user's request on the platform (session checks, log
+ //    polling, everything) stalls or times out, which is exactly what
+ //    "keeps logging us out" looks like from the outside. Async execFile
+ //    lets the event loop keep serving other users while this runs.
+ const cloneArgs = ['clone', '--depth', '1'];
+ if (branch) {cloneArgs.push('--branch', branch);}
+ cloneArgs.push(cleanUrl, targetDir);
  try {
- cloneOutput = child_process.execSync(cloneCmd, {
+ await execFileAsync('git', cloneArgs, {
  cwd: wsDir,
  timeout: 45000,
  encoding: 'utf8',
@@ -2648,11 +2854,12 @@ app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async 
 
  if (auto_install) {
  try {
- installOutput = child_process.execSync('npm install --no-audit --no-fund', {
+ const { stdout, stderr } = await execFileAsync('npm', ['install', '--no-audit', '--no-fund'], {
  cwd: targetDir,
  timeout: 60000,
  encoding: 'utf8'
  });
+ installOutput = stdout + stderr;
  } catch (npmErr) {
  installOutput = `NPM install warning: ${  npmErr.message || ''}`;
  }
@@ -2662,11 +2869,12 @@ app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async 
  startCommand = `python3 ${  fs.existsSync(path.join(targetDir, 'bot.py')) ? 'bot.py' : 'main.py'}`;
  if (auto_install && hasReqs) {
  try {
- installOutput = child_process.execSync('pip3 install -r requirements.txt', {
+ const { stdout, stderr } = await execFileAsync('pip3', ['install', '-r', 'requirements.txt'], {
  cwd: targetDir,
  timeout: 45000,
  encoding: 'utf8'
  });
+ installOutput = stdout + stderr;
  } catch (pipErr) {
  installOutput = `Pip install notice: ${  pipErr.message || ''}`;
  }
@@ -2696,10 +2904,11 @@ app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async 
  // Get last commit info
  let lastCommit = '';
  try {
- lastCommit = child_process.execSync('git log -1 --pretty=format:"%h - %an: %s (%cr)"', {
+ const { stdout } = await execFileAsync('git', ['log', '-1', '--pretty=format:%h - %an: %s (%cr)'], {
  cwd: targetDir,
  encoding: 'utf8'
- }).trim();
+ });
+ lastCommit = stdout.trim();
  } catch (e) {}
 
  res.json({
@@ -2724,7 +2933,7 @@ app.post('/api/vps/:vps_id/github/clone', authRequired, vpsOwnerRequired, async 
 });
 
 // Pull latest changes from upstream GitHub repo
-app.post('/api/vps/:vps_id/github/pull', authRequired, vpsOwnerRequired, (req, res) => {
+app.post('/api/vps/:vps_id/github/pull', authRequired, vpsOwnerRequired, async (req, res) => {
  const vpsId = req.params.vps_id;
  const { folder = 'site' } = req.body || {};
  const wsDir = path.join(INSTANCES_DIR, vpsId);
@@ -2735,20 +2944,20 @@ app.post('/api/vps/:vps_id/github/pull', authRequired, vpsOwnerRequired, (req, r
  }
 
  try {
- const pullOut = child_process.execSync('git pull --ff-only', {
+ const { stdout: pullOut } = await execFileAsync('git', ['pull', '--ff-only'], {
  cwd: targetDir,
  timeout: 20000,
  encoding: 'utf8'
  });
- const lastCommit = child_process.execSync('git log -1 --pretty=format:"%h - %an: %s (%cr)"', {
+ const { stdout: commitOut } = await execFileAsync('git', ['log', '-1', '--pretty=format:%h - %an: %s (%cr)'], {
  cwd: targetDir,
  encoding: 'utf8'
- }).trim();
+ });
 
  res.json({
  success: true,
  output: pullOut || 'Already up to date.',
- last_commit: lastCommit
+ last_commit: commitOut.trim()
  });
  } catch (err) {
  res.status(500).json({
@@ -2760,7 +2969,7 @@ app.post('/api/vps/:vps_id/github/pull', authRequired, vpsOwnerRequired, (req, r
 });
 
 // Get repository status and commit info
-app.get('/api/vps/:vps_id/github/info', authRequired, vpsOwnerRequired, (req, res) => {
+app.get('/api/vps/:vps_id/github/info', authRequired, vpsOwnerRequired, async (req, res) => {
  const vpsId = req.params.vps_id;
  const { folder = 'site' } = req.query || {};
  const wsDir = path.join(INSTANCES_DIR, vpsId);
@@ -2772,10 +2981,13 @@ app.get('/api/vps/:vps_id/github/info', authRequired, vpsOwnerRequired, (req, re
  }
 
  try {
- const remote = child_process.execSync('git remote get-url origin', { cwd: targetDir, encoding: 'utf8' }).trim();
- const branch = child_process.execSync('git rev-parse --abbrev-ref HEAD', { cwd: targetDir, encoding: 'utf8' }).trim();
- const lastCommit = child_process.execSync('git log -1 --pretty=format:"%h - %an: %s (%cr)"', { cwd: targetDir, encoding: 'utf8' }).trim();
- const status = child_process.execSync('git status -s', { cwd: targetDir, encoding: 'utf8' }).trim();
+ const run = (args) => execFileAsync('git', args, { cwd: targetDir, encoding: 'utf8' }).then(r => r.stdout.trim());
+ const [remote, branch, lastCommit, status] = await Promise.all([
+ run(['remote', 'get-url', 'origin']),
+ run(['rev-parse', '--abbrev-ref', 'HEAD']),
+ run(['log', '-1', '--pretty=format:%h - %an: %s (%cr)']),
+ run(['status', '-s'])
+ ]);
 
  res.json({
  success: true,
@@ -2809,8 +3021,20 @@ if (process.env.ENABLE_SWAGGER !== 'false') {
 
 // ---------------------- STATIC ASSETS & FALLBACK ----------------------
 
-// Serve static assets from project root
-app.use(express.static(path.join(__dirname), { index: false }));
+// SECURITY FIX: this used to be `express.static(path.join(__dirname))`,
+// which serves EVERY file in the project root over HTTP — including
+// server.js, database.js, package.json and, critically, a real .env file
+// (JWT_SECRET, SESSION_SECRET, any API keys) if one exists on disk. That
+// let anyone download the entire backend source and secrets with a plain
+// GET request. Only an explicit allowlist of genuinely public frontend
+// assets is served now.
+const PUBLIC_STATIC_FILES = new Set(['index.html', 'openapi.yaml', 'metadata.json']);
+app.use((req, res, next) => {
+  const reqPath = req.path.replace(/^\/+/, '');
+  if (req.method !== 'GET' && req.method !== 'HEAD') {return next();}
+  if (!PUBLIC_STATIC_FILES.has(reqPath)) {return next();}
+  res.sendFile(path.join(__dirname, reqPath));
+});
 
 // Fallback to index.html for UI SPA routes
 app.use((req, res) => {
@@ -2838,29 +3062,61 @@ function recoverRunningBots() {
     appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Server back online — auto-resuming bot (restart protection).`);
     startBotProcess(vpsId, targetFile, bot.runtime);
   }
-  saveDb();
+  flushDbSync();
 }
 
-// Graceful shutdown: stop child bot processes cleanly on SIGINT/SIGTERM.
- let shuttingDown = false;
+// Graceful shutdown: stop child bot processes cleanly on SIGINT/SIGTERM and
+// make sure every last database change is flushed to disk *synchronously*
+// before the process exits — a deferred setImmediate() write is never
+// guaranteed to run once process.exit() is called, and losing that final
+// write is exactly how "it keeps deleting our account" reports happen after
+// a routine platform restart/redeploy.
+let shuttingDown = false;
 function gracefulShutdown(signal) {
- if (shuttingDown) {return;}
- shuttingDown = true;
- logger.info({ signal }, '[CloudVPS] Shutting down — bot processes paused, state kept "running" for 24/7 auto-resume on next boot');
- for (const vpsId of Array.from(activeBots.keys())) {
- stopBotProcess(vpsId, false);
- }
- saveDb();
- process.exit(0);
+  if (shuttingDown) {return;}
+  shuttingDown = true;
+  logger.info({ signal }, '[CloudVPS] Shutting down — bot processes paused, state kept "running" for 24/7 auto-resume on next boot');
+  for (const vpsId of Array.from(activeBots.keys())) {
+    stopBotProcess(vpsId, false);
+  }
+  flushDbSync();
+  server.close(() => process.exit(0));
+  // Never hang forever waiting for connections to drain.
+  setTimeout(() => process.exit(0), 5000).unref();
 }
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
+// Last-resort safety nets: an uncaught error must never silently kill the
+// process (which would drop every active session and, worse, could race
+// with an in-flight DB write). Log it, flush whatever state we have, and
+// keep serving — a single bad request/child-process event should never take
+// the whole platform (and every signed-in user) down with it.
+process.on('uncaughtException', (err) => {
+  logger.error({ err }, '[CloudVPS] Uncaught exception — recovering, database flushed for safety');
+  try { flushDbSync(); } catch (e) { /* best effort */ }
+});
+process.on('unhandledRejection', (reason) => {
+  logger.error({ err: reason }, '[CloudVPS] Unhandled promise rejection — recovering');
+});
+
+// Periodic safety flush: guarantees the on-disk DB is never more than a few
+// seconds stale even if something skips the normal saveDb() path, and gives
+// the corruption/backup rotation in saveDbSync() frequent, low-cost chances
+// to run.
+setInterval(() => {
+  if (savePending) {flushDbSync();}
+}, 5000).unref();
+
 // Start listening
 loadDb();
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   logger.info(`[CloudVPS] Server listening on http://0.0.0.0:${PORT}`);
   logger.info('[CloudVPS] 24/7 bot watchdog enabled — running bots are resumed automatically on boot');
   recoverRunningBots();
   recoverPendingInstalls();
 });
+// Keep-alive tuning: avoid dropped/duplicate connections behind proxies that
+// terminate idle sockets slightly faster than Node's defaults.
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;

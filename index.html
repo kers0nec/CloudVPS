@@ -5,32 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cloud Vps</title>
   <meta name="description" content="Cloud Vps — Discord bot hosting and VPS workspace.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z' fill='%23972577'/%3E%3Cpath d='M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z' fill='%23BD2E95'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='0' y='0' width='100' height='100' rx='22' fill='%23000000'/%3E%3Cpath d='M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z' fill='%23ffffff'/%3E%3Cpath d='M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z' fill='%23999999'/%3E%3C/svg%3E">
   <style>
     :root {
-      --bg: #0d0f12;
-      --panel: #14171c;
-      --panel-2: #1a1e24;
-      --input-bg: #0f1216;
-      --border: #262c35;
-      --border-soft: #1f242c;
-      --text: #e7eaee;
-      --muted: #99a2ae;
-      --dim: #6b7480;
-      --accent: #5865f2;
-      --accent-hover: #4a56dd;
-      --green: #3fb950;
-      --red: #e5534b;
-      --amber: #d9a23a;
-      --radius: 10px;
-      --radius-sm: 7px;
+      /* ---- Pure black & white glass theme ---- */
+      --bg: #050505;
+      --bg-2: #0a0a0a;
+      --panel: rgba(255, 255, 255, 0.045);
+      --panel-2: rgba(255, 255, 255, 0.08);
+      --panel-solid: #111113;
+      --input-bg: rgba(255, 255, 255, 0.035);
+      --border: rgba(255, 255, 255, 0.12);
+      --border-soft: rgba(255, 255, 255, 0.07);
+      --border-strong: rgba(255, 255, 255, 0.22);
+      --text: #f5f5f7;
+      --muted: #9a9aa2;
+      --dim: #66666e;
+      --accent: #ffffff;
+      --accent-hover: #d8d8dc;
+      --on-accent: #000000;
+      --green: #e6e6e6;
+      --red: #ff5c5c;
+      --amber: #e0c26a;
+      --radius: 14px;
+      --radius-sm: 10px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --blur: 22px;
+      --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.55), 0 2px 0 rgba(255,255,255,0.04) inset;
+      --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
     body {
-      background: var(--bg);
+      background:
+        radial-gradient(1100px 700px at 12% -10%, rgba(255,255,255,0.07), transparent 60%),
+        radial-gradient(900px 600px at 110% 10%, rgba(255,255,255,0.05), transparent 55%),
+        radial-gradient(1200px 800px at 50% 120%, rgba(255,255,255,0.04), transparent 60%),
+        var(--bg);
+      background-attachment: fixed;
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       font-size: 14px;
@@ -40,106 +53,204 @@
     button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
     input, select, textarea { font: inherit; color: var(--text); }
     ::placeholder { color: var(--dim); }
+    ::selection { background: rgba(255,255,255,0.25); color: #fff; }
+
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); background-clip: padding-box; }
 
     #app { display: flex; height: 100vh; overflow: hidden; }
 
     /* ---------- Sidebar ---------- */
     #sidebar {
-      width: 212px;
-      min-width: 212px;
-      background: #101318;
+      width: 224px;
+      min-width: 224px;
+      background: rgba(10, 10, 11, 0.55);
+      backdrop-filter: blur(var(--blur)) saturate(140%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
       border-right: 1px solid var(--border-soft);
       display: flex;
       flex-direction: column;
+      position: relative;
+      z-index: 5;
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 9px;
-      padding: 16px 16px 14px;
+      gap: 10px;
+      padding: 20px 18px 16px;
       font-weight: 600;
-      font-size: 15px;
+      font-size: 15.5px;
       letter-spacing: -0.01em;
     }
-    .brand svg { flex-shrink: 0; }
-    #nav { padding: 4px 10px; display: flex; flex-direction: column; gap: 2px; }
+    .brand strong { font-weight: 800; }
+    .brand svg { flex-shrink: 0; filter: drop-shadow(0 2px 10px rgba(255,255,255,0.12)); }
+    #nav { padding: 6px 12px; display: flex; flex-direction: column; gap: 3px; }
     .nav-btn {
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 10px;
       width: 100%;
-      padding: 8px 10px;
+      padding: 9px 11px;
       border-radius: var(--radius-sm);
       color: var(--muted);
       font-size: 13.5px;
       font-weight: 500;
       text-align: left;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
     }
     .nav-btn:hover { background: var(--panel-2); color: var(--text); }
-    .nav-btn.active { background: var(--panel-2); color: var(--text); }
-    .nav-btn svg { flex-shrink: 0; opacity: 0.85; }
+    .nav-btn.active {
+      background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06));
+      color: #fff;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 6px 18px rgba(0,0,0,0.35);
+    }
+    .nav-btn svg { flex-shrink: 0; opacity: 0.9; }
     .sidebar-footer {
       margin-top: auto;
-      padding: 12px;
+      padding: 14px;
       border-top: 1px solid var(--border-soft);
     }
     .user-pill {
       display: flex;
       align-items: center;
-      gap: 9px;
-      padding: 7px 9px;
+      gap: 10px;
+      padding: 8px 10px;
       border-radius: var(--radius-sm);
       background: var(--panel);
       border: 1px solid var(--border-soft);
+      backdrop-filter: blur(8px);
     }
     .user-avatar {
-      width: 26px; height: 26px;
-      border-radius: 6px;
-      background: var(--accent);
-      color: #fff;
-      font-size: 12px;
-      font-weight: 700;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #fff, #b8b8bd);
+      color: #000;
+      font-size: 12.5px;
+      font-weight: 800;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.35);
     }
     .user-pill .name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .user-pill .sub { font-size: 11px; color: var(--muted); }
+    .user-pill .sub { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .user-pill .sub::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.7); display: inline-block; }
     .footer-actions { display: flex; gap: 8px; }
 
+    /* ---------- Account switcher ---------- */
+    .user-pill.clickable { cursor: pointer; user-select: none; transition: background 0.14s ease, border-color 0.14s ease; }
+    .user-pill.clickable:hover { background: var(--panel-2); border-color: var(--border-strong); }
+    .user-pill .caret { margin-left: auto; opacity: 0.6; flex-shrink: 0; transition: transform 0.15s ease; }
+    .user-pill.open .caret { transform: rotate(180deg); }
+    #acct-switcher { position: relative; }
+    .acct-menu {
+      position: absolute;
+      left: 0; right: 0;
+      bottom: calc(100% + 8px);
+      background: var(--panel-solid);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(var(--blur)) saturate(140%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+      padding: 6px;
+      display: none;
+      max-height: 320px;
+      overflow-y: auto;
+      z-index: 30;
+    }
+    .acct-menu.open { display: block; }
+    .acct-menu-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); padding: 8px 8px 4px; }
+    .acct-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 7px 8px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text);
+      transition: background 0.12s ease;
+    }
+    .acct-menu-item:hover { background: var(--panel-2); }
+    .acct-menu-item.current { background: rgba(255,255,255,0.1); }
+    .acct-menu-item .acct-avatar {
+      width: 22px; height: 22px; border-radius: 6px;
+      background: linear-gradient(145deg, #fff, #b8b8bd);
+      color: #000; font-size: 10.5px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .acct-menu-item .acct-name { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .acct-menu-item .acct-tag { font-size: 10px; color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+    .acct-menu-item .acct-remove { flex-shrink: 0; opacity: 0.45; padding: 3px; border-radius: 6px; }
+    .acct-menu-item .acct-remove:hover { opacity: 1; background: rgba(255,92,92,0.18); color: var(--red); }
+    .acct-menu-divider { height: 1px; background: var(--border-soft); margin: 6px 2px; }
+    .acct-menu-action { color: var(--muted); font-weight: 500; }
+    .acct-menu-action:hover { color: var(--text); }
+    .acct-menu-action.danger:hover { color: var(--red); background: rgba(255,92,92,0.12); }
+
+    .saved-acct-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); }
+    .saved-acct-row:last-child { border-bottom: none; }
+    .saved-acct-row .acct-avatar {
+      width: 26px; height: 26px; border-radius: 7px;
+      background: linear-gradient(145deg, #fff, #b8b8bd);
+      color: #000; font-size: 11.5px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .saved-acct-row .name { font-size: 13.5px; font-weight: 600; flex: 1; }
+    .saved-acct-row .pill-tag { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #000; background: #fff; padding: 2px 7px; border-radius: 999px; }
+
     /* ---------- Main ---------- */
-    #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    #main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
     #topbar {
-      height: 53px;
-      min-height: 53px;
+      height: 58px;
+      min-height: 58px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 0 20px;
+      padding: 0 22px;
       border-bottom: 1px solid var(--border-soft);
-      background: rgba(13, 15, 18, 0.6);
+      background: rgba(6, 6, 7, 0.45);
+      backdrop-filter: blur(var(--blur)) saturate(140%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+      position: relative;
+      z-index: 4;
     }
-    #page-title { font-size: 14.5px; font-weight: 600; }
+    #page-title { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
     #page-actions { display: flex; gap: 8px; align-items: center; }
-    #content { flex: 1; overflow-y: auto; padding: 20px; }
+    #content { flex: 1; overflow-y: auto; padding: 24px; }
     .view { display: none; max-width: 1100px; margin: 0 auto; }
-    .view.active { display: block; }
+    .view.active { display: block; animation: view-in 0.25s ease; }
+    @keyframes view-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
-    /* ---------- Cards ---------- */
+    /* ---------- Cards (glass) ---------- */
     .card {
       background: var(--panel);
       border: 1px solid var(--border-soft);
       border-radius: var(--radius);
-      padding: 16px;
+      padding: 18px;
+      backdrop-filter: blur(var(--blur)) saturate(140%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+      box-shadow: var(--shadow-sm);
+      position: relative;
+    }
+    .card::before {
+      content: "";
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(160deg, rgba(255,255,255,0.06), transparent 40%);
+      pointer-events: none;
     }
     .card + .card { margin-top: 14px; }
     .card-title {
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 11.5px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.09em;
       color: var(--muted);
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -154,126 +265,139 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      height: 32px;
-      padding: 0 13px;
+      height: 33px;
+      padding: 0 14px;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border);
       background: var(--panel-2);
+      backdrop-filter: blur(10px);
       font-size: 13px;
       font-weight: 500;
       white-space: nowrap;
-      transition: background 0.12s, border-color 0.12s;
+      color: var(--text);
+      transition: background 0.14s ease, border-color 0.14s ease, transform 0.08s ease;
     }
-    .btn:hover { background: #21262e; }
-    .btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
-    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent-hover); }
-    .btn-success { background: #1d6b3c; border-color: #24804a; color: #d7f5e1; }
-    .btn-success:hover { background: #227a45; }
-    .btn-danger { background: transparent; border-color: rgba(229, 83, 75, 0.4); color: var(--red); }
-    .btn-danger:hover { background: rgba(229, 83, 75, 0.1); }
-    .btn-sm { height: 27px; padding: 0 10px; font-size: 12.5px; }
+    .btn:hover { background: rgba(255,255,255,0.14); border-color: var(--border-strong); }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+    .btn-primary { background: #ffffff; border-color: #ffffff; color: #000; font-weight: 650; }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .btn-success { background: rgba(255,255,255,0.16); border-color: var(--border-strong); color: #fff; }
+    .btn-success:hover { background: rgba(255,255,255,0.24); }
+    .btn-danger { background: transparent; border-color: rgba(255, 92, 92, 0.4); color: var(--red); }
+    .btn-danger:hover { background: rgba(255, 92, 92, 0.12); border-color: rgba(255, 92, 92, 0.6); }
+    .btn-sm { height: 28px; padding: 0 11px; font-size: 12.5px; }
     .btn-icon {
-      width: 26px; height: 26px; padding: 0;
+      width: 27px; height: 27px; padding: 0;
       display: inline-flex; align-items: center; justify-content: center;
-      border-radius: 6px; color: var(--muted);
+      border-radius: 7px; color: var(--muted);
       border: 1px solid transparent;
     }
     .btn-icon:hover { background: var(--panel-2); color: var(--text); border-color: var(--border); }
 
     /* ---------- Forms ---------- */
-    .field { margin-bottom: 12px; }
-    .field label { display: block; font-size: 12.5px; font-weight: 500; color: var(--muted); margin-bottom: 5px; }
+    .field { margin-bottom: 13px; }
+    .field label { display: block; font-size: 12.5px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
     .input, select.input, textarea.input {
       width: 100%;
-      height: 34px;
+      height: 36px;
       background: var(--input-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 0 11px;
+      padding: 0 12px;
       font-size: 13.5px;
       outline: none;
+      color: var(--text);
+      transition: border-color 0.14s ease, background 0.14s ease;
     }
-    textarea.input { height: auto; padding: 9px 11px; resize: vertical; }
-    .input:focus, select.input:focus, textarea.input:focus { border-color: var(--accent); }
+    textarea.input { height: auto; padding: 10px 12px; resize: vertical; }
+    .input:focus, select.input:focus, textarea.input:focus { border-color: var(--border-strong); background: rgba(255,255,255,0.06); }
     select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 16px) 15px, calc(100% - 11px) 15px; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 28px; }
     .input-row { display: flex; gap: 8px; }
     .input-row .input { flex: 1; min-width: 0; }
-    .hint { font-size: 12px; color: var(--dim); margin-top: 6px; }
+    .hint { font-size: 12px; color: var(--dim); margin-top: 7px; }
 
     /* ---------- Stat strip ---------- */
-    .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+    .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
     @media (max-width: 800px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } }
     .stat {
       background: var(--panel);
       border: 1px solid var(--border-soft);
       border-radius: var(--radius);
-      padding: 11px 14px;
+      padding: 13px 15px;
+      backdrop-filter: blur(var(--blur));
+      -webkit-backdrop-filter: blur(var(--blur));
     }
-    .stat .k { font-size: 11.5px; color: var(--muted); font-weight: 500; }
-    .stat .v { font-size: 13.5px; font-weight: 600; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .stat .s { font-size: 11.5px; color: var(--dim); }
+    .stat .k { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat .v { font-size: 14.5px; font-weight: 650; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat .s { font-size: 11.5px; color: var(--dim); margin-top: 1px; }
 
     /* ---------- VPS list ---------- */
     .vps-card {
       background: var(--panel);
       border: 1px solid var(--border-soft);
       border-radius: var(--radius);
-      padding: 14px 16px;
+      padding: 16px 18px;
       display: flex;
       align-items: center;
       gap: 14px;
+      backdrop-filter: blur(var(--blur));
+      -webkit-backdrop-filter: blur(var(--blur));
+      transition: border-color 0.15s ease, background 0.15s ease;
     }
+    .vps-card:hover { border-color: var(--border-strong); background: rgba(255,255,255,0.065); }
     .vps-card + .vps-card { margin-top: 10px; }
     .vps-main { flex: 1; min-width: 0; }
-    .vps-name { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    .vps-specs { font-size: 12.5px; color: var(--muted); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+    .vps-name { font-size: 14.5px; font-weight: 650; display: flex; align-items: center; gap: 8px; }
+    .vps-specs { font-size: 12.5px; color: var(--muted); margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
     .vps-specs .ip { font-family: var(--mono); font-size: 12px; }
 
     /* ---------- Packages ---------- */
     .pkg-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    .pkg-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-family: var(--mono); padding: 3px 9px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel-2); color: var(--muted); }
+    .pkg-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-family: var(--mono); padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel-2); color: var(--muted); }
     .pkg-chip .pv { color: var(--dim); }
-    .pkg-chip.auto { border-color: rgba(88, 101, 242, .45); color: #9aa6ff; }
-    .pkg-chip.pending { border-color: rgba(240, 178, 50, .4); color: #f0b232; }
+    .pkg-chip.auto { border-color: var(--border-strong); color: #fff; }
+    .pkg-chip.pending { border-color: rgba(224, 194, 106, .45); color: #e0c26a; }
     .pkg-state { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; }
-    .pkg-state.installing { color: #f0b232; }
-    .pkg-state.done { color: var(--green); }
-    .pkg-state.failed { color: var(--red, #f85149); }
-    .spinner { width: 11px; height: 11px; border: 2px solid rgba(240, 178, 50, .25); border-top-color: #f0b232; border-radius: 50%; animation: pkgspin .8s linear infinite; display: inline-block; flex-shrink: 0; }
+    .pkg-state.installing { color: #e0c26a; }
+    .pkg-state.done { color: #fff; }
+    .pkg-state.failed { color: var(--red); }
+    .spinner { width: 11px; height: 11px; border: 2px solid rgba(255,255,255,.18); border-top-color: #fff; border-radius: 50%; animation: pkgspin .8s linear infinite; display: inline-block; flex-shrink: 0; }
     @keyframes pkgspin { to { transform: rotate(360deg); } }
     .vps-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
     @media (max-width: 700px) { .vps-card { flex-direction: column; align-items: stretch; } .vps-actions { justify-content: flex-start; } }
 
     .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex-shrink: 0; display: inline-block; }
-    .dot.on { background: var(--green); }
-    .dot.err { background: var(--red); }
+    .dot.on { background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.8); }
+    .dot.err { background: var(--red); box-shadow: 0 0 10px rgba(255,92,92,0.6); }
     .status-text { font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
 
     /* ---------- Empty state ---------- */
     .empty {
       border: 1px dashed var(--border);
       border-radius: var(--radius);
-      padding: 42px 20px;
+      padding: 46px 20px;
       text-align: center;
       color: var(--muted);
+      background: var(--panel);
+      backdrop-filter: blur(var(--blur));
     }
-    .empty h3 { font-size: 14.5px; color: var(--text); font-weight: 600; margin-bottom: 5px; }
-    .empty p { font-size: 13px; margin-bottom: 14px; }
+    .empty h3 { font-size: 15px; color: var(--text); font-weight: 650; margin-bottom: 6px; }
+    .empty p { font-size: 13px; margin-bottom: 16px; }
 
     /* ---------- Dropzone ---------- */
     .dropzone {
       border: 1.5px dashed var(--border);
       border-radius: var(--radius);
-      padding: 22px;
+      padding: 24px;
       text-align: center;
       color: var(--muted);
       cursor: pointer;
-      transition: border-color 0.12s, background 0.12s;
-      background: var(--panel);
+      transition: border-color 0.14s, background 0.14s;
+      background: rgba(255,255,255,0.02);
     }
-    .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: rgba(88, 101, 242, 0.05); }
-    .dropzone .dz-title { color: var(--text); font-weight: 500; font-size: 13.5px; }
+    .dropzone:hover, .dropzone.drag { border-color: var(--border-strong); background: rgba(255, 255, 255, 0.06); }
+    .dropzone .dz-title { color: var(--text); font-weight: 550; font-size: 13.5px; }
     .dropzone .dz-sub { font-size: 12px; margin-top: 3px; }
 
     /* ---------- File tree ---------- */
@@ -282,13 +406,13 @@
       display: flex;
       align-items: center;
       gap: 7px;
-      padding: 4px 8px;
-      border-radius: 6px;
+      padding: 5px 9px;
+      border-radius: 7px;
       cursor: pointer;
       color: var(--muted);
     }
     .tree-row:hover { background: var(--panel-2); color: var(--text); }
-    .tree-row.selected { background: rgba(88, 101, 242, 0.14); color: var(--text); }
+    .tree-row.selected { background: rgba(255, 255, 255, 0.12); color: var(--text); }
     .tree-row .t-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tree-row .t-meta { font-size: 11.5px; color: var(--dim); flex-shrink: 0; }
     .tree-row .t-actions { display: none; gap: 2px; flex-shrink: 0; }
@@ -302,7 +426,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 8px;
+      margin-bottom: 9px;
     }
     .editor-head .fname { font-family: var(--mono); font-size: 12.5px; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .dirty-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); display: none; }
@@ -310,30 +434,30 @@
     #file-editor {
       width: 100%;
       min-height: 300px;
-      background: #0b0d10;
+      background: rgba(0,0,0,0.35);
       border: 1px solid var(--border-soft);
       border-radius: var(--radius-sm);
-      color: #dfe3e8;
+      color: #e6e6e9;
       font-family: var(--mono);
       font-size: 12.5px;
       line-height: 1.6;
-      padding: 12px;
+      padding: 13px;
       outline: none;
       resize: vertical;
       tab-size: 4;
     }
-    #file-editor:focus { border-color: var(--accent); }
+    #file-editor:focus { border-color: var(--border-strong); }
 
     /* ---------- Logs ---------- */
     .log-box {
-      background: #0b0d10;
+      background: rgba(0,0,0,0.4);
       border: 1px solid var(--border-soft);
       border-radius: var(--radius-sm);
       font-family: var(--mono);
       font-size: 12px;
       line-height: 1.65;
-      color: #c8cdd4;
-      padding: 10px 12px;
+      color: #d4d4d8;
+      padding: 11px 13px;
       height: 250px;
       overflow-y: auto;
       white-space: pre-wrap;
@@ -342,7 +466,7 @@
     .log-box:empty::before { content: "No logs yet. Start the bot to see output here."; color: var(--dim); }
 
     /* ---------- Account ---------- */
-    .account-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); }
+    .account-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
     .account-row:last-child { border-bottom: none; }
     .account-row .k { font-size: 13px; color: var(--muted); }
     .account-row .v { font-size: 13px; font-weight: 500; font-family: var(--mono); word-break: break-all; text-align: right; }
@@ -351,52 +475,64 @@
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(5, 7, 10, 0.66);
+      background: rgba(0, 0, 0, 0.68);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 100;
       padding: 16px;
     }
-    .modal-backdrop.open { display: flex; }
+    .modal-backdrop.open { display: flex; animation: fade-in 0.15s ease; }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
     .modal {
       width: 100%;
       max-width: 400px;
-      background: var(--panel);
+      background: rgba(16, 16, 18, 0.85);
+      backdrop-filter: blur(30px) saturate(160%);
+      -webkit-backdrop-filter: blur(30px) saturate(160%);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: var(--shadow-lg);
+      animation: modal-in 0.18s cubic-bezier(.2,.9,.3,1.2);
     }
-    .modal h2 { font-size: 15.5px; font-weight: 600; margin-bottom: 14px; }
-    .modal .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
-    .modal-error { display: none; font-size: 12.5px; color: var(--red); background: rgba(229, 83, 75, 0.09); border: 1px solid rgba(229, 83, 75, 0.3); border-radius: var(--radius-sm); padding: 7px 10px; margin-bottom: 12px; }
-    .auth-tabs { display: flex; gap: 4px; background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 14px; }
-    .auth-tabs button { flex: 1; height: 28px; border-radius: 5px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
-    .auth-tabs button.active { background: var(--panel-2); color: var(--text); }
+    @keyframes modal-in { from { opacity: 0; transform: scale(0.96) translateY(6px); } to { opacity: 1; transform: none; } }
+    .modal h2 { font-size: 16px; font-weight: 650; margin-bottom: 15px; letter-spacing: -0.01em; }
+    .modal .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 17px; }
+    .modal-error { display: none; font-size: 12.5px; color: var(--red); background: rgba(255, 92, 92, 0.09); border: 1px solid rgba(255, 92, 92, 0.3); border-radius: var(--radius-sm); padding: 8px 11px; margin-bottom: 13px; }
+    .auth-tabs { display: flex; gap: 4px; background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 15px; }
+    .auth-tabs button { flex: 1; height: 29px; border-radius: 7px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+    .auth-tabs button.active { background: #fff; color: #000; font-weight: 650; }
 
     /* ---------- Toasts ---------- */
-    #toasts { position: fixed; bottom: 18px; right: 18px; display: flex; flex-direction: column; gap: 8px; z-index: 200; max-width: 360px; }
+    #toasts { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 200; max-width: 360px; }
     .toast {
-      background: var(--panel-2);
+      background: rgba(18, 18, 20, 0.85);
+      backdrop-filter: blur(20px) saturate(150%);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
       border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      border-radius: 8px;
-      padding: 10px 13px;
+      border-left: 3px solid #fff;
+      border-radius: 10px;
+      padding: 11px 14px;
       font-size: 13px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      animation: toast-in 0.15s ease;
+      box-shadow: var(--shadow-lg);
+      animation: toast-in 0.18s ease;
     }
-    .toast.ok { border-left-color: var(--green); }
+    .toast.ok { border-left-color: #fff; }
     .toast.err { border-left-color: var(--red); }
-    @keyframes toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
     @media (max-width: 760px) {
-      #sidebar { width: 62px; min-width: 62px; }
+      #sidebar { width: 64px; min-width: 64px; }
       .brand span, .nav-btn span, .user-pill .info { display: none; }
-      .brand { justify-content: center; padding: 16px 8px 14px; }
-      .nav-btn { justify-content: center; padding: 9px 0; }
-      .user-pill { justify-content: center; padding: 6px; }
+      .brand { justify-content: center; padding: 18px 8px 14px; }
+      .nav-btn { justify-content: center; padding: 10px 0; }
+      .user-pill { justify-content: center; padding: 7px; }
+      .user-pill .caret { display: none; }
       .footer-actions { justify-content: center; }
+      .acct-menu { left: -160px; width: 240px; }
     }
   </style>
 </head>
@@ -405,10 +541,10 @@
     <aside id="sidebar">
       <div class="brand">
         <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
-          <path d="M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z" fill="#972577"/>
-          <path d="M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z" fill="#BD2E95"/>
+          <path d="M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z" fill="#ffffff"/>
+          <path d="M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z" fill="#8a8a8a"/>
         </svg>
-        <span>Cloud Vps</span>
+        <span>Cloud<strong>VPS</strong></span>
       </div>
 
       <nav id="nav">
@@ -790,15 +926,118 @@
     }
 
     /* ================= SIDEBAR / AUTH ================= */
+    /* ================= SAVED ACCOUNTS (safe multi-account switching) =================
+     * This is the ONLY multi-account mechanism in the app. Unlike the old
+     * `/api/users/switch` (removed — it switched to any account by username
+     * alone, no password check), this list is built entirely client-side and
+     * only ever gains an entry the moment THIS browser successfully logs in
+     * or registers with the real server and receives a genuine api_key back.
+     * Switching just re-selects one of those already-proven credentials —
+     * the server still re-validates the api_key on every switch
+     * (`/api/session/switch`), so a tampered localStorage entry can never
+     * grant access to an account this browser hasn't actually authenticated
+     * as. */
+    const SAVED_ACCOUNTS_KEY = 'cloudvps_accounts';
+
+    function getSavedAccounts() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(SAVED_ACCOUNTS_KEY) || '[]');
+        return Array.isArray(raw) ? raw.filter(a => a && a.api_key && a.username) : [];
+      } catch (e) { return []; }
+    }
+    function setSavedAccounts(list) {
+      localStorage.setItem(SAVED_ACCOUNTS_KEY, JSON.stringify(list));
+    }
+    // Called only right after a real, server-confirmed login/register.
+    function rememberAccount(user) {
+      const list = getSavedAccounts().filter(a => a.api_key !== user.api_key);
+      list.unshift({ id: user.id || user.user_id, username: user.username, api_key: user.api_key });
+      setSavedAccounts(list.slice(0, 8));
+    }
+    function forgetAccount(apiKey) {
+      setSavedAccounts(getSavedAccounts().filter(a => a.api_key !== apiKey));
+    }
+
+    async function switchAccount(apiKey) {
+      if (STATE.user && STATE.user.api_key === apiKey) { closeAcctMenu(); return; }
+      const res = await api('/api/session/switch', { method: 'POST', body: { api_key: apiKey } });
+      if (res.ok && res.data.success) {
+        localStorage.setItem('cloudvps_key', res.data.api_key);
+        STATE.user = { id: res.data.user_id, username: res.data.username, api_key: res.data.api_key };
+        rememberAccount(STATE.user);
+        closeAcctMenu();
+        renderSidebar();
+        toast('Switched to ' + STATE.user.username, 'ok');
+        switchTab(STATE.tab === 'account' ? 'account' : STATE.tab);
+        loadVpsList();
+      } else {
+        toast(res.data.error || 'That saved account could not be restored. Try signing in again.', 'err');
+        forgetAccount(apiKey);
+        renderSidebar();
+      }
+    }
+
+    function removeSavedAccount(apiKey, ev) {
+      if (ev) ev.stopPropagation();
+      forgetAccount(apiKey);
+      renderSidebar();
+    }
+
+    let acctMenuOpen = false;
+    function toggleAcctMenu(ev) {
+      if (ev) ev.stopPropagation();
+      acctMenuOpen = !acctMenuOpen;
+      renderSidebar();
+    }
+    function closeAcctMenu() {
+      if (!acctMenuOpen) return;
+      acctMenuOpen = false;
+      renderSidebar();
+    }
+    document.addEventListener('click', (e) => {
+      if (acctMenuOpen && !e.target.closest('#acct-switcher')) closeAcctMenu();
+    });
+
+    function avatarLetter(name) { return esc((name || '?')[0].toUpperCase()); }
+
     function renderSidebar() {
       const footer = $('sidebar-footer');
       if (STATE.user) {
+        const saved = getSavedAccounts();
+        const others = saved.filter(a => a.api_key !== STATE.user.api_key);
+        const menuItems = saved.map(a => {
+          const isCurrent = a.api_key === STATE.user.api_key;
+          return `
+            <div class="acct-menu-item ${isCurrent ? 'current' : ''}" style="cursor:pointer;" onclick="switchAccount('${esc(a.api_key)}')">
+              <div class="acct-avatar">${avatarLetter(a.username)}</div>
+              <div class="acct-name">${esc(a.username)}</div>
+              ${isCurrent ? '<span class="acct-tag">Active</span>' : `<button class="acct-remove" title="Forget this saved account" onclick="removeSavedAccount('${esc(a.api_key)}', event)">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>`}
+            </div>`;
+        }).join('');
         footer.innerHTML = `
-          <div class="user-pill">
-            <div class="user-avatar">${esc((STATE.user.username || '?')[0].toUpperCase())}</div>
-            <div class="info">
-              <div class="name">${esc(STATE.user.username)}</div>
-              <div class="sub">Signed in</div>
+          <div id="acct-switcher">
+            <div class="acct-menu ${acctMenuOpen ? 'open' : ''}">
+              <div class="acct-menu-label">Saved accounts</div>
+              ${menuItems || '<div class="acct-menu-item" style="color:var(--dim);">No other saved accounts</div>'}
+              <div class="acct-menu-divider"></div>
+              <button class="acct-menu-item acct-menu-action" onclick="closeAcctMenu(); openAuth('signup', true);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Add another account</span>
+              </button>
+              <button class="acct-menu-item acct-menu-action danger" onclick="closeAcctMenu(); signOut();">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Sign out this account</span>
+              </button>
+            </div>
+            <div class="user-pill clickable ${acctMenuOpen ? 'open' : ''}" onclick="toggleAcctMenu(event)" title="${others.length ? 'Switch account' : 'Account menu'}">
+              <div class="user-avatar">${avatarLetter(STATE.user.username)}</div>
+              <div class="info">
+                <div class="name">${esc(STATE.user.username)}</div>
+                <div class="sub">${others.length ? others.length + ' more saved' : 'Signed in'}</div>
+              </div>
+              <svg class="caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="18 15 12 9 6 15"/></svg>
             </div>
           </div>`;
       } else {
@@ -811,19 +1050,26 @@
     }
 
     let authMode = 'signup';
-    function openAuth(mode = 'signup') {
+    let addingAccount = false;
+    function openAuth(mode = 'signup', addAccount = false) {
+      // addAccount=true is the "Add another account" flow: on success the
+      // new/returning account is appended to the saved-accounts list and
+      // becomes the active one, without ever touching the accounts already
+      // saved in this browser (they stay switchable from the account menu).
+      addingAccount = addAccount;
       setAuthMode(mode);
       $('auth-error').style.display = 'none';
+      $('auth-title').textContent = (addAccount ? 'Add Account — ' : '') + (mode === 'login' ? 'Sign In' : 'Create Account');
       $('auth-backdrop').classList.add('open');
       setTimeout(() => $('auth-username').focus(), 30);
     }
-    function closeAuth() { $('auth-backdrop').classList.remove('open'); }
+    function closeAuth() { $('auth-backdrop').classList.remove('open'); addingAccount = false; }
 
     function setAuthMode(mode) {
       authMode = mode;
       $('tab-login').classList.toggle('active', mode === 'login');
       $('tab-signup').classList.toggle('active', mode === 'signup');
-      $('auth-title').textContent = mode === 'login' ? 'Sign In' : 'Create Account';
+      $('auth-title').textContent = (addingAccount ? 'Add Account — ' : '') + (mode === 'login' ? 'Sign In' : 'Create Account');
       $('auth-confirm-field').style.display = mode === 'signup' ? '' : 'none';
       $('auth-submit').textContent = mode === 'login' ? 'Sign In' : 'Create Account';
       $('auth-error').style.display = 'none';
@@ -851,12 +1097,15 @@
       if (res.ok && res.data.success) {
         localStorage.setItem('cloudvps_key', res.data.api_key);
         STATE.user = { id: res.data.user_id, username: res.data.username, api_key: res.data.api_key };
+        rememberAccount(STATE.user);
+        const wasAdding = addingAccount;
         closeAuth();
         $('auth-password').value = '';
         $('auth-confirm').value = '';
         renderSidebar();
-        toast('Signed in as ' + STATE.user.username, 'ok');
+        toast((wasAdding ? 'Account added — now signed in as ' : 'Signed in as ') + STATE.user.username, 'ok');
         switchTab(STATE.tab);
+        if (wasAdding) loadVpsList();
       } else {
         showAuthError(res.data.error || 'Authentication failed. Check your details.');
       }
@@ -869,12 +1118,36 @@
     }
 
     async function signOut() {
+      const leavingKey = STATE.user && STATE.user.api_key;
       await api('/api/logout', { method: 'POST' });
       localStorage.removeItem('cloudvps_key');
+      if (leavingKey) forgetAccount(leavingKey);
       STATE.user = null;
+
+      // If another saved account is available on this browser, drop straight
+      // into it instead of forcing a full guest state — this is the
+      // "switch accounts" behavior working in the sign-out direction too.
+      const remaining = getSavedAccounts();
+      if (remaining.length) {
+        renderSidebar();
+        await switchAccount(remaining[0].api_key);
+        return;
+      }
+
       renderSidebar();
       switchTab('vps');
       toast('Signed out');
+    }
+
+    // Sign out of every saved account on this browser at once.
+    async function signOutAll() {
+      await api('/api/logout', { method: 'POST' });
+      localStorage.removeItem('cloudvps_key');
+      setSavedAccounts([]);
+      STATE.user = null;
+      renderSidebar();
+      switchTab('vps');
+      toast('Signed out of all accounts');
     }
 
     /* ================= MY VPS ================= */
@@ -1498,6 +1771,19 @@
         return;
       }
       const created = STATE.user.created_at ? new Date(STATE.user.created_at).toLocaleDateString() : '—';
+      const saved = getSavedAccounts();
+      const savedRows = saved.map(a => {
+        const isCurrent = a.api_key === STATE.user.api_key;
+        return `
+          <div class="saved-acct-row">
+            <div class="acct-avatar">${avatarLetter(a.username)}</div>
+            <div class="name">${esc(a.username)}</div>
+            ${isCurrent
+              ? '<span class="pill-tag">Active</span>'
+              : `<button class="btn btn-sm" onclick="switchAccount('${esc(a.api_key)}')">Switch</button>
+                 <button class="btn btn-sm" onclick="removeSavedAccount('${esc(a.api_key)}', event); renderAccount();" title="Forget on this browser">Forget</button>`}
+          </div>`;
+      }).join('');
       wrap.innerHTML = `
         <div class="card">
           <div class="card-title">Account</div>
@@ -1518,8 +1804,19 @@
           <div class="hint">Use this key for API access. Anyone with it can control your VPS.</div>
         </div>
         <div class="card">
+          <div class="card-title" style="margin-bottom:8px;">
+            <span>Saved Accounts</span>
+            <button class="btn btn-sm btn-primary" onclick="openAuth('signup', true)">+ Add Account</button>
+          </div>
+          <p style="font-size:12.5px; color:var(--muted); margin-bottom:10px;">Switch instantly between accounts you've signed into on this browser. Adding an account never signs you out of the others.</p>
+          ${savedRows || '<p style="font-size:13px; color:var(--dim);">No other accounts saved on this browser yet.</p>'}
+        </div>
+        <div class="card">
           <div class="card-title" style="margin-bottom:8px;">Session</div>
-          <button class="btn btn-danger" onclick="signOut()">Sign Out</button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn" onclick="signOut()">Sign Out</button>
+            ${saved.length > 1 ? '<button class="btn btn-danger" onclick="signOutAll()">Sign Out All Accounts</button>' : ''}
+          </div>
         </div>`;
     }
 
@@ -1561,6 +1858,7 @@
       const res = await api('/api/session');
       if (res.ok && res.data.authenticated && res.data.user) {
         STATE.user = res.data.user;
+        rememberAccount(STATE.user);
         renderSidebar();
       }
       const plansRes = await api('/api/plans');

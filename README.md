@@ -36,11 +36,11 @@ holes:
   happened to pick one of those usernames had their account silently wiped
   on every server restart. Matching is now strictly by the original
   hardcoded legacy ID.
-- **No persistent storage in production:** the default Render deployment
-  ran the legacy Python backend with no disk configured at all, so every
-  redeploy/restart started from a completely empty filesystem. Deployment
-  now uses the Node server with a mounted persistent disk (`PERSIST_DIR`)
-  for both the account database and VPS workspaces.
+- **No persistent storage in production:** ephemeral production deployments
+  without persistent storage start from an empty filesystem on every
+  redeploy/restart. Deployment on Railway uses the Node server with a declared
+  persistent volume (`PERSIST_DIR` mounted at `/var/data`) for both the account
+  database and VPS workspaces.
 - **Unsafe/blocking database writes:** saves are now atomic (write-temp +
   fsync + rename) with rolling backups and corruption detection, so a crash
   or bad write can never silently wipe or corrupt the database — and writes
@@ -131,19 +131,28 @@ automatically), then go to **Dc Bots** and upload your bot.
 Other scripts: `npm run dev` (watch mode), `npm test` (unit tests),
 `npm run lint`, `npm run format`.
 
-### Deploying with persistent storage
+### Deploying on Railway (with persistent storage)
 
-On any host with an ephemeral filesystem (Render, Fly, most container
-platforms), set `PERSIST_DIR` to a mounted persistent volume so **both** the
-account database and every VPS workspace survive redeploys/restarts —
-without this, accounts and bot files are wiped every time the app restarts:
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new)
+
+CloudVPS is preconfigured for deployment on [Railway](https://railway.com) using the included `railway.json` configuration file:
+
+- **Build**: Multi-stage Docker build via `Dockerfile` (Node 22 + Python 3 + pip + git tools pre-installed for Discord bot runtimes).
+- **Start Command**: `node server.js`
+- **Health Check**: `/api/health` with automatic retries and failure restart policy.
+- **Persistent Volume**: Declares required volume mount at `/var/data` (`requiredMountPath: "/var/data"`).
+
+On any host with an ephemeral filesystem (Railway, Fly, container platforms),
+set `PERSIST_DIR` to a mounted persistent volume so **both** the account
+database and every VPS workspace survive redeploys and restarts:
+
+1. In your Railway service settings, attach a **Volume** with the mount path set to `/var/data`.
+2. `railway.json` declares `requiredMountPath: "/var/data"`, prompting for the volume on setup.
+3. `PERSIST_DIR` defaults to `/var/data` in the container, ensuring both `data/` (accounts, database, ledgers, logs) and `vps_instances/` (bot code, dependencies, workspaces) live on durable storage.
 
 ```bash
 PERSIST_DIR=/var/data   # data/ and vps_instances/ both live under here
 ```
-
-`render.yaml` in this repo is already configured with a persistent disk
-mounted at `/var/data` for exactly this reason.
 
 ## API
 

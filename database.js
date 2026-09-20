@@ -1,8 +1,9 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync } from 'fs';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import crypto from 'crypto';
 
-const DATA_DIR = join(process.cwd(), 'data');
+const PERSIST_DIR = process.env.PERSIST_DIR ? resolve(process.env.PERSIST_DIR) : process.cwd();
+const DATA_DIR = join(PERSIST_DIR, 'data');
 const DB_FILE = join(DATA_DIR, 'cloudvps_db.json');
 const DB_BACKUP_FILE = join(DATA_DIR, 'cloudvps_db.backup.json');
 
@@ -141,7 +142,7 @@ function loadDb() {
 }
 
 function initVpsWorkspace(vpsId) {
-  const wsDir = join(process.cwd(), 'vps_instances', vpsId);
+  const wsDir = join(PERSIST_DIR, 'vps_instances', vpsId);
   if (!existsSync(wsDir)) {
     mkdirSync(wsDir, { recursive: true });
   }

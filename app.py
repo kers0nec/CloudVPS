@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 CloudVPS Python/Flask Unified Backend
-Provides 100% API parity with Node.js server.js for Render Python deployments.
+Provides 100% API parity with Node.js server.js for Railway and container deployments.
 """
 
 import os

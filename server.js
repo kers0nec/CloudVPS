@@ -28,7 +28,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
-// Behind a reverse proxy (Render, Fly, nginx, Cloudflare, etc.) Express must
+// Behind a reverse proxy (Railway, Render, Fly, nginx, Cloudflare, etc.) Express must
 // be told to trust the X-Forwarded-* headers, otherwise every visitor is
 // seen as the same IP. That breaks IP-based rate limiting (real users get
 // throttled/blocked together with bots) and can make secure cookies fail.
@@ -37,23 +37,43 @@ app.set('trust proxy', 1);
 
 const BASE_DIR = __dirname;
 // PERSIST_DIR lets a deployment point both the account database and every
-// VPS workspace at a single mounted persistent volume (Render disks, Fly
-// volumes, a Docker bind-mount, etc). Without this, hosts that only give you
+// VPS workspace at a single mounted persistent volume (Railway volumes, Render disks,
+// Fly volumes, a Docker bind-mount, etc). Without this, hosts that only give you
 // one persistent mount path have no way to keep *both* directories durable,
 // and whichever one lives on ephemeral storage gets wiped on every
 // redeploy/restart — which is how entire accounts and bot files disappear.
-const PERSIST_DIR = process.env.PERSIST_DIR ? path.resolve(process.env.PERSIST_DIR) : BASE_DIR;
+let persistDir = process.env.PERSIST_DIR ? path.resolve(process.env.PERSIST_DIR) : BASE_DIR;
+
+try {
+  if (!existsSync(path.join(persistDir, 'vps_instances'))) {mkdirSync(path.join(persistDir, 'vps_instances'), { recursive: true });}
+  if (!existsSync(path.join(persistDir, 'data'))) {mkdirSync(path.join(persistDir, 'data'), { recursive: true });}
+} catch (_e) {
+  // If configured PERSIST_DIR is not writable, fall back to BASE_DIR
+  persistDir = BASE_DIR;
+  if (!existsSync(path.join(persistDir, 'vps_instances'))) {mkdirSync(path.join(persistDir, 'vps_instances'), { recursive: true });}
+  if (!existsSync(path.join(persistDir, 'data'))) {mkdirSync(path.join(persistDir, 'data'), { recursive: true });}
+}
+
+const PERSIST_DIR = persistDir;
 const INSTANCES_DIR = path.join(PERSIST_DIR, 'vps_instances');
 const DATA_DIR = path.join(PERSIST_DIR, 'data');
 
-if (!existsSync(INSTANCES_DIR)) {mkdirSync(INSTANCES_DIR, { recursive: true });}
-if (!existsSync(DATA_DIR)) {mkdirSync(DATA_DIR, { recursive: true });}
+let logStream;
+if (process.env.NODE_ENV === 'production') {
+  try {
+    const fileDest = pino.destination({ dest: path.join(DATA_DIR, 'app.log'), sync: true, mkdir: true });
+    logStream = pino.multistream([
+      { stream: process.stdout, level: 'info' },
+      { stream: fileDest, level: 'info' },
+    ]);
+  } catch (_e) {
+    logStream = process.stdout;
+  }
+} else {
+  logStream = pinoPretty({ colorize: true, translateTime: 'SYS:standard', ignore: 'pid,hostname' });
+}
 
-const logger = pino(
-  process.env.NODE_ENV === 'production'
-    ? pino.destination({ dest: path.join(DATA_DIR, 'app.log'), sync: false })
-    : pinoPretty({ colorize: true, translateTime: 'SYS:standard', ignore: 'pid,hostname' })
-);
+const logger = pino({ level: 'info' }, logStream);
 
 // General API limiter — generous, because the dashboard polls live bot logs
 // / status every few seconds and must never throttle a real signed-in user
@@ -119,7 +139,7 @@ const upload = multer({
 });
 
 // Session cookie options. `secure: true` in production means the cookie is
-// only ever sent over HTTPS (every real deployment target — Render, Fly,
+// only ever sent over HTTPS (every real deployment target — Railway, Render, Fly,
 // behind Cloudflare — terminates TLS), which stops it from being sniffed on
 // a plain-HTTP connection and silently invalidating the session.
 const COOKIE_OPTS = {

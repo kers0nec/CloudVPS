@@ -35,6 +35,11 @@ RUN apk add --no-cache dumb-init python3 py3-pip git curl unzip && \
 
 WORKDIR /app
 
+# Production environment defaults
+ENV NODE_ENV=production \
+    PORT=3000 \
+    PERSIST_DIR=/var/data
+
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
@@ -53,9 +58,10 @@ COPY --from=builder /app/database.js ./
 COPY --from=builder /app/index.html ./
 COPY --from=builder /app/openapi.yaml ./
 
-# Create directories for data and instances
-RUN mkdir -p /app/data /app/vps_instances && \
-    chown -R nodejs:nodejs /app/data /app/vps_instances
+# Create directories for data, instances, and persistent mount point
+RUN mkdir -p /app/data /app/vps_instances /var/data && \
+    chown -R nodejs:nodejs /app/data /app/vps_instances /var/data && \
+    chmod -R 777 /var/data /app/data /app/vps_instances
 
 # Switch to non-root user
 USER nodejs
@@ -63,9 +69,9 @@ USER nodejs
 # Expose port
 EXPOSE 3000
 
-# Health check
+# Health check with dynamic port support (Railway / container environments)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { if (res.statusCode !== 200) process.exit(1) })"
+  CMD node -e "const p = process.env.PORT || 3000; require('http').get('http://127.0.0.1:' + p + '/api/health', (res) => { if (res.statusCode !== 200) process.exit(1) })"
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]

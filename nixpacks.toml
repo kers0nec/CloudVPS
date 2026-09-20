@@ -1,0 +1,11 @@
+# Nixpacks configuration for Railway deployments
+providers = ["node"]
+
+[phases.setup]
+nixPkgs = ["nodejs_22", "python3", "python3Packages.pip", "git", "curl", "unzip"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "node server.js"

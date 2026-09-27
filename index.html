@@ -8,40 +8,46 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='0' y='0' width='100' height='100' rx='22' fill='%23000000'/%3E%3Cpath d='M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z' fill='%23ffffff'/%3E%3Cpath d='M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z' fill='%23999999'/%3E%3C/svg%3E">
   <style>
     :root {
-      /* ---- Pure black & white glass theme ---- */
-      --bg: #050505;
-      --bg-2: #0a0a0a;
-      --panel: rgba(255, 255, 255, 0.045);
-      --panel-2: rgba(255, 255, 255, 0.08);
+      /* ---- Glassy modern clean — upgraded ---- */
+      --bg: #050507;
+      --bg-2: #0a0a0c;
+      --panel: rgba(255, 255, 255, 0.055);
+      --panel-2: rgba(255, 255, 255, 0.095);
       --panel-solid: #111113;
-      --input-bg: rgba(255, 255, 255, 0.035);
-      --border: rgba(255, 255, 255, 0.12);
-      --border-soft: rgba(255, 255, 255, 0.07);
-      --border-strong: rgba(255, 255, 255, 0.22);
+      --panel-glass: rgba(16, 16, 20, 0.62);
+      --input-bg: rgba(255, 255, 255, 0.045);
+      --border: rgba(255, 255, 255, 0.13);
+      --border-soft: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.24);
       --text: #f5f5f7;
       --muted: #9a9aa2;
       --dim: #66666e;
       --accent: #ffffff;
-      --accent-hover: #d8d8dc;
+      --accent-hover: #ececef;
       --on-accent: #000000;
-      --green: #e6e6e6;
+      --green: #a8f0c6;
       --red: #ff5c5c;
       --amber: #e0c26a;
-      --radius: 14px;
+      --radius: 16px;
       --radius-sm: 10px;
+      --radius-xs: 8px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      --blur: 22px;
-      --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.55), 0 2px 0 rgba(255,255,255,0.04) inset;
+      --blur: 28px;
+      --blur-strong: 36px;
+      --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255,255,255,0.06) inset, 0 0 0 1px rgba(255,255,255,0.04);
+      --shadow-md: 0 12px 32px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.05) inset;
       --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.4);
+      --glow: 0 0 20px rgba(255,255,255,0.08);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
     body {
       background:
-        radial-gradient(1100px 700px at 12% -10%, rgba(255,255,255,0.07), transparent 60%),
-        radial-gradient(900px 600px at 110% 10%, rgba(255,255,255,0.05), transparent 55%),
-        radial-gradient(1200px 800px at 50% 120%, rgba(255,255,255,0.04), transparent 60%),
+        radial-gradient(1200px 800px at 12% -10%, rgba(255,255,255,0.09), transparent 62%),
+        radial-gradient(1000px 700px at 108% 8%, rgba(255,255,255,0.06), transparent 58%),
+        radial-gradient(1400px 900px at 50% 120%, rgba(255,255,255,0.05), transparent 62%),
+        radial-gradient(800px 600px at 30% 40%, rgba(255,255,255,0.03), transparent 70%),
         var(--bg);
       background-attachment: fixed;
       color: var(--text);
@@ -64,17 +70,51 @@
 
     /* ---------- Sidebar ---------- */
     #sidebar {
-      width: 224px;
-      min-width: 224px;
-      background: rgba(10, 10, 11, 0.55);
-      backdrop-filter: blur(var(--blur)) saturate(140%);
-      -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+      width: 232px;
+      min-width: 232px;
+      background: rgba(10, 10, 12, 0.58);
+      backdrop-filter: blur(var(--blur)) saturate(180%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
       border-right: 1px solid var(--border-soft);
       display: flex;
       flex-direction: column;
       position: relative;
       z-index: 5;
+      transition: width 0.26s cubic-bezier(.2,.8,.3,1), min-width 0.26s cubic-bezier(.2,.8,.3,1);
+      overflow: hidden;
     }
+    #sidebar.collapsed {
+      width: 68px !important;
+      min-width: 68px !important;
+    }
+    #sidebar.collapsed .brand span,
+    #sidebar.collapsed .nav-btn span,
+    #sidebar.collapsed .nav-btn .nav-label,
+    #sidebar.collapsed .user-pill .info,
+    #sidebar.collapsed .user-pill .sub,
+    #sidebar.collapsed .sidebar-footer .footer-actions span,
+    #sidebar.collapsed .brand-text {
+      display: none !important;
+    }
+    #sidebar.collapsed .brand { justify-content: center; padding: 18px 8px 14px; }
+    #sidebar.collapsed .nav-btn { justify-content: center; padding: 10px 0; gap: 0; }
+    #sidebar.collapsed .user-pill { justify-content: center; padding: 8px; }
+    #sidebar.collapsed .user-pill .caret { display: none; }
+    #sidebar.collapsed #nav { padding: 6px 6px; }
+    /* Show first letter when collapsed — via data-letter */
+    #sidebar.collapsed .nav-btn::after {
+      content: attr(data-letter);
+      font-weight: 800;
+      font-size: 11px;
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px;
+      margin-left: 0;
+    }
+    #sidebar.collapsed .nav-btn.active::after { background: #fff; color: #000; }
+    #sidebar.collapsed .nav-btn svg { display: none; }
     .brand {
       display: flex;
       align-items: center;
@@ -83,7 +123,21 @@
       font-weight: 600;
       font-size: 15.5px;
       letter-spacing: -0.01em;
+      position: relative;
     }
+    #sidebar-toggle {
+      margin-left: auto;
+      width: 30px; height: 30px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border-soft);
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+    #sidebar-toggle:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: var(--border); }
+    #sidebar.collapsed #sidebar-toggle { margin-left: 0; }
     .brand strong { font-weight: 800; }
     .brand svg { flex-shrink: 0; filter: drop-shadow(0 2px 10px rgba(255,255,255,0.12)); }
     #nav { padding: 6px 12px; display: flex; flex-direction: column; gap: 3px; }
@@ -218,7 +272,29 @@
       position: relative;
       z-index: 4;
     }
-    #page-title { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
+    #page-title { font-size: 15.5px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+    .real-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+      color: #fff;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.16);
+      padding: 4px 8px; border-radius: 999px;
+      backdrop-filter: blur(8px);
+    }
+    .real-badge .dot.on { width: 6px; height: 6px; }
+    .files-layout {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start;
+    }
+    @media (max-width: 1100px) { .files-layout { grid-template-columns: 1fr; } }
+    .files-layout .card { height: 100%; }
+    .remember-row {
+      display: flex; align-items: center; gap: 8px; margin-top: 10px;
+      padding: 9px 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+    }
+    .remember-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #fff; }
+    .remember-row label { font-size: 12.5px; color: var(--muted); margin: 0; cursor: pointer; }
+    .remember-row label strong { color: var(--text); }
     #page-actions { display: flex; gap: 8px; align-items: center; }
     #content { flex: 1; overflow-y: auto; padding: 24px; }
     .view { display: none; max-width: 1100px; margin: 0 auto; }
@@ -227,14 +303,22 @@
 
     /* ---------- Cards (glass) ---------- */
     .card {
-      background: var(--panel);
+      background: var(--panel-glass);
       border: 1px solid var(--border-soft);
       border-radius: var(--radius);
       padding: 18px;
-      backdrop-filter: blur(var(--blur)) saturate(140%);
-      -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
-      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(var(--blur)) saturate(160%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(160%);
+      box-shadow: var(--shadow-md);
       position: relative;
+      overflow: hidden;
+    }
+    .card.glass-strong {
+      background: rgba(18, 18, 22, 0.72);
+      backdrop-filter: blur(var(--blur-strong)) saturate(180%);
+      -webkit-backdrop-filter: blur(var(--blur-strong)) saturate(180%);
+      border-color: rgba(255,255,255,0.11);
+      box-shadow: var(--shadow-lg);
     }
     .card::before {
       content: "";
@@ -265,17 +349,18 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      height: 33px;
+      height: 34px;
       padding: 0 14px;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border);
-      background: var(--panel-2);
-      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px) saturate(140%);
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
       font-size: 13px;
       font-weight: 500;
       white-space: nowrap;
       color: var(--text);
-      transition: background 0.14s ease, border-color 0.14s ease, transform 0.08s ease;
+      transition: background 0.14s ease, border-color 0.14s ease, transform 0.08s ease, box-shadow 0.14s ease;
     }
     .btn:hover { background: rgba(255,255,255,0.14); border-color: var(--border-strong); }
     .btn:active { transform: scale(0.97); }
@@ -419,50 +504,96 @@
     .tree-row:hover .t-actions { display: inline-flex; }
     .tree-empty { color: var(--dim); font-size: 12.5px; padding: 10px 4px; }
 
-    /* ---------- Editor ---------- */
+    /* ---------- Editor — BIGGER SCREEN ---------- */
     #editor-wrap { display: none; }
     #editor-wrap.open { display: block; }
     .editor-head {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 9px;
+      margin-bottom: 10px;
     }
-    .editor-head .fname { font-family: var(--mono); font-size: 12.5px; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .dirty-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); display: none; }
+    .editor-head .fname { font-family: var(--mono); font-size: 13px; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dirty-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); display: none; box-shadow: 0 0 8px rgba(224,194,106,0.6); }
     .dirty-dot.show { display: block; }
     #file-editor {
       width: 100%;
-      min-height: 300px;
-      background: rgba(0,0,0,0.35);
+      min-height: 520px;
+      height: 62vh;
+      max-height: 78vh;
+      background: rgba(0,0,0,0.42);
       border: 1px solid var(--border-soft);
       border-radius: var(--radius-sm);
-      color: #e6e6e9;
+      color: #ececf0;
       font-family: var(--mono);
-      font-size: 12.5px;
-      line-height: 1.6;
-      padding: 13px;
+      font-size: 13px;
+      line-height: 1.65;
+      padding: 14px;
       outline: none;
       resize: vertical;
       tab-size: 4;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, min-height 0.2s ease;
     }
-    #file-editor:focus { border-color: var(--border-strong); }
+    #file-editor:focus { border-color: var(--border-strong); box-shadow: 0 0 0 3px rgba(255,255,255,0.06); }
+    #editor-card.fullscreen {
+      position: fixed;
+      inset: 16px;
+      z-index: 90;
+      display: flex !important;
+      flex-direction: column;
+      margin: 0 !important;
+      box-shadow: var(--shadow-lg);
+      max-width: none !important;
+    }
+    #editor-card.fullscreen #file-editor {
+      flex: 1;
+      min-height: 0 !important;
+      height: auto !important;
+      max-height: none !important;
+      resize: none;
+    }
+    /* File tree bigger */
+    .tree {
+      font-size: 13px;
+      max-height: 460px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .tree::-webkit-scrollbar { width: 6px; }
+    #file-tree-wrap {
+      min-height: 280px;
+    }
 
     /* ---------- Logs ---------- */
     .log-box {
-      background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.45);
       border: 1px solid var(--border-soft);
       border-radius: var(--radius-sm);
       font-family: var(--mono);
-      font-size: 12px;
+      font-size: 12.5px;
       line-height: 1.65;
       color: #d4d4d8;
-      padding: 11px 13px;
-      height: 250px;
+      padding: 12px 14px;
+      height: 360px;
+      min-height: 260px;
       overflow-y: auto;
       white-space: pre-wrap;
       word-break: break-word;
     }
+    .log-box.diag {
+      height: auto;
+      min-height: 80px;
+      max-height: 320px;
+      margin-top: 10px;
+    }
+    .diag-ok { color: var(--green); }
+    .diag-err { color: var(--red); }
+    .diag-warn { color: var(--amber); }
+    .diag-group { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-soft); }
+    .diag-file { font-weight: 700; color: #fff; font-family: var(--mono); font-size: 12px; }
+    .diag-msg { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; margin-top: 4px; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-soft); border-radius: 8px; }
+    .diag-msg.err { border-color: rgba(255,92,92,0.35); background: rgba(255,92,92,0.07); }
+    .diag-msg.warn { border-color: rgba(224,194,106,0.35); background: rgba(224,194,106,0.07); }
     .log-box:empty::before { content: "No logs yet. Start the bot to see output here."; color: var(--dim); }
 
     /* ---------- Account ---------- */
@@ -544,19 +675,22 @@
           <path d="M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z" fill="#ffffff"/>
           <path d="M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z" fill="#8a8a8a"/>
         </svg>
-        <span>Cloud<strong>VPS</strong></span>
+        <span class="brand-text">Cloud<strong>VPS</strong></span>
+        <button id="sidebar-toggle" onclick="toggleSidebar()" title="Collapse / Expand sidebar (show letters when collapsed)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
       </div>
 
       <nav id="nav">
-        <button class="nav-btn active" data-tab="vps" onclick="switchTab('vps')">
+        <button class="nav-btn active" data-tab="vps" data-letter="V" onclick="switchTab('vps')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           <span>My Vps</span>
         </button>
-        <button class="nav-btn" data-tab="bot" onclick="switchTab('bot')">
+        <button class="nav-btn" data-tab="bot" data-letter="B" onclick="switchTab('bot')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
           <span>Dc Bots</span>
         </button>
-        <button class="nav-btn" data-tab="account" onclick="switchTab('account')">
+        <button class="nav-btn" data-tab="account" data-letter="A" onclick="switchTab('account')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span>Account</span>
         </button>
@@ -569,7 +703,7 @@
 
     <div id="main">
       <header id="topbar">
-        <div id="page-title">My Vps</div>
+        <div id="page-title"><span id="page-title-text">My Vps</span><span class="real-badge" title="Real Node.js engine — your code runs as a real OS process, 24/7, auto-restarted on crash"><span class="dot on"></span>REAL NODE • 24/7</span></div>
         <div id="page-actions"></div>
       </header>
 
@@ -610,16 +744,18 @@
               <input type="file" id="file-input" multiple style="display:none" onchange="uploadFiles(this.files); this.value='';">
             </div>
 
-            <div class="grid-2" style="margin-top:14px;">
-              <div class="card">
+            <div class="files-layout" style="margin-top:14px;">
+              <div class="card" id="file-tree-wrap">
                 <div class="card-title">
                   <span>Files</span>
                   <span style="display:flex; gap:6px;">
                     <button class="btn btn-sm" onclick="newFile()">New File</button>
                     <button class="btn btn-sm" onclick="newFolder()">New Folder</button>
+                    <button class="btn btn-sm" onclick="toggleSidebar()" title="Toggle sidebar — see letters when collapsed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
                   </span>
                 </div>
                 <div class="tree" id="file-tree"></div>
+                <div class="hint" style="margin-top:8px;">Tip: click <b style="color:var(--text)">New File</b> or drag a zip — it auto-extracts. Sidebar can be collapsed to see letters/icons.</div>
               </div>
 
               <div class="card">
@@ -654,7 +790,9 @@
                   <button class="btn btn-success" id="btn-start" onclick="startBot()">Start</button>
                   <button class="btn" id="btn-restart" onclick="restartBot()">Restart</button>
                   <button class="btn btn-danger" id="btn-stop" onclick="stopBot()">Stop</button>
+                  <button class="btn" onclick="diagnoseCurrentFile()" title="Detects syntax errors before you run — real node/python check">Check Code</button>
                 </div>
+                <div class="hint" style="margin-top:8px; display:flex; align-items:center; gap:6px;"><span class="dot on"></span> Real <b style="color:var(--text)">Node.js</b> & <b style="color:var(--text)">Python</b> processes — 24/7 watchdog, auto-restart, crash detection. <a href="#" onclick="diagnoseWorkspace();return false;" style="color:var(--text); text-decoration:underline;">Scan for broken code</a></div>
               </div>
             </div>
 
@@ -679,10 +817,25 @@
               <div class="pkg-chips" id="pkg-list" style="margin-top:10px;"></div>
             </div>
 
+            <div class="card" id="diag-card" style="display:none; margin-top:14px;">
+              <div class="card-title">
+                <span>Diagnostics — detects not working code</span>
+                <span style="display:flex; gap:6px;">
+                  <button class="btn btn-sm" onclick="diagnoseCurrentFile()">Check Current File</button>
+                  <button class="btn btn-sm" onclick="diagnoseWorkspace()">Scan Workspace</button>
+                  <button class="btn-icon" onclick="$('diag-card').style.display='none'" title="Close"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                </span>
+              </div>
+              <div id="diag-box" class="log-box diag" style="display:none;"></div>
+              <div id="diag-placeholder" class="hint">Press <b style="color:var(--text)">Check Current File</b> to syntax-check the file open in the editor, or <b style="color:var(--text)">Scan Workspace</b> to check all code files at once. Uses real <code>python3 -m py_compile</code> and <code>node --check</code> — not a guess.</div>
+            </div>
+
             <div class="card" id="editor-card" style="display:none;">
               <div class="editor-head">
                 <span class="fname" id="editor-fname"></span>
                 <span class="dirty-dot" id="editor-dirty"></span>
+                <button class="btn btn-sm" onclick="diagnoseCurrentFile()" title="Detect syntax errors in this file">Check Code</button>
+                <button class="btn btn-sm" onclick="toggleEditorFullscreen()" id="btn-fullscreen" title="Bigger screen — fullscreen editor">Fullscreen</button>
                 <button class="btn btn-sm" onclick="deleteEditorFile()">Delete</button>
                 <button class="btn btn-sm btn-primary" onclick="saveEditorFile()">Save</button>
               </div>
@@ -728,9 +881,14 @@
       </div>
       <div class="field" id="auth-confirm-field">
         <label for="auth-confirm">Confirm Password</label>
-        <input type="password" id="auth-confirm" autocomplete="new-password">
+        <input type="password" class="input" id="auth-confirm" autocomplete="new-password">
       </div>
-      <button class="btn btn-primary" id="auth-submit" style="width:100%;" onclick="submitAuth()">Create Account</button>
+      <div class="remember-row">
+        <input type="checkbox" id="auth-remember" checked>
+        <label for="auth-remember"><strong>Remember me for 1 year</strong> — stay signed in on this browser</label>
+      </div>
+      <div class="hint" style="margin-top:6px;">Your login is saved for 1 year (365 days). Uncheck for a session-only login. <b style="color:var(--text)">kers0ne</b> is always preserved.</div>
+      <button class="btn btn-primary" id="auth-submit" style="width:100%; margin-top:12px;" onclick="submitAuth()">Create Account</button>
     </div>
   </div>
 
@@ -801,7 +959,24 @@
       statusTimer: null,
       netFailNotified: false,
       pkgAutoStatus: '',      // Discord-stack auto-install status of active VPS
+      diagTimer: null,
     };
+    // Sidebar collapsed — persisted for 1 year
+    const SIDEBAR_KEY = 'cloudvps_sidebar_collapsed';
+    function isSidebarCollapsed() {
+      try { return localStorage.getItem(SIDEBAR_KEY) === '1'; } catch(e){ return false; }
+    }
+    function applySidebarCollapsed(collapsed) {
+      const sb = document.getElementById('sidebar');
+      if (sb) sb.classList.toggle('collapsed', !!collapsed);
+      try { localStorage.setItem(SIDEBAR_KEY, collapsed ? '1' : '0'); } catch(e){}
+    }
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      const now = !sb.classList.contains('collapsed');
+      applySidebarCollapsed(now);
+      toast(now ? 'Sidebar collapsed — icons + letters visible' : 'Sidebar expanded', 'ok');
+    }
 
     const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -903,7 +1078,8 @@
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       $('view-' + tab).classList.add('active');
-      $('page-title').textContent = tab === 'vps' ? 'My Vps' : tab === 'bot' ? 'Dc Bots' : 'Account';
+      const titleEl = $('page-title-text') || $('page-title');
+      if (titleEl) titleEl.textContent = tab === 'vps' ? 'My Vps' : tab === 'bot' ? 'Dc Bots' : 'Account';
 
       const actions = $('page-actions');
       actions.innerHTML = '';
@@ -960,7 +1136,7 @@
 
     async function switchAccount(apiKey) {
       if (STATE.user && STATE.user.api_key === apiKey) { closeAcctMenu(); return; }
-      const res = await api('/api/session/switch', { method: 'POST', body: { api_key: apiKey } });
+      const res = await api('/api/session/switch', { method: 'POST', body: { api_key: apiKey, remember: true } });
       if (res.ok && res.data.success) {
         localStorage.setItem('cloudvps_key', res.data.api_key);
         STATE.user = { id: res.data.user_id, username: res.data.username, api_key: res.data.api_key };
@@ -1079,6 +1255,7 @@
       const username = $('auth-username').value.trim();
       const password = $('auth-password').value;
       const confirm = $('auth-confirm').value;
+      const remember = $('auth-remember') ? $('auth-remember').checked : true;
       const errEl = $('auth-error');
       errEl.style.display = 'none';
 
@@ -1090,12 +1267,22 @@
       btn.disabled = true;
       const res = await api(authMode === 'login' ? '/api/login' : '/api/register', {
         method: 'POST',
-        body: { username, password }
+        body: { username, password, remember }
       });
       btn.disabled = false;
 
       if (res.ok && res.data.success) {
+        const remember = $('auth-remember') ? $('auth-remember').checked : true;
         localStorage.setItem('cloudvps_key', res.data.api_key);
+        try {
+          if (remember) {
+            localStorage.setItem('cloudvps_key_exp', String(Date.now() + 365*24*3600*1000));
+            localStorage.setItem('cloudvps_remember', '1');
+          } else {
+            localStorage.removeItem('cloudvps_key_exp');
+            localStorage.setItem('cloudvps_remember', '0');
+          }
+        } catch(e){}
         STATE.user = { id: res.data.user_id, username: res.data.username, api_key: res.data.api_key };
         rememberAccount(STATE.user);
         const wasAdding = addingAccount;
@@ -1143,6 +1330,7 @@
     async function signOutAll() {
       await api('/api/logout', { method: 'POST' });
       localStorage.removeItem('cloudvps_key');
+      try { localStorage.removeItem('cloudvps_key_exp'); localStorage.removeItem('cloudvps_remember'); } catch(e){}
       setSavedAccounts([]);
       STATE.user = null;
       renderSidebar();
@@ -1844,6 +2032,93 @@
       }
     }
 
+    /* ================= DIAGNOSTICS — REAL NODE / PYTHON CHECKS ================= */
+    function showDiagCard() {
+      $('diag-card').style.display = '';
+      $('diag-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    function renderDiagResult(result) {
+      const box = $('diag-box');
+      const placeholder = $('diag-placeholder');
+      if (placeholder) placeholder.style.display = 'none';
+      box.style.display = '';
+      if (!result) { box.textContent = 'No result'; return; }
+      const ok = result.ok;
+      const icon = ok ? '✓' : '✗';
+      const color = ok ? 'diag-ok' : 'diag-err';
+      let html = '<div class="diag-file">' + esc(result.file) + ' <span class="' + color + '">[' + icon + ' ' + (ok ? 'OK' : 'BROKEN') + ']</span> <span style="color:var(--dim); font-weight:400; font-size:11px;">' + esc(result.runtime||'') + ' · ' + formatBytes(result.size||0) + '</span></div>';
+      if (result.errors && result.errors.length) {
+        html += result.errors.map(e => '<div class="diag-msg err"><b class="diag-err">Error:</b>\n' + esc(e) + '</div>').join('');
+      }
+      if (result.warnings && result.warnings.length) {
+        html += result.warnings.map(w => '<div class="diag-msg warn"><b class="diag-warn">Warning:</b>\n' + esc(w) + '</div>').join('');
+      }
+      if (ok && (!result.warnings || !result.warnings.length)) {
+        html += '<div class="diag-msg" style="color:var(--green);">No issues found — file looks runnable. Real check: ' + (result.runtime==='python' ? 'python3 -m py_compile' : result.runtime==='node' ? 'node --check' : 'syntax check') + ' passed.</div>';
+      }
+      box.innerHTML = html;
+      if (!ok) toast('Diagnostics found problems in ' + result.file, 'err');
+      else toast('Diagnostics passed for ' + result.file, 'ok');
+    }
+    async function diagnoseCurrentFile() {
+      if (!STATE.activeVpsId) { toast('Create a VPS first', 'err'); return; }
+      const target = STATE.editorPath || $('bot-script').value.trim() || 'bot.py';
+      const runtime = $('bot-runtime').value;
+      showDiagCard();
+      $('diag-box').innerHTML = '<div class="hint"><span class="spinner"></span> Checking ' + esc(target) + ' with real ' + esc(runtime) + ' engine…</div>';
+      $('diag-box').style.display = '';
+      const res = await api('/api/vps/' + STATE.activeVpsId + '/bot/diagnose', { method: 'POST', body: { path: target, runtime } });
+      if (res.ok && res.data.diagnosis) renderDiagResult(res.data.diagnosis);
+      else { $('diag-box').innerHTML = '<div class="diag-msg err">' + esc(res.data.error || 'Diagnostics failed') + '</div>'; }
+    }
+    async function diagnoseWorkspace() {
+      if (!STATE.activeVpsId) { toast('Create a VPS first', 'err'); return; }
+      showDiagCard();
+      $('diag-box').innerHTML = '<div class="hint"><span class="spinner"></span> Scanning workspace with real engine — checking all .py / .js files…</div>';
+      $('diag-box').style.display = '';
+      const res = await api('/api/vps/' + STATE.activeVpsId + '/diagnose', { method: 'POST', body: {} });
+      if (!res.ok) { $('diag-box').innerHTML = '<div class="diag-msg err">' + esc(res.data.error || 'Scan failed') + '</div>'; return; }
+      const results = res.data.results || [];
+      if (!results.length) {
+        $('diag-box').innerHTML = '<div class="hint">No code files (.py/.js/.sh) found to check. Upload your bot files first.</div>';
+        return;
+      }
+      let html = '<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;"><span style="font-weight:700;">Workspace scan:</span><span class="' + (res.data.hasErrors ? 'diag-err' : 'diag-ok') + '">' + (res.data.hasErrors ? '✗ Issues found' : '✓ All files look good') + '</span><span style="color:var(--dim); font-size:12px;">' + results.length + ' files checked</span></div>';
+      for (const r of results) {
+        const ok = r.ok;
+        html += '<div class="diag-group"><div class="diag-file">' + esc(r.file) + ' <span class="' + (ok ? 'diag-ok' : 'diag-err') + '">[' + (ok ? 'OK' : 'ERR') + ']</span> <span style="color:var(--dim); font-weight:400; font-size:11px;">' + esc(r.runtime||'') + '</span></div>';
+        if (r.errors && r.errors.length) html += r.errors.map(e=>'<div class="diag-msg err">' + esc(e.slice(0,800)) + '</div>').join('');
+        if (r.warnings && r.warnings.length) html += r.warnings.map(w=>'<div class="diag-msg warn">' + esc(w.slice(0,800)) + '</div>').join('');
+        if (ok && (!r.warnings||!r.warnings.length)) html += '<div class="hint" style="margin-top:4px;">✓ No problems — ready to run 24/7</div>';
+        html += '</div>';
+      }
+      $('diag-box').innerHTML = html;
+      if (res.data.hasErrors) toast('Scan found broken files — see diagnostics', 'err');
+      else toast('Workspace scan: all ' + results.length + ' files passed', 'ok');
+    }
+    function toggleEditorFullscreen() {
+      const card = $('editor-card');
+      const btn = $('btn-fullscreen');
+      const isFs = card.classList.contains('fullscreen');
+      if (isFs) {
+        card.classList.remove('fullscreen');
+        if (btn) btn.textContent = 'Fullscreen';
+        document.body.style.overflow = '';
+      } else {
+        card.classList.add('fullscreen');
+        if (btn) btn.textContent = 'Exit Fullscreen';
+        document.body.style.overflow = 'hidden';
+        // Ensure diagnostics also visible in fullscreen not overlayed
+      }
+    }
+    // Close fullscreen on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const card = document.getElementById('editor-card');
+        if (card && card.classList.contains('fullscreen')) toggleEditorFullscreen();
+      }
+    });
+
     /* ================= HELPERS ================= */
     function formatBytes(n) {
       if (!n || n <= 0) return '0 B';
@@ -1853,7 +2128,19 @@
     }
 
     /* ================= BOOT ================= */
+    // Clear expired 1-year key on boot
+    (function checkRememberExpiry(){
+      try {
+        const exp = localStorage.getItem('cloudvps_key_exp');
+        if (exp && Date.now() > parseInt(exp,10)) {
+          // 1 year expired — clear but keep saved accounts list
+          localStorage.removeItem('cloudvps_key');
+          localStorage.removeItem('cloudvps_key_exp');
+        }
+      } catch(e){}
+    })();
     async function boot() {
+      try { applySidebarCollapsed(isSidebarCollapsed()); } catch(e){}
       renderSidebar();
       const res = await api('/api/session');
       if (res.ok && res.data.authenticated && res.data.user) {

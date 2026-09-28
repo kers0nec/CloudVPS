@@ -77,6 +77,30 @@ export const bundleInstallSchema = z.object({
   custom_cmd: z.string().optional(),
 });
 
+export const nodeStartSchema = z.object({
+  entrypoint: z.string().default('index.js'),
+  port: z.number().int().min(1024).max(65535).optional(),
+  auto_restart: z.boolean().default(true),
+  env: z.record(z.string()).default({}),
+});
+
+export const createResourceSchema = z.object({
+  type: z.enum(['vps', 'node', 'bot']),
+  name: z.string().optional(),
+  plan: z.enum(['starter', 'standard', 'performance', 'ultra']).optional(),
+  os: z.string().optional(),
+  vps_id: z.string().optional(),
+  entrypoint: z.string().optional(),
+  port: z.number().int().min(1024).max(65535).optional(),
+  auto_restart: z.boolean().optional(),
+});
+
+export const resourceCreateSchema = createResourceSchema;
+
+export const apiKeyCreateSchema = z.object({
+  label: z.string().min(1).max(100).optional(),
+});
+
 export function validate(schema) {
   return (req, res, next) => {
     try {

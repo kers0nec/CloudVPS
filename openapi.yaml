@@ -41,6 +41,12 @@ tags:
     description: GitHub repository integration
   - name: Hardware
     description: Hardware info and benchmarks
+  - name: Continuous Node
+    description: Real 24/7 Node.js continuous hosting supervisor and daemon management
+  - name: Resources
+    description: Universal resource fleet lifecycle, provisioning, and termination
+  - name: API Keys
+    description: Multiple API keys creation, rotation, and revocation
 paths:
   /api/health:
     get:
@@ -308,6 +314,143 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ActionResponse'
+  /api/vps/{vps_id}/terminate:
+    post:
+      tags: [VPS Management]
+      summary: Terminate VPS instance and free resources
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: VPS terminated
+  /api/resources:
+    get:
+      tags: [Resource Fleet]
+      summary: List all user resources across account
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Resource inventory
+    post:
+      tags: [Resource Fleet]
+      summary: Unified fast resource creation (VPS or Continuous Node)
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: Resource created
+  /api/resources/{id}/terminate:
+    post:
+      tags: [Resource Fleet]
+      summary: Universal resource termination
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource terminated
+  /api/vps/{vps_id}/node:
+    get:
+      tags: [Continuous Node]
+      summary: Get continuous node status and resource metrics
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node status
+  /api/vps/{vps_id}/node/start:
+    post:
+      tags: [Continuous Node]
+      summary: Start continuous node hosting service
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node started
+  /api/vps/{vps_id}/node/stop:
+    post:
+      tags: [Continuous Node]
+      summary: Stop continuous node hosting service
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node stopped
+  /api/vps/{vps_id}/node/restart:
+    post:
+      tags: [Continuous Node]
+      summary: Restart continuous node hosting service
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node restarted
+  /api/vps/{vps_id}/node/terminate:
+    post:
+      tags: [Continuous Node]
+      summary: Terminate continuous node resource
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node terminated
+  /api/vps/{vps_id}/node/logs:
+    get:
+      tags: [Continuous Node]
+      summary: Get continuous node logs
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node logs
   /api/vps/{vps_id}/stats:
     get:
       tags: [VPS Management]
@@ -869,6 +1012,312 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TunnelResponse'
+  /api/vps/{vps_id}/node:
+    get:
+      tags: [Continuous Node]
+      summary: Get continuous node status and live metrics
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node status, metrics, and logs
+  /api/vps/{vps_id}/node/start:
+    post:
+      tags: [Continuous Node]
+      summary: Start continuous node daemon (24/7 background host)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entrypoint:
+                  type: string
+                  default: index.js
+                port:
+                  type: integer
+                env:
+                  type: object
+      responses:
+        '200':
+          description: Node started successfully
+  /api/vps/{vps_id}/node/stop:
+    post:
+      tags: [Continuous Node]
+      summary: Stop continuous node daemon
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node stopped successfully
+  /api/vps/{vps_id}/node/restart:
+    post:
+      tags: [Continuous Node]
+      summary: Restart continuous node daemon
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node restarted successfully
+  /api/vps/{vps_id}/node/terminate:
+    post:
+      tags: [Continuous Node]
+      summary: Terminate continuous node resource and kill process
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node resource terminated
+  /api/vps/{vps_id}/node/logs:
+    get:
+      tags: [Continuous Node]
+      summary: Fetch real-time node stdout/stderr logs
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node logs list
+  /api/vps/{vps_id}/node/logs/clear:
+    post:
+      tags: [Continuous Node]
+      summary: Clear continuous node logs
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Logs cleared
+  /api/vps/{vps_id}/node/scaffold:
+    post:
+      tags: [Continuous Node]
+      summary: Scaffold default continuous server file (index.js)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Scaffold complete
+  /api/vps/{vps_id}/node/config:
+    post:
+      tags: [Continuous Node]
+      summary: Update continuous node configuration
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entrypoint:
+                  type: string
+                port:
+                  type: integer
+                auto_restart:
+                  type: boolean
+      responses:
+        '200':
+          description: Configuration updated
+  /api/resources:
+    get:
+      tags: [Resources]
+      summary: List all user resources across account (VPS, Continuous Nodes, Bots)
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Summary and complete resource fleet list
+  /api/resources/create:
+    post:
+      tags: [Resources]
+      summary: Create / provision a new resource (VPS or Continuous Node)
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: [vps, node]
+                name:
+                  type: string
+                plan:
+                  type: string
+                  enum: [starter, standard, performance, ultra]
+                os:
+                  type: string
+                vps_id:
+                  type: string
+                entrypoint:
+                  type: string
+                port:
+                  type: integer
+      responses:
+        '201':
+          description: Resource created
+  /api/resources/{id}/terminate:
+    post:
+      tags: [Resources]
+      summary: Terminate any resource by ID (VPS, Node, or Bot)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource terminated
+  /api/vps/{vps_id}/terminate:
+    post:
+      tags: [Resources]
+      summary: Terminate VPS and all child nodes/processes
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: VPS terminated
+  /api/vps/{vps_id}/resize:
+    post:
+      tags: [Resources]
+      summary: Resize VPS hardware plan
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: vps_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan]
+              properties:
+                plan:
+                  type: string
+                  enum: [starter, standard, performance, ultra]
+      responses:
+        '200':
+          description: VPS resized
+  /api/user/keys:
+    get:
+      tags: [API Keys]
+      summary: List user API keys
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: List of API keys
+    post:
+      tags: [API Keys]
+      summary: Generate a new API key
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+      responses:
+        '201':
+          description: Key created
+  /api/user/keys/{key_id}:
+    delete:
+      tags: [API Keys]
+      summary: Revoke an API key
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: key_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Key revoked
+  /api/user/keys/roll:
+    post:
+      tags: [API Keys]
+      summary: Roll / regenerate master API key
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Master key regenerated
 components:
   securitySchemes:
     ApiKeyAuth:

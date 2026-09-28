@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cloud Vps</title>
-  <meta name="description" content="Cloud Vps — Discord bot hosting and VPS workspace.">
+  <title>Cloud VPS</title>
+  <meta name="description" content="Cloud VPS hosting platform featuring custom VPS creation and 24/7 Discord bot &amp; selfbot hosting on clean-slate workspaces — upload or create your own files, zip bundles auto-extract automatically.">
+  <meta property="og:title" content="Cloud VPS">
+  <meta property="og:description" content="Cloud VPS hosting platform featuring custom VPS creation and 24/7 Discord bot &amp; selfbot hosting on clean-slate workspaces — upload or create your own files, zip bundles auto-extract automatically.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='0' y='0' width='100' height='100' rx='22' fill='%23000000'/%3E%3Cpath d='M41.5052 15.1655C45.3542 8.49886 54.9767 8.49886 58.8257 15.1655L84.8064 60.1655C88.6554 66.8322 83.8442 75.1655 76.1462 75.1655H24.1847C16.4867 75.1655 11.6754 66.8322 15.5244 60.1655L41.5052 15.1655Z' fill='%23ffffff'/%3E%3Cpath d='M61.9647 16.0953C68.8237 12.6005 76.8938 17.8413 76.4909 25.5287L73.7715 77.419C73.3686 85.1065 64.7949 89.475 58.3388 85.2824L14.7602 56.9821C8.30411 52.7895 8.80771 43.1802 15.6667 39.6853L61.9647 16.0953Z' fill='%23999999'/%3E%3C/svg%3E">
   <style>
     :root {
@@ -457,6 +459,31 @@
     .dot.err { background: var(--red); box-shadow: 0 0 10px rgba(255,92,92,0.6); }
     .status-text { font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
 
+    /* API & Resources Styles */
+    .badge-fast {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 7px; border-radius: 6px;
+      font-size: 11px; font-weight: 700; font-family: var(--mono);
+      background: rgba(168, 240, 198, 0.12); color: var(--green); border: 1px solid rgba(168, 240, 198, 0.3);
+    }
+    .badge-method {
+      display: inline-block; padding: 2px 6px; border-radius: 4px;
+      font-size: 10px; font-weight: 800; font-family: var(--mono); text-align: center;
+    }
+    .badge-get { background: rgba(168, 240, 198, 0.15); color: var(--green); }
+    .badge-post { background: rgba(224, 194, 106, 0.15); color: var(--amber); }
+    .badge-delete { background: rgba(255, 92, 92, 0.15); color: var(--red); }
+    .res-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+    .res-table th { text-align: left; padding: 8px 10px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border-soft); }
+    .res-table td { padding: 10px 10px; border-bottom: 1px solid var(--border-soft); }
+    .res-table tr:last-child td { border-bottom: none; }
+    .res-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .code-block {
+      background: rgba(0,0,0,0.5); border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+      padding: 12px 14px; font-family: var(--mono); font-size: 12.5px; color: #ececf0;
+      white-space: pre-wrap; word-break: break-all; position: relative;
+    }
+
     /* ---------- Empty state ---------- */
     .empty {
       border: 1px dashed var(--border);
@@ -655,6 +682,65 @@
     .toast.err { border-left-color: var(--red); }
     @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
+    .latency-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      background: rgba(168, 240, 198, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(168, 240, 198, 0.3);
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-soft);
+    }
+    .status-pill.running {
+      background: rgba(168, 240, 198, 0.14);
+      color: var(--green);
+      border-color: rgba(168, 240, 198, 0.35);
+    }
+    .fleet-table th, .fleet-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-soft);
+      vertical-align: middle;
+    }
+    .fleet-table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .res-type-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .res-type-vps { background: rgba(255, 255, 255, 0.12); color: #fff; border: 1px solid rgba(255,255,255,0.18); }
+    .res-type-node { background: rgba(168, 240, 198, 0.15); color: var(--green); border: 1px solid rgba(168, 240, 198, 0.3); }
+    .res-type-bot { background: rgba(224, 194, 106, 0.15); color: var(--amber); border: 1px solid rgba(224, 194, 106, 0.3); }
+    .node-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-soft);
+    }
+
     @media (max-width: 760px) {
       #sidebar { width: 64px; min-width: 64px; }
       .brand span, .nav-btn span, .user-pill .info { display: none; }
@@ -690,7 +776,11 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
           <span>Dc Bots</span>
         </button>
-        <button class="nav-btn" data-tab="account" data-letter="A" onclick="switchTab('account')">
+        <button class="nav-btn" data-tab="api" data-letter="API" onclick="switchTab('api')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/></svg>
+          <span>API & Resources</span>
+        </button>
+        <button class="nav-btn" data-tab="account" data-letter="U" onclick="switchTab('account')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span>Account</span>
         </button>
@@ -854,6 +944,176 @@
           </div>
         </section>
 
+        <!-- ============ API & CONTINUOUS NODE HOSTING ============ -->
+        <section class="view" id="view-api">
+          <!-- Metric Strip -->
+          <div class="stat-strip" id="api-metric-strip">
+            <div class="stat"><div class="k">Fleet Resources</div><div class="v" id="api-stat-resources">—</div><div class="s" id="api-stat-resources-sub">VPS & Nodes</div></div>
+            <div class="stat"><div class="k">Continuous Nodes</div><div class="v" id="api-stat-nodes">—</div><div class="s" id="api-stat-nodes-sub"><span class="dot on"></span> 24/7 Hosting</div></div>
+            <div class="stat"><div class="k">Active VPSs</div><div class="v" id="api-stat-vps">—</div><div class="s" id="api-stat-vps-sub">Online Sandboxes</div></div>
+            <div class="stat"><div class="k">API Speed</div><div class="v" id="api-stat-speed">< 1ms</div><div class="s" id="api-stat-speed-sub"><span class="latency-pill">⚡ Ultra Fast</span></div></div>
+          </div>
+
+          <!-- Real Continuous Node Host Controller -->
+          <div class="card" style="margin-top:14px;">
+            <div class="card-title">
+              <span style="display:flex; align-items:center; gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                <span>Real Continuous Node Hosting (24/7 Daemon)</span>
+              </span>
+              <span style="display:flex; gap:6px; align-items:center;">
+                <span class="status-pill" id="cnode-status-badge"><span class="dot" id="cnode-status-dot"></span><span id="cnode-status-text">Stopped</span></span>
+                <button class="btn btn-sm" onclick="scaffoldNodeServer()" title="Scaffold / Reset starter continuous HTTP server file">Scaffold index.js</button>
+              </span>
+            </div>
+
+            <div class="api-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px; margin-top:10px;">
+              <div>
+                <div class="field">
+                  <label for="cnode-vps-select">Target VPS Workspace</label>
+                  <select class="input" id="cnode-vps-select" onchange="setCNodeVps(this.value)"></select>
+                </div>
+                <div class="field">
+                  <label for="cnode-entrypoint">Node Entrypoint File & Assigned Port</label>
+                  <div class="input-row">
+                    <input type="text" class="input" id="cnode-entrypoint" value="index.js" placeholder="index.js" spellcheck="false">
+                    <input type="number" class="input" id="cnode-port" style="width:110px; flex:none;" value="3100" placeholder="Port" title="Assigned Port">
+                  </div>
+                  <div class="hint">Continuous execution on real Node.js with auto-restart, crash loop protection, and persistent port bindings.</div>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
+                  <button class="btn btn-success" id="btn-cnode-start" onclick="startContinuousNodeUI()">Start Continuous Node</button>
+                  <button class="btn" id="btn-cnode-restart" onclick="restartContinuousNodeUI()">Restart</button>
+                  <button class="btn btn-danger" id="btn-cnode-stop" onclick="stopContinuousNodeUI()">Stop</button>
+                  <button class="btn" style="color:var(--red); border-color:rgba(255,92,92,0.3);" onclick="terminateContinuousNodeUI()" title="Kill daemon & release resources">Terminate Resource</button>
+                </div>
+                <div class="cnode-stats-panel" id="cnode-stats-panel" style="margin-top:14px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-soft); border-radius:var(--radius-sm); font-size:12.5px;">
+                  <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="color:var(--muted);">Process PID:</span><span id="cnode-stat-pid" style="font-family:var(--mono); color:#fff;">—</span></div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="color:var(--muted);">Memory RSS:</span><span id="cnode-stat-ram" style="font-family:var(--mono); color:#fff;">—</span></div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="color:var(--muted);">Continuous Uptime:</span><span id="cnode-stat-uptime" style="font-family:var(--mono); color:#fff;">—</span></div>
+                  <div style="display:flex; justify-content:space-between;"><span style="color:var(--muted);">Internal Port:</span><span id="cnode-stat-port" style="font-family:var(--mono); color:#fff;">—</span></div>
+                </div>
+              </div>
+
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <label style="margin:0; font-weight:600;">Continuous Node Live Logs</label>
+                  <button class="btn btn-sm" onclick="clearCNodeLogs()">Clear</button>
+                </div>
+                <div class="log-box" id="cnode-logs-box" style="height:270px; min-height:210px;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Universal Resource Fleet & Termination -->
+          <div class="card" style="margin-top:14px;">
+            <div class="card-title">
+              <span style="display:flex; align-items:center; gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <span>Resource Fleet Lifecycle Management & Termination</span>
+              </span>
+              <span style="display:flex; gap:6px;">
+                <button class="btn btn-sm btn-primary" onclick="openResourceCreatorModal()">+ Create Resource</button>
+                <button class="btn btn-sm" onclick="loadResourcesFleet()">Refresh</button>
+              </span>
+            </div>
+            <div class="hint" style="margin-bottom:10px;">Full programmatic and UI lifecycle control: provision, manage, reconfigure, or terminate VPS instances, real continuous nodes, and bot workers.</div>
+            <div id="fleet-table-wrap" style="overflow-x:auto;">
+              <table class="fleet-table" style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+                <thead>
+                  <tr style="border-bottom:1px solid var(--border-soft); color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">
+                    <th style="padding:8px 10px;">Resource</th>
+                    <th style="padding:8px 10px;">Type</th>
+                    <th style="padding:8px 10px;">Status</th>
+                    <th style="padding:8px 10px;">Specs / Port</th>
+                    <th style="padding:8px 10px;">Uptime</th>
+                    <th style="padding:8px 10px; text-align:right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="fleet-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Interactive Fast API Playground & Tester -->
+          <div class="card" style="margin-top:14px;">
+            <div class="card-title">
+              <span style="display:flex; align-items:center; gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                <span>Interactive Fast API Playground & Tester</span>
+              </span>
+              <span class="latency-pill" id="play-latency-badge" style="display:none;"></span>
+            </div>
+            <div class="hint" style="margin-bottom:12px;">Test real API responses live. All endpoints execute in-memory with sub-millisecond response timings.</div>
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+              <select class="input" id="play-method" style="width:100px; flex:none; font-weight:700;">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="DELETE">DELETE</option>
+              </select>
+              <select class="input" id="play-preset" style="flex:1; min-width:240px;" onchange="onPlayPresetChange(this.value)">
+                <option value="get_resources">GET /api/resources — List all fleet resources & quotas</option>
+                <option value="get_vps">GET /api/vps — List user's VPS instances</option>
+                <option value="get_vps_node">GET /api/vps/{vps_id}/node — Get Continuous Node status & metrics</option>
+                <option value="start_vps_node">POST /api/vps/{vps_id}/node/start — Start Continuous Node 24/7</option>
+                <option value="stop_vps_node">POST /api/vps/{vps_id}/node/stop — Stop Continuous Node</option>
+                <option value="restart_vps_node">POST /api/vps/{vps_id}/node/restart — Restart Continuous Node</option>
+                <option value="get_node_logs">GET /api/vps/{vps_id}/node/logs — Fetch Continuous Node logs</option>
+                <option value="terminate_node">POST /api/vps/{vps_id}/node/terminate — Terminate Node Resource</option>
+                <option value="terminate_vps">POST /api/vps/{vps_id}/terminate — Terminate VPS Resource & Wipe</option>
+                <option value="create_resource">POST /api/resources/create — Create New Resource (VPS/Node)</option>
+                <option value="get_keys">GET /api/user/keys — List API Keys</option>
+              </select>
+              <button class="btn btn-primary" id="btn-play-send" onclick="sendPlaygroundRequest()">Send Request ⚡</button>
+            </div>
+
+            <div style="margin-bottom:10px;">
+              <input type="text" class="input" id="play-url" style="font-family:var(--mono); font-size:12.5px;" value="/api/resources">
+            </div>
+
+            <div id="play-body-wrap" style="margin-bottom:10px; display:none;">
+              <label style="font-size:12px; color:var(--muted); margin-bottom:4px; display:block;">JSON Request Body</label>
+              <textarea class="input" id="play-body" style="width:100%; height:80px; font-family:var(--mono); font-size:12px;" spellcheck="false"></textarea>
+            </div>
+
+            <div style="margin-top:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label style="font-size:12px; color:var(--muted); margin:0;">Live API Response & Timing</label>
+                <button class="btn btn-sm" onclick="copyPlayResponse()">Copy JSON</button>
+              </div>
+              <pre class="log-box" id="play-response-box" style="height:220px; min-height:160px; color:#a8f0c6;"></pre>
+            </div>
+          </div>
+
+          <!-- API Credentials & Code Integration -->
+          <div class="card" style="margin-top:14px;">
+            <div class="card-title">
+              <span>API Credentials & Authentication</span>
+              <button class="btn btn-sm" onclick="rollApiKey()">Roll Master Key</button>
+            </div>
+            <div class="field">
+              <label>Master API Key (Keep Private)</label>
+              <div class="input-row">
+                <input type="password" class="input" id="api-key-display" readonly style="font-family:var(--mono); font-size:13px;" value="">
+                <button class="btn" onclick="toggleApiKeyVisibility()" id="btn-api-key-toggle">Show</button>
+                <button class="btn btn-primary" onclick="copyApiKey()">Copy</button>
+              </div>
+              <div class="hint">Authenticate with header <code>X-API-Key: cvps_...</code> or <code>Authorization: Bearer cvps_...</code></div>
+            </div>
+
+            <!-- Code snippets tabs -->
+            <div style="margin-top:14px;">
+              <div class="auth-tabs" style="max-width:340px; margin-bottom:10px;">
+                <button id="snippet-tab-curl" class="active" onclick="switchSnippetTab('curl')">cURL</button>
+                <button id="snippet-tab-js" onclick="switchSnippetTab('js')">Node.js (fetch)</button>
+                <button id="snippet-tab-py" onclick="switchSnippetTab('py')">Python (requests)</button>
+              </div>
+              <pre class="log-box" id="snippet-code-box" style="height:140px; min-height:110px; color:#f0f0f4;"></pre>
+            </div>
+          </div>
+        </section>
+
         <!-- ============ ACCOUNT ============ -->
         <section class="view" id="view-account">
           <div id="account-body"></div>
@@ -934,6 +1194,49 @@
       <div class="modal-actions">
         <button class="btn" id="confirm-cancel">Cancel</button>
         <button class="btn btn-danger" id="confirm-ok">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resource Creator modal -->
+  <div class="modal-backdrop" id="resource-creator-backdrop" onclick="if (event.target === this) closeResourceCreatorModal()">
+    <div class="modal">
+      <h2>Create Fleet Resource</h2>
+      <div class="modal-error" id="res-creator-error"></div>
+      <div class="field">
+        <label for="res-creator-type">Resource Type</label>
+        <select class="input" id="res-creator-type" onchange="onResCreatorTypeChange(this.value)">
+          <option value="node">Continuous Node 24/7 Hosting</option>
+          <option value="vps">VPS Instance (Isolated Sandbox)</option>
+        </select>
+      </div>
+      <div class="field" id="res-creator-vps-field">
+        <label for="res-creator-vps">Target VPS Workspace</label>
+        <select class="input" id="res-creator-vps"></select>
+      </div>
+      <div class="field">
+        <label for="res-creator-name">Resource Name</label>
+        <input type="text" class="input" id="res-creator-name" placeholder="e.g. Node-Api-Server" spellcheck="false">
+      </div>
+      <div class="field" id="res-creator-node-fields">
+        <label for="res-creator-entrypoint">Entrypoint & Port</label>
+        <div class="input-row">
+          <input type="text" class="input" id="res-creator-entrypoint" value="index.js" placeholder="index.js" spellcheck="false">
+          <input type="number" class="input" id="res-creator-port" style="width:110px; flex:none;" value="3100" placeholder="Port">
+        </div>
+      </div>
+      <div class="field" id="res-creator-vps-fields" style="display:none;">
+        <label for="res-creator-plan">VPS Hardware Plan</label>
+        <select class="input" id="res-creator-plan">
+          <option value="performance">performance — 4.0 Cores, 4GB RAM, 80GB NVMe</option>
+          <option value="starter">starter — 1.0 Core, 1GB RAM, 20GB NVMe</option>
+          <option value="standard">standard — 2.0 Cores, 2GB RAM, 40GB NVMe</option>
+          <option value="ultra">ultra — 8.0 Cores, 8GB RAM, 160GB NVMe</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeResourceCreatorModal()">Cancel</button>
+        <button class="btn btn-primary" id="btn-submit-resource-creator" onclick="submitCreateResource()">Create Resource ⚡</button>
       </div>
     </div>
   </div>
@@ -1079,11 +1382,12 @@
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       $('view-' + tab).classList.add('active');
       const titleEl = $('page-title-text') || $('page-title');
-      if (titleEl) titleEl.textContent = tab === 'vps' ? 'My Vps' : tab === 'bot' ? 'Dc Bots' : 'Account';
+      if (titleEl) titleEl.textContent = tab === 'vps' ? 'My Vps' : tab === 'bot' ? 'Dc Bots' : tab === 'api' ? 'API & Resources' : 'Account';
 
       const actions = $('page-actions');
       actions.innerHTML = '';
       stopLogPolling();
+      stopNodeLogPolling();
       if (STATE.statusTimer) { clearInterval(STATE.statusTimer); STATE.statusTimer = null; }
 
       if (tab === 'vps') {
@@ -1096,6 +1400,18 @@
         loadHardware();
       } else if (tab === 'bot') {
         loadBotTab();
+      } else if (tab === 'api') {
+        const b = document.createElement('button');
+        b.className = 'btn btn-primary';
+        b.textContent = '+ Create Resource';
+        b.onclick = openCreateResourceModal;
+        actions.appendChild(b);
+        const b2 = document.createElement('button');
+        b2.className = 'btn';
+        b2.textContent = 'API Docs (Swagger)';
+        b2.onclick = () => window.open('/api-docs', '_blank');
+        actions.appendChild(b2);
+        loadApiTab();
       } else if (tab === 'account') {
         renderAccount();
       }
@@ -1386,6 +1702,7 @@
             </div>
           </div>
           <div class="vps-actions">
+            <button class="btn btn-sm" onclick="openVpsNode('${v.id}')" title="Manage continuous node on this VPS">⚡ Node</button>
             <button class="btn btn-sm btn-primary" onclick="manageBot('${v.id}')">Manage Bot</button>
             ${on
               ? `<button class="btn btn-sm" onclick="vpsAction('${v.id}', 'stop')">Stop</button>`
@@ -1394,7 +1711,7 @@
             <button class="btn-icon" title="Rename" onclick="renameVps('${v.id}')">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
             </button>
-            <button class="btn-icon" title="Delete" style="color:var(--red);" onclick="deleteVps('${v.id}')">
+            <button class="btn-icon" title="Terminate" style="color:var(--red);" onclick="deleteVps('${v.id}')">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </button>
           </div>
@@ -2118,6 +2435,588 @@
         if (card && card.classList.contains('fullscreen')) toggleEditorFullscreen();
       }
     });
+
+    /* ================= API & CONTINUOUS NODE CONTROLLERS ================= */
+    let nodeLogTimer = null;
+    let activeSnippet = 'curl';
+    let lastApiResponse = '';
+
+    function stopNodeLogPolling() {
+      if (nodeLogTimer) { clearInterval(nodeLogTimer); nodeLogTimer = null; }
+    }
+
+    async function loadApiTab() {
+      if (!STATE.user) {
+        guestEmpty('Sign in to access API & Resources', 'Sign In');
+        return;
+      }
+
+      // 1. Populate VPS select dropdown
+      if (STATE.vpsList.length === 0) {
+        await loadVpsList();
+      }
+      const cnodeVpsSel = $('cnode-vps-select');
+      if (cnodeVpsSel) {
+        cnodeVpsSel.innerHTML = STATE.vpsList.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (${esc(v.id)})</option>`).join('');
+        if (!STATE.activeApiVpsId && STATE.vpsList.length > 0) {
+          STATE.activeApiVpsId = STATE.vpsList[0].id;
+        }
+        if (STATE.activeApiVpsId) {
+          cnodeVpsSel.value = STATE.activeApiVpsId;
+        }
+      }
+
+      // 2. Load API credentials
+      const keysRes = await api('/api/user/keys');
+      const activeKey = (keysRes.ok && keysRes.data.master_key) || (STATE.user && STATE.user.api_key) || '';
+      if ($('api-key-display')) $('api-key-display').value = activeKey;
+
+      // 3. Load resource fleet & stats
+      await loadResourcesFleet();
+
+      // 4. Load continuous node status and start polling
+      await loadContinuousNodeStatus();
+      stopNodeLogPolling();
+      nodeLogTimer = setInterval(loadContinuousNodeStatus, 3500);
+
+      // 5. Code snippets
+      updateApiSnippets();
+    }
+
+    function setCNodeVps(val) {
+      STATE.activeApiVpsId = val;
+      loadContinuousNodeStatus();
+    }
+
+    function getActiveNodeVpsId() {
+      return STATE.activeApiVpsId || ($('cnode-vps-select') && $('cnode-vps-select').value) || (STATE.vpsList[0] && STATE.vpsList[0].id) || 'vps-free-01';
+    }
+
+    async function loadContinuousNodeStatus() {
+      const vpsId = getActiveNodeVpsId();
+      if (!vpsId) return;
+
+      const res = await api(`/api/vps/${vpsId}/node`);
+      if (res.ok && res.data.node) {
+        const n = res.data.node;
+        const isRunning = n.running && n.status === 'running';
+
+        const badge = $('cnode-status-badge');
+        if (badge) badge.classList.toggle('running', isRunning);
+
+        const dot = $('cnode-status-dot');
+        if (dot) dot.className = `dot ${isRunning ? 'on' : ''}`;
+
+        const stText = $('cnode-status-text');
+        if (stText) {
+          stText.textContent = isRunning ? 'Online 24/7' : (n.status === 'error' ? 'Crash Stopped' : 'Stopped');
+        }
+
+        if ($('cnode-stat-pid')) $('cnode-stat-pid').textContent = n.pid ? `#${n.pid} (active background daemon)` : '—';
+        if ($('cnode-stat-ram')) $('cnode-stat-ram').textContent = isRunning ? `${n.memory_mb || 32} MB RSS` : '0 MB';
+        if ($('cnode-stat-port')) $('cnode-stat-port').textContent = `${n.port || 3100} (HTTP 0.0.0.0)`;
+
+        const uptime = n.uptime_seconds || 0;
+        const h = Math.floor(uptime / 3600);
+        const m = Math.floor((uptime % 3600) / 60);
+        const s = uptime % 60;
+        if ($('cnode-stat-uptime')) {
+          $('cnode-stat-uptime').textContent = isRunning ? `${h}h ${m}m ${s}s continuous` : '—';
+        }
+
+        if ($('cnode-entrypoint') && document.activeElement !== $('cnode-entrypoint')) {
+          $('cnode-entrypoint').value = n.entrypoint || 'index.js';
+        }
+        if ($('cnode-port') && document.activeElement !== $('cnode-port')) {
+          $('cnode-port').value = n.port || 3100;
+        }
+
+        const logsBox = $('cnode-logs-box');
+        if (logsBox && res.data.logs) {
+          const content = res.data.logs.join('\n');
+          logsBox.textContent = content || '[Continuous Node Supervisor] Node server is ready to host. Press "Start Continuous Node" to launch 24/7.';
+          logsBox.scrollTop = logsBox.scrollHeight;
+        }
+
+        if ($('btn-cnode-start')) $('btn-cnode-start').disabled = isRunning;
+        if ($('btn-cnode-stop')) $('btn-cnode-stop').disabled = !isRunning;
+      }
+    }
+
+    async function startContinuousNodeUI() {
+      const vpsId = getActiveNodeVpsId();
+      if (!vpsId) return toast('Select a VPS workspace first', 'err');
+      const entrypoint = ($('cnode-entrypoint') && $('cnode-entrypoint').value.trim()) || 'index.js';
+      const portVal = $('cnode-port') && $('cnode-port').value.trim();
+      const port = portVal ? parseInt(portVal, 10) : undefined;
+
+      toast('Spawning continuous node background process…', 'info');
+      const res = await api(`/api/vps/${vpsId}/node/start`, {
+        method: 'POST',
+        body: { entrypoint, port }
+      });
+      if (res.ok) {
+        toast('Continuous Node daemon running [ONLINE 24/7]', 'ok');
+        loadContinuousNodeStatus();
+        loadResourcesFleet();
+      } else {
+        toast(res.data.error || 'Failed to start node', 'err');
+      }
+    }
+
+    async function stopContinuousNodeUI() {
+      const vpsId = getActiveNodeVpsId();
+      if (!vpsId) return;
+      const res = await api(`/api/vps/${vpsId}/node/stop`, { method: 'POST' });
+      if (res.ok) {
+        toast('Continuous Node process terminated by user', 'ok');
+        loadContinuousNodeStatus();
+        loadResourcesFleet();
+      } else {
+        toast(res.data.error || 'Failed to stop node', 'err');
+      }
+    }
+
+    async function restartContinuousNodeUI() {
+      const vpsId = getActiveNodeVpsId();
+      if (!vpsId) return;
+      const entrypoint = ($('cnode-entrypoint') && $('cnode-entrypoint').value.trim()) || 'index.js';
+      const portVal = $('cnode-port') && $('cnode-port').value.trim();
+      const port = portVal ? parseInt(portVal, 10) : undefined;
+
+      toast('Restarting continuous node daemon…', 'info');
+      const res = await api(`/api/vps/${vpsId}/node/restart`, {
+        method: 'POST',
+        body: { entrypoint, port }
+      });
+      if (res.ok) {
+        toast('Continuous Node restarted successfully [ONLINE 24/7]', 'ok');
+        loadContinuousNodeStatus();
+        loadResourcesFleet();
+      } else {
+        toast(res.data.error || 'Restart failed', 'err');
+      }
+    }
+
+    async function terminateContinuousNodeUI() {
+      const vpsId = getActiveNodeVpsId();
+      if (!vpsId) return;
+      const ok = await confirmModal('Terminate Continuous Node', `Terminate continuous node resource on ${vpsId}? The background process will be killed and its port released.`);
+      if (!ok) return;
+
+      const res = await api(`/api/vps/${vpsId}/node/terminate`, { method: 'POST' });
+      if (res.ok) {
+        toast('Continuous Node resource terminated and process killed', 'ok');
+        loadContinuousNodeStatus();
+        loadResourcesFleet();
+      } else {
+        toast(res.data.error || 'Termination failed', 'err');
+      }
+    }
+
+    async function clearCNodeLogs() {
+      const vpsId = getActiveNodeVpsId();
+      if (!vpsId) return;
+      const res = await api(`/api/vps/${vpsId}/node/logs/clear`, { method: 'POST' });
+      if (res.ok) {
+        if ($('cnode-logs-box')) $('cnode-logs-box').textContent = '';
+        toast('Continuous node logs cleared', 'ok');
+      }
+    }
+
+    async function scaffoldNodeServer() {
+      const vpsId = getActiveNodeVpsId();
+      if (!vpsId) return toast('Select a VPS workspace first', 'err');
+      const res = await api(`/api/vps/${vpsId}/node/scaffold`, { method: 'POST' });
+      if (res.ok) {
+        toast('Scaffolded continuous node server file (index.js)', 'ok');
+        loadContinuousNodeStatus();
+      } else {
+        toast(res.data.error || 'Scaffold failed', 'err');
+      }
+    }
+
+    /* ================= RESOURCE FLEET MANAGEMENT & TERMINATION ================= */
+    async function loadResourcesFleet() {
+      const tbody = $('fleet-table-body');
+      if (!tbody) return;
+
+      const res = await api('/api/resources');
+      if (!res.ok || !res.data) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--red); padding:16px;">Failed to load resources</td></tr>';
+        return;
+      }
+
+      const sm = res.data.summary || {};
+      if ($('api-stat-resources')) $('api-stat-resources').textContent = sm.total_resources || 0;
+      if ($('api-stat-nodes')) {
+        $('api-stat-nodes').innerHTML = `<span class="dot ${sm.active_continuous_nodes > 0 ? 'on' : ''}"></span> ${sm.active_continuous_nodes || 0} / ${sm.continuous_nodes_count || 0} Online`;
+      }
+      if ($('api-stat-vps')) $('api-stat-vps').textContent = `${sm.vps_count || 0} Active`;
+      if ($('api-stat-speed')) $('api-stat-speed').textContent = '< 1ms';
+
+      const list = res.data.resources || [];
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:20px;">No fleet resources yet. Click "+ Create Resource" to launch one.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(r => {
+        const isVps = r.type === 'vps';
+        const isNode = r.type === 'continuous_node';
+        const isBot = r.type === 'discord_bot';
+        const isRunning = r.running || r.status === 'running';
+
+        const typeBadge = isVps
+          ? `<span class="res-type-badge res-type-vps">VPS</span>`
+          : isNode
+          ? `<span class="res-type-badge res-type-node">NODE 24/7</span>`
+          : `<span class="res-type-badge res-type-bot">DC BOT</span>`;
+
+        const specs = isVps
+          ? `${esc(r.cpu)} · ${esc(r.memory)} · ${esc(r.ip || '172.20.0.x')}`
+          : isNode
+          ? `Port: ${esc(r.port || '3100')} · PID: ${esc(r.pid || '—')} · ${esc(r.entrypoint || 'index.js')}`
+          : `PID: ${esc(r.pid || '—')} · ${esc(r.filename || 'bot.py')} · ${esc(r.runtime || 'python')}`;
+
+        const uptime = r.uptime_seconds ? `${Math.floor(r.uptime_seconds / 60)}m` : (isVps && isRunning ? '24/7' : '—');
+
+        return `
+          <tr>
+            <td style="padding:10px 12px;">
+              <div style="font-weight:600; color:#fff;">${esc(r.name || r.id)}</div>
+              <div style="font-family:var(--mono); font-size:11px; color:var(--dim);">${esc(r.id)}</div>
+            </td>
+            <td style="padding:10px 12px;">${typeBadge}</td>
+            <td style="padding:10px 12px;">
+              <span class="status-pill ${isRunning ? 'running' : ''}" style="font-size:11px;">
+                <span class="dot ${isRunning ? 'on' : ''}"></span> ${isRunning ? 'Running' : (r.status || 'Stopped')}
+              </span>
+            </td>
+            <td style="padding:10px 12px;"><span style="font-family:var(--mono); font-size:12px; color:var(--text);">${specs}</span></td>
+            <td style="padding:10px 12px;"><span style="font-family:var(--mono); font-size:12px;">${uptime}</span></td>
+            <td style="padding:10px 12px; text-align:right;">
+              <div style="display:inline-flex; gap:6px; align-items:center;">
+                ${isVps ? `<button class="btn btn-sm" onclick="focusVpsNode('${esc(r.id)}')">Manage Node</button>` : ''}
+                <button class="btn btn-sm btn-danger" onclick="terminateResource('${esc(r.id)}', '${esc(r.name || r.id)}', '${esc(r.type)}')">Terminate</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Alias for compatibility
+    const loadResourcesTable = loadResourcesFleet;
+
+    function focusVpsNode(vpsId) {
+      STATE.activeApiVpsId = vpsId;
+      const sel = $('cnode-vps-select');
+      if (sel) sel.value = vpsId;
+      loadContinuousNodeStatus();
+    }
+
+    async function terminateResource(id, name, type) {
+      const typeLabel = type === 'vps' ? 'VPS Instance' : type === 'continuous_node' ? 'Continuous Node' : 'Bot Process';
+      const ok = await confirmModal(`Terminate ${typeLabel}`, `Are you sure you want to terminate ${name} (${id})? All child processes will be killed and resources released.`);
+      if (!ok) return;
+
+      toast('Terminating resource…', 'info');
+      const res = await api(`/api/resources/${id}/terminate`, { method: 'POST' });
+      if (res.ok) {
+        toast(`Resource ${id} terminated successfully`, 'ok');
+        loadResourcesFleet();
+        loadVpsList();
+        loadContinuousNodeStatus();
+      } else {
+        toast(res.data.error || 'Termination failed', 'err');
+      }
+    }
+
+    function openResourceCreatorModal() {
+      if (!STATE.user) { openAuth('signup'); return; }
+      const errEl = $('res-creator-error');
+      if (errEl) errEl.style.display = 'none';
+
+      const vpsSel = $('res-creator-vps');
+      if (vpsSel) {
+        vpsSel.innerHTML = STATE.vpsList.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (${esc(v.id)})</option>`).join('');
+      }
+      if ($('res-creator-type')) {
+        $('res-creator-type').value = 'node';
+        onResCreatorTypeChange('node');
+      }
+      $('resource-creator-backdrop').classList.add('open');
+    }
+
+    function closeResourceCreatorModal() {
+      $('resource-creator-backdrop').classList.remove('open');
+    }
+
+    function onResCreatorTypeChange(val) {
+      const isNode = val === 'node';
+      if ($('res-creator-vps-field')) $('res-creator-vps-field').style.display = isNode ? '' : 'none';
+      if ($('res-creator-node-fields')) $('res-creator-node-fields').style.display = isNode ? '' : 'none';
+      if ($('res-creator-vps-fields')) $('res-creator-vps-fields').style.display = isNode ? 'none' : '';
+      if ($('res-creator-name')) {
+        $('res-creator-name').placeholder = isNode ? 'e.g. Continuous-API-Host' : 'e.g. Production-Sandbox-VPS';
+      }
+    }
+
+    async function submitCreateResource() {
+      const type = $('res-creator-type').value;
+      const name = $('res-creator-name').value.trim();
+      const errEl = $('res-creator-error');
+      if (errEl) errEl.style.display = 'none';
+
+      const payload = { type, name };
+      if (type === 'node') {
+        payload.vps_id = $('res-creator-vps').value;
+        payload.entrypoint = $('res-creator-entrypoint').value.trim() || 'index.js';
+        const portVal = $('res-creator-port').value.trim();
+        if (portVal) payload.port = parseInt(portVal, 10);
+      } else if (type === 'vps') {
+        payload.plan = $('res-creator-plan').value;
+      }
+
+      const btn = $('btn-submit-resource-creator');
+      if (btn) btn.disabled = true;
+      const res = await api('/api/resources/create', { method: 'POST', body: payload });
+      if (btn) btn.disabled = false;
+
+      if (res.ok) {
+        closeResourceCreatorModal();
+        toast('Resource provisioned successfully!', 'ok');
+        loadResourcesFleet();
+        loadVpsList();
+        if (type === 'node') loadContinuousNodeStatus();
+      } else {
+        if (errEl) {
+          errEl.textContent = res.data.error || 'Failed to create resource';
+          errEl.style.display = 'block';
+        } else {
+          toast(res.data.error || 'Failed to create resource', 'err');
+        }
+      }
+    }
+
+    /* ================= FAST API PLAYGROUND & TESTER ================= */
+    function onPlayPresetChange(preset) {
+      const methodSel = $('play-method');
+      const urlInput = $('play-url');
+      const bodyWrap = $('play-body-wrap');
+      const bodyText = $('play-body');
+      const activeVpsId = getActiveNodeVpsId();
+
+      const presets = {
+        get_resources: { method: 'GET', url: '/api/resources', body: '' },
+        get_vps: { method: 'GET', url: '/api/vps', body: '' },
+        get_vps_node: { method: 'GET', url: `/api/vps/${activeVpsId}/node`, body: '' },
+        start_vps_node: {
+          method: 'POST',
+          url: `/api/vps/${activeVpsId}/node/start`,
+          body: JSON.stringify({ entrypoint: 'index.js', port: 3100 }, null, 2)
+        },
+        stop_vps_node: {
+          method: 'POST',
+          url: `/api/vps/${activeVpsId}/node/stop`,
+          body: '{}'
+        },
+        restart_vps_node: {
+          method: 'POST',
+          url: `/api/vps/${activeVpsId}/node/restart`,
+          body: JSON.stringify({ entrypoint: 'index.js', port: 3100 }, null, 2)
+        },
+        get_node_logs: { method: 'GET', url: `/api/vps/${activeVpsId}/node/logs`, body: '' },
+        terminate_node: {
+          method: 'POST',
+          url: `/api/vps/${activeVpsId}/node/terminate`,
+          body: '{}'
+        },
+        terminate_vps: {
+          method: 'POST',
+          url: `/api/vps/${activeVpsId}/terminate`,
+          body: '{}'
+        },
+        create_resource: {
+          method: 'POST',
+          url: '/api/resources/create',
+          body: JSON.stringify({ type: 'node', vps_id: activeVpsId, entrypoint: 'index.js', port: 3100 }, null, 2)
+        },
+        get_keys: { method: 'GET', url: '/api/user/keys', body: '' }
+      };
+
+      const cfg = presets[preset] || presets.get_resources;
+      methodSel.value = cfg.method;
+      urlInput.value = cfg.url;
+      if (cfg.body) {
+        bodyWrap.style.display = 'block';
+        bodyText.value = cfg.body;
+      } else {
+        bodyWrap.style.display = 'none';
+        bodyText.value = '';
+      }
+    }
+
+    async function sendPlaygroundRequest() {
+      const method = $('play-method').value;
+      let url = $('play-url').value.trim();
+      const activeVpsId = getActiveNodeVpsId();
+      url = url.replace('{vps_id}', activeVpsId).replace('{id}', activeVpsId);
+
+      const rawBody = $('play-body').value.trim();
+      let body = undefined;
+      if (rawBody && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+        try {
+          body = JSON.parse(rawBody);
+        } catch (e) {
+          toast('Invalid JSON body: ' + e.message, 'err');
+          return;
+        }
+      }
+
+      const badge = $('play-latency-badge');
+      if (badge) badge.style.display = 'none';
+
+      const t0 = performance.now();
+      const res = await api(url, { method, body });
+      const t1 = performance.now();
+      const clientLatency = (t1 - t0).toFixed(1);
+
+      if (badge) {
+        badge.style.display = 'inline-flex';
+        badge.textContent = `⚡ ${clientLatency}ms · HTTP ${res.status}`;
+      }
+
+      lastApiResponse = JSON.stringify(res.data, null, 2);
+      const resBox = $('play-response-box');
+      if (resBox) resBox.textContent = lastApiResponse;
+
+      if (res.ok) {
+        toast(`API Response received in ${clientLatency}ms`, 'ok');
+        // Refresh fleet or node if mutative action was run
+        if (method !== 'GET') {
+          loadResourcesFleet();
+          loadContinuousNodeStatus();
+        }
+      } else {
+        toast(res.data.error || `HTTP ${res.status} Error`, 'err');
+      }
+    }
+
+    function copyPlayResponse() {
+      if (!lastApiResponse) return toast('Execute an API request first', 'err');
+      navigator.clipboard.writeText(lastApiResponse).then(() => {
+        toast('Response JSON copied to clipboard', 'ok');
+      });
+    }
+
+    /* ================= API KEYS & CODE INTEGRATION ================= */
+    function toggleApiKeyVisibility() {
+      const inp = $('api-key-display');
+      const btn = $('btn-api-key-toggle');
+      if (!inp) return;
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        if (btn) btn.textContent = 'Hide';
+      } else {
+        inp.type = 'password';
+        if (btn) btn.textContent = 'Show';
+      }
+    }
+
+    function copyApiKey() {
+      const key = ($('api-key-display') && $('api-key-display').value) || (STATE.user && STATE.user.api_key) || '';
+      if (!key) return toast('No API key available', 'err');
+      navigator.clipboard.writeText(key).then(() => {
+        toast('API key copied to clipboard', 'ok');
+      }).catch(() => {
+        toast('Could not copy API key', 'err');
+      });
+    }
+
+    async function rollApiKey() {
+      const ok = await confirmModal('Roll Master API Key', 'Regenerating your master API key will invalidate any external script or bot currently using this key. Continue?');
+      if (!ok) return;
+
+      const res = await api('/api/user/keys/roll', { method: 'POST' });
+      if (res.ok && res.data.api_key) {
+        if ($('api-key-display')) $('api-key-display').value = res.data.api_key;
+        if (STATE.user) STATE.user.api_key = res.data.api_key;
+        localStorage.setItem('cloudvps_key', res.data.api_key);
+        toast('Master API key successfully regenerated', 'ok');
+        updateApiSnippets();
+      } else {
+        toast(res.data.error || 'Failed to roll API key', 'err');
+      }
+    }
+
+    function switchSnippetTab(lang) {
+      activeSnippet = lang;
+      if ($('snippet-tab-curl')) $('snippet-tab-curl').classList.toggle('active', lang === 'curl');
+      if ($('snippet-tab-js')) $('snippet-tab-js').classList.toggle('active', lang === 'js');
+      if ($('snippet-tab-py')) $('snippet-tab-py').classList.toggle('active', lang === 'py');
+      updateApiSnippets();
+    }
+
+    function updateApiSnippets() {
+      const origin = window.location.origin;
+      const key = ($('api-key-display') && $('api-key-display').value) || (STATE.user && STATE.user.api_key) || 'cvps_your_api_key';
+      const activeVpsId = getActiveNodeVpsId();
+      const el = $('snippet-code-box');
+      if (!el) return;
+
+      if (activeSnippet === 'curl') {
+        el.textContent = `# 1. List fleet resources & active continuous nodes
+curl -H "X-API-Key: ${key}" ${origin}/api/resources
+
+# 2. Launch Continuous Node (24/7 background host)
+curl -X POST -H "X-API-Key: ${key}" \\
+  -H "Content-Type: application/json" \\
+  -d '{"entrypoint": "index.js", "port": 3100}' \\
+  ${origin}/api/vps/${activeVpsId}/node/start
+
+# 3. Terminate resource programmatically
+curl -X POST -H "X-API-Key: ${key}" ${origin}/api/resources/node-${activeVpsId}/terminate`;
+      } else if (activeSnippet === 'js') {
+        el.textContent = `// Fast Node.js / Browser Fetch Integration
+const API_URL = '${origin}';
+const API_KEY = '${key}';
+
+// Fetch resource fleet
+const res = await fetch(\`\${API_URL}/api/resources\`, {
+  headers: { 'X-API-Key': API_KEY }
+});
+const { summary, resources } = await res.json();
+console.log('Online Continuous Nodes:', summary.active_continuous_nodes);
+
+// Start Continuous Node 24/7
+await fetch(\`\${API_URL}/api/vps/${activeVpsId}/node/start\`, {
+  method: 'POST',
+  headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ entrypoint: 'index.js', port: 3100 })
+});`;
+      } else if (activeSnippet === 'py') {
+        el.textContent = `# Fast Python Integration
+import requests
+
+API_URL = '${origin}'
+HEADERS = {'X-API-Key': '${key}'}
+
+# List all fleet resources
+resp = requests.get(f'{API_URL}/api/resources', headers=HEADERS)
+data = resp.json()
+print('Fleet status:', data.get('summary'))
+
+# Start continuous node hosting
+node_resp = requests.post(
+    f'{API_URL}/api/vps/${activeVpsId}/node/start',
+    headers=HEADERS,
+    json={'entrypoint': 'index.js', 'port': 3100}
+)
+print('Node PID:', node_resp.json().get('node', {}).get('pid'))`;
+      }
+    }
 
     /* ================= HELPERS ================= */
     function formatBytes(n) {

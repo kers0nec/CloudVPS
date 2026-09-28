@@ -19,6 +19,8 @@ import pinoPretty from 'pino-pretty';
 import { z } from 'zod';
 import zlib from 'zlib';
 import dotenv from 'dotenv';
+import { createNodeClient } from './node-client.js';
+import { createV1Router } from './api/v1.js';
 
 dotenv.config();
 
@@ -845,10 +847,79 @@ function vpsOwnerRequired(req, res, next) {
  next();
 }
 
+// ---------------------- HOST NODE CLIENT ----------------------
+// worker.js is a dedicated Node.js daemon — the "real node" that hosts every
+// workload 24/7, separate from this web API. All process spawning, log
+// capture, auto-restart and crash-loop protection live there; this client is
+// the API server's window into it (localhost + shared token + hard timeouts,
+// so a sick node can never make API requests hang).
+const nodeClient = createNodeClient({
+ tokenPath: path.join(DATA_DIR, 'node-worker.token'),
+ logger,
+});
+
+// Host node status for /api/health, the v1 API and the dashboard's API tab.
+// Never throws: an unreachable node reports { reachable:false } so callers
+// stay fast and honest instead of hanging.
+async function getNodeStatus() {
+ const desired_workloads = Object.keys(db.bots)
+ .filter((id) => db.bots[id] && db.bots[id].running && db.vps[id])
+ .length;
+ try {
+ const { cached, ...node } = await nodeClient.getStatus({ maxAgeMs: 1500 });
+ return { reachable: true, ...node, desired_workloads };
+ } catch (err) {
+ return {
+ reachable: false,
+ role: 'cloudvps-host-node',
+ error: err.message,
+ checked_at: new Date().toISOString(),
+ desired_workloads,
+ };
+ }
+}
+
+// Rotate the caller's API key (v1 API key management).
+function rotateApiKey(user) {
+ user.api_key = `cvps_${crypto.randomBytes(16).toString('hex')}`;
+ saveDb();
+ return user.api_key;
+}
+
+// Adapt a legacy (req, res) route handler into a promise-returning function.
+// The v1 API reuses the exact same pip/npm install & uninstall code paths as
+// the dashboard (zero behavior drift) instead of duplicating them.
+function runViaLegacyHandler(handler, vpsId, body) {
+ return new Promise((resolve) => {
+ let settled = false;
+ const finish = (err, payload) => {
+ if (!settled) {settled = true; resolve({ err, payload });}
+ };
+ const fakeReq = { params: { vps_id: vpsId }, body: body || {}, query: {} };
+ const fakeRes = {
+ statusCode: 200,
+ status(code) {this.statusCode = code; return this;},
+ json(payload) {
+ finish(this.statusCode >= 400
+ ? new Error((payload && (payload.error || payload.message)) || 'Request failed')
+ : null, payload);
+ },
+ };
+ try {
+ handler(fakeReq, fakeRes);
+ } catch (e) {
+ finish(e);
+ }
+ });
+}
+
 // ---------------------- API ROUTES ----------------------
 
-// Health Check
-app.get('/api/health', (req, res) => {
+// Health Check — includes the real hosting node's status (fast: cached
+// locally on the API side, and an unreachable node reports instead of
+// delaying the response).
+app.get('/api/health', async (req, res) => {
+ const node = await getNodeStatus();
  res.json({
  status: 'ok',
  docker: false,
@@ -857,6 +928,13 @@ app.get('/api/health', (req, res) => {
  detail: 'CloudVPS Native Sandbox Engine is active and ultra-fast.',
  image: 'ubuntu:22.04',
  plans: Object.keys(PLANS),
+ node: {
+ reachable: node.reachable,
+ role: node.role || 'cloudvps-host-node',
+ uptime_s: node.uptime_s,
+ workloads: node.workloads,
+ desired_workloads: node.desired_workloads,
+ },
  });
 });
 
@@ -1092,9 +1170,9 @@ app.get('/api/vps', authRequired, (req, res) => {
 // and common libraries) is installed automatically in the background and the
 // resulting package ledger is persisted with the VPS. Pass auto_install:false
 // to skip the automatic install.
-app.post('/api/vps', authRequired, (req, res) => {
- const { plan = 'performance', name, os = 'ubuntu' } = req.body || {};
- const autoInstall = req.body?.auto_install !== false && req.body?.auto_install !== 'false';
+// Shared by the legacy dashboard endpoint and the v1 resource API so both
+// provision exactly the same resource record.
+function provisionVps(user, { plan = 'performance', name, os = 'ubuntu', autoInstall = true } = {}) {
  const planInfo = PLANS[plan] || PLANS.performance;
 
  const vpsId = `vps-${  crypto.randomBytes(4).toString('hex')}`;
@@ -1104,7 +1182,7 @@ app.post('/api/vps', authRequired, (req, res) => {
 
  const newVps = {
  id: vpsId,
- user_id: req.user.id,
+ user_id: user.id,
  name: vpsName,
  plan,
  os,
@@ -1155,7 +1233,18 @@ app.post('/api/vps', authRequired, (req, res) => {
  setTimeout(() => runAutoInstall(vpsId), 500);
  }
 
- res.status(201).json({ success: true, vps: newVps, auto_install: pkgState.auto_install });
+ return { vps: newVps, pkgState };
+}
+
+app.post('/api/vps', authRequired, (req, res) => {
+ const autoInstall = req.body?.auto_install !== false && req.body?.auto_install !== 'false';
+ const { vps, pkgState } = provisionVps(req.user, {
+ plan: req.body?.plan,
+ name: req.body?.name,
+ os: req.body?.os,
+ autoInstall,
+ });
+ res.status(201).json({ success: true, vps, auto_install: pkgState.auto_install });
 });
 
 // Rename VPS
@@ -1208,19 +1297,23 @@ app.post('/api/vps/:vps_id/restart', authRequired, vpsOwnerRequired, (req, res) 
  res.json({ success: true, status: 'running' });
 });
 
-// Delete VPS
-app.delete('/api/vps/:vps_id', authRequired, vpsOwnerRequired, (req, res) => {
- delete db.vps[req.params.vps_id];
- delete db.bots[req.params.vps_id];
+// Terminate a VPS: stop its hosted workload first (so no orphan process is
+// ever left running on the host node), drop the records, then scrub the
+// workspace in the background so the API response stays fast.
+function terminateVps(vpsId) {
+ stopBotProcess(vpsId);
+ delete db.vps[vpsId];
+ delete db.bots[vpsId];
  saveDb();
 
- const wsDir = path.join(INSTANCES_DIR, req.params.vps_id);
- if (fs.existsSync(wsDir)) {
- try {
- fs.rmSync(wsDir, { recursive: true, force: true });
- } catch (e) {}
- }
+ const wsDir = path.join(INSTANCES_DIR, vpsId);
+ fs.promises.rm(wsDir, { recursive: true, force: true })
+ .catch((err) => logger.warn({ err: err.message, vpsId }, '[CloudVPS] workspace cleanup failed'));
+}
 
+// Delete VPS
+app.delete('/api/vps/:vps_id', authRequired, vpsOwnerRequired, (req, res) => {
+ terminateVps(req.params.vps_id);
  res.json({ success: true, message: 'VPS deleted' });
 });
 
@@ -1748,8 +1841,7 @@ app.post('/api/vps/:vps_id/bot/upload', authRequired, vpsOwnerRequired, upload.a
 // ---------------------- BOT SUPERVISOR CONTROLS ----------------------
 
 // Get Bot Status
-app.get('/api/vps/:vps_id/bot', authRequired, vpsOwnerRequired, (req, res) => {
- const vpsId = req.params.vps_id;
+function getBotRecord(vpsId) {
  initVpsWorkspace(vpsId);
 
  let bot = db.bots[vpsId];
@@ -1772,6 +1864,15 @@ app.get('/api/vps/:vps_id/bot', authRequired, vpsOwnerRequired, (req, res) => {
  db.bots[vpsId] = bot;
  saveDb();
  }
+ return bot;
+}
+
+app.get('/api/vps/:vps_id/bot', authRequired, vpsOwnerRequired, async (req, res) => {
+ const vpsId = req.params.vps_id;
+ const bot = getBotRecord(vpsId);
+ try {
+ await syncWorkloadState(vpsId);
+ } catch (e) { /* node down: serve last known state */ }
 
  const uptimeSec = bot.started_at ? Math.floor((Date.now() - bot.started_at) / 1000) : 0;
  res.json({
@@ -1796,8 +1897,26 @@ app.post('/api/vps/:vps_id/bot', authRequired, vpsOwnerRequired, (req, res) => {
  res.json({ success: true, bot: db.bots[vpsId] });
 });
 
-// Active Bot Processes Map: vpsId -> { child, pid, filename, runtime, startTime, userStopped, restartCount }
-const activeBots = new Map();
+// ---------------------------------------------------------------------------
+// HOST NODE WORKLOAD PLUMBING
+// ---------------------------------------------------------------------------
+// Processes no longer live in this process: worker.js is a dedicated Node.js
+// daemon — the "real node" that hosts every workload 24/7. The functions
+// below keep the DB's desired state ("running"/"stopped") reconciled with
+// that node, tail the node's log ring buffer into the persisted bot record,
+// and re-register workloads after a node restart. That reconciliation loop
+// is what makes hosting survive daemon crashes without double-spawning.
+
+const workloadLogCursor = new Map(); // vpsId -> last log cursor pulled from the host node
+const startInFlight = new Set();     // vpsIds currently being registered on the node
+const nodeWarnedAt = new Map();      // per-workload throttle for "node down" warnings
+
+function warnNodeDown(vpsId, err) {
+ const now = Date.now();
+ if (now - (nodeWarnedAt.get(vpsId) || 0) < 30000) {return;}
+ nodeWarnedAt.set(vpsId, now);
+ logger.warn({ err: err && err.message, vpsId }, '[CloudVPS Host Node] unreachable — will keep retrying');
+}
 
 function appendBotLog(vpsId, message) {
  if (!db.bots[vpsId]) {db.bots[vpsId] = { logs: [] };}
@@ -1815,44 +1934,31 @@ function appendBotLog(vpsId, message) {
  saveDb();
 }
 
+// Stop the workload for a VPS on the host node.
+// Desired state is written FIRST so the reconciler never races a
+// user-initiated stop and immediately re-registers the workload.
+// persistStopped=false keeps the desired state "running" (used around
+// shutdowns: the process pauses now and resumes automatically on next boot).
 function stopBotProcess(vpsId, persistStopped = true) {
- const active = activeBots.get(vpsId);
- if (active && active.child) {
- // userStopped prevents the close handler from scheduling an auto-restart.
- // persistStopped=false is used during server shutdown: the bot is only
- // paused for the restart, so the 24/7 watchdog resumes it on next boot.
- active.userStopped = true;
- try {
- active.child.kill('SIGTERM');
- } catch (e) {}
- setTimeout(() => {
- try {
- if (active.child && !active.child.killed) {
- active.child.kill('SIGKILL');
- }
- } catch (e) {}
- }, 1500);
- }
- activeBots.delete(vpsId);
  if (db.bots[vpsId] && persistStopped) {
  db.bots[vpsId].status = 'stopped';
  db.bots[vpsId].running = false;
  db.bots[vpsId].pid = null;
  saveDb();
  }
+ workloadLogCursor.delete(vpsId);
+ nodeClient.stopWorkload(vpsId).catch((err) => {
+ warnNodeDown(vpsId, err);
+ if (db.bots[vpsId]) {
+ appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Watchdog] Host node unreachable while stopping — the stop is queued and will be applied automatically. (${err.message})`);
+ }
+ });
 }
 
-// Crash-loop counters persist per VPS across restarts (a fresh botRecord is
-// created every time startBotProcess runs, so storing the counter *on* the
-// record — as this used to do — meant it was reset to zero on every single
-// restart and could never actually trip). Kept outside any per-record state
-// so a script that crashes instantly, forever, is reliably stopped instead
-// of hammering spawn/crash every 3 seconds and starving the whole host.
-const crashLoopState = new Map();
-
-function startBotProcess(vpsId, filename, runtime) {
- stopBotProcess(vpsId);
-
+// Build the spawn spec for a workload: detect entry point + runtime, load
+// the workspace .env and stored tokens, and kick off dependency installs in
+// the background. Returns null when there is nothing runnable to register.
+function buildWorkloadSpec(vpsId, filename, runtime) {
  const wsDir = path.join(INSTANCES_DIR, vpsId);
  initVpsWorkspace(vpsId);
 
@@ -1910,8 +2016,9 @@ function startBotProcess(vpsId, filename, runtime) {
  }
  }
 
- const mergedEnv = {
- ...process.env,
+ // The host node merges its own process.env with this map (both processes
+ // are started from the same deployment with the same environment).
+ const specEnv = {
  ...customEnv,
  PYTHONUNBUFFERED: '1',
  NODE_ENV: 'production',
@@ -1931,139 +2038,132 @@ function startBotProcess(vpsId, filename, runtime) {
 
  // Auto-install missing dependencies in the background (requirements.txt for
  // python, package.json for node) so bots that import discord.py / discord.js
- // or any freshly-added package come up without a manual install step. The
- // watchdog's auto-restart covers the bot if it boots before deps land.
+ // or any freshly-added package come up without a manual install step.
  if (targetRuntime === 'python') {ensureRequirementsInstalled(vpsId);}
  else if (targetRuntime === 'node') {ensureNodeModulesInstalled(vpsId);}
 
- const timestamp = new Date().toLocaleTimeString();
- appendBotLog(vpsId, `[${timestamp}] [24/7 Watchdog] Spawning real process: ${execCmd} ${targetFile}...`);
+ return { id: vpsId, command: execCmd, args: execArgs, cwd: wsDir, env: specEnv, filename: targetFile, runtime: targetRuntime };
+}
 
- let child;
- try {
- child = child_process.spawn(execCmd, execArgs, {
- cwd: wsDir,
- env: mergedEnv,
- stdio: ['pipe', 'pipe', 'pipe']
- });
- } catch (err) {
- appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Watchdog Error] Failed to spawn: ${err.message}`);
- if (db.bots[vpsId]) {
- db.bots[vpsId].status = 'error';
- db.bots[vpsId].running = false;
- saveDb();
+// Pull new log lines from the host node into the persisted bot record.
+async function pullWorkloadLogs(vpsId) {
+ const since = workloadLogCursor.get(vpsId) ?? 0;
+ const { lines, cursor } = await nodeClient.getLogs(vpsId, since);
+ if (lines.length && db.bots[vpsId]) {
+ appendBotLog(vpsId, lines.join('\n'));
  }
- return null;
- }
+ workloadLogCursor.set(vpsId, cursor);
+}
 
- const botRecord = {
- child,
- pid: child.pid,
- filename: targetFile,
- runtime: targetRuntime,
- startTime: Date.now(),
- userStopped: false,
- restartCount: (db.bots[vpsId]?.restarts || 0)
- };
-
- activeBots.set(vpsId, botRecord);
-
+// Register a workload on the host node (desired state = running).
+// Rejects with NodeUnavailableError when the node can't be reached; the
+// desired state stays "running" so the reconciler retries automatically.
+async function startBotProcess(vpsId, filename, runtime, { quiet = false } = {}) {
+ const spec = buildWorkloadSpec(vpsId, filename, runtime);
+ if (!spec) {return null;}
  if (!db.bots[vpsId]) {db.bots[vpsId] = { logs: [] };}
- db.bots[vpsId].status = 'running';
- db.bots[vpsId].running = true;
- db.bots[vpsId].pid = child.pid;
- db.bots[vpsId].filename = targetFile;
- db.bots[vpsId].runtime = targetRuntime;
- db.bots[vpsId].started_at = Date.now();
+ const bot = db.bots[vpsId];
+ bot.filename = spec.filename;
+ bot.runtime = spec.runtime;
+ bot.status = 'running';
+ bot.running = true;
+ bot.pid = null;
  saveDb();
 
- appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Bot PID ${child.pid} active and connected to host [ONLINE]`);
-
- child.stdout.on('data', chunk => {
- appendBotLog(vpsId, chunk.toString('utf8'));
- });
-
- child.stderr.on('data', chunk => {
- appendBotLog(vpsId, chunk.toString('utf8'));
- });
-
-  child.on('error', err => {
- appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Process Error] ${err.message}`);
- });
-
- child.on('close', (code, signal) => {
- const wasStoppedByUser = botRecord.userStopped;
- appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Process Exit] Process terminated with exit code ${code} (signal: ${signal || 'none'})`);
-
- if (activeBots.get(vpsId) === botRecord) {
- activeBots.delete(vpsId);
+ startInFlight.add(vpsId);
+ try {
+ const wl = await nodeClient.startWorkload(spec);
+ bot.pid = wl && wl.pid ? wl.pid : null;
+ bot.status = wl && wl.status === 'error' ? 'error' : 'running';
+ bot.running = bot.status === 'running';
+ bot.restarts = wl ? (wl.restarts || 0) : 0;
+ bot.started_at = Date.now();
+ saveDb();
+ // Fresh log buffer on the node: everything it already emitted about this
+ // start is new to us.
+ workloadLogCursor.set(vpsId, 0);
+ await pullWorkloadLogs(vpsId);
+ return bot;
+ } catch (err) {
+ warnNodeDown(vpsId, err);
+ // Desired state stays running=true; status flips to 'error' so the UI is
+ // honest about the workload not being live *yet*.
+ bot.status = 'error';
+ bot.pid = null;
+ saveDb();
+ if (!quiet) {
+ appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Host node unreachable (${err.message}) — start queued; it goes live automatically once the node answers.`);
  }
-
- if (!wasStoppedByUser && !shuttingDown) {
- botRecord.restartCount++;
-
- // Crash-loop protection: measured at exit time (not right after spawn,
- // which always measures ~0ms) and tracked per-VPS across restarts (not
- // on the short-lived botRecord, which is thrown away every restart) —
- // otherwise a script that fails instantly forever (bad syntax, missing
- // token) restarts every 3s without end and can starve the whole host,
- // which is what makes *every* user's session feel like it randomly dies.
- const processLifetime = Date.now() - botRecord.startTime;
- const state = crashLoopState.get(vpsId) || { count: 0, windowStart: Date.now() };
- if (processLifetime < 8000) {
- state.count += 1;
- } else {
- state.count = 0;
+ throw err;
+ } finally {
+ startInFlight.delete(vpsId);
  }
- state.windowStart = state.windowStart || Date.now();
- crashLoopState.set(vpsId, state);
+}
 
- const inCrashLoop = state.count >= 8;
-
- if (db.bots[vpsId]) {
- db.bots[vpsId].restarts = botRecord.restartCount;
- if (inCrashLoop) {
- db.bots[vpsId].status = 'error';
- db.bots[vpsId].running = false;
- db.bots[vpsId].pid = null;
+// Mirror the node's view of one workload into the DB (status, pid, logs).
+async function syncWorkloadState(vpsId) {
+ const bot = db.bots[vpsId];
+ if (!bot || shuttingDown) {return;}
+ let wl;
+ try {
+ wl = await nodeClient.getWorkload(vpsId, { timeoutMs: 1500 });
+ } catch (err) {
+ warnNodeDown(vpsId, err);
+ return; // keep the last known state; the reconciler keeps trying
+ }
+ if (wl) {
+ if (wl.status === 'running' || wl.status === 'restarting') {
+ bot.running = true;
+ bot.status = 'running';
+ bot.pid = wl.pid || null;
+ } else if (wl.status === 'error') {
+ // The node's crash-loop breaker tripped — mirror it so the user can fix
+ // the code and press Start again (which resets the breaker).
+ bot.running = false;
+ bot.status = 'error';
+ bot.pid = null;
  }
  saveDb();
+ try {
+ await pullWorkloadLogs(vpsId);
+ } catch (e) { /* node flaked mid-sync — retried next tick */ }
  }
+}
 
- if (inCrashLoop) {
- crashLoopState.delete(vpsId);
- appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Process keeps crashing (${state.count} times in a row) — stopping auto-restart to protect the host. Fix the error in the logs above, then press Start Bot again.`);
- } else {
- // Back off restart delay as failures pile up (3s, 6s, 9s, ... capped
- // at 30s) instead of hammering every 3 seconds no matter what.
- const delayMs = Math.min(3000 + state.count * 3000, 30000);
- appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Auto-restarting bot in ${Math.round(delayMs / 1000)}s (Restart #${botRecord.restartCount})...`);
- setTimeout(() => {
- if (!botRecord.userStopped && !shuttingDown) {
- startBotProcess(vpsId, targetFile, targetRuntime);
- }
- }, delayMs);
- }
- } else if (db.bots[vpsId] && !shuttingDown) {
- crashLoopState.delete(vpsId);
- db.bots[vpsId].status = 'stopped';
- db.bots[vpsId].running = false;
- db.bots[vpsId].pid = null;
+// Desired-state reconciliation: every workload marked "running" in the DB
+// must exist (and be alive) on the host node. This self-heals missed starts,
+// host-node restarts and crashed registrations — and because the node
+// adopts its own orphans from a pid journal first, it can never double-spawn
+// a process that is already running.
+async function reconcileWorkloads() {
+ if (shuttingDown) {return;}
+ for (const [vpsId, bot] of Object.entries(db.bots)) {
+ if (!bot || !bot.running || !db.vps[vpsId] || startInFlight.has(vpsId)) {continue;}
+ try {
+ const wl = await nodeClient.getWorkload(vpsId, { timeoutMs: 1500 });
+ if (wl && wl.status === 'error') {
+ bot.running = false;
+ bot.status = 'error';
+ bot.pid = null;
  saveDb();
+ continue;
  }
- });
-
- return child;
+ if (wl && (wl.status === 'running' || wl.status === 'restarting' || wl.status === 'stopping')) {
+ await pullWorkloadLogs(vpsId);
+ continue;
+ }
+ // Absent (or fully stopped) while the DB demands it: re-register.
+ await startBotProcess(vpsId, bot.filename, bot.runtime, { quiet: true });
+ } catch (err) {
+ warnNodeDown(vpsId, err);
+ }
+ }
 }
 
 // Start Bot / Selfbot
-app.post('/api/vps/:vps_id/bot/start', authRequired, vpsOwnerRequired, (req, res) => {
+app.post('/api/vps/:vps_id/bot/start', authRequired, vpsOwnerRequired, async (req, res) => {
  const vpsId = req.params.vps_id;
  const { filename = 'bot.py', runtime = 'python', token, user_token, bot_token, token_type } = req.body || {};
-
- // A manual (Re)Start always gets a clean slate: whatever tripped the
- // crash-loop breaker before is presumed fixed by the user's edit.
- crashLoopState.delete(vpsId);
 
  initVpsWorkspace(vpsId);
  if (!db.bots[vpsId]) {db.bots[vpsId] = { logs: [] };}
@@ -2073,10 +2173,21 @@ app.post('/api/vps/:vps_id/bot/start', authRequired, vpsOwnerRequired, (req, res
  if (token_type !== undefined) {db.bots[vpsId].token_type = token_type;}
  saveDb();
 
- const child = startBotProcess(vpsId, filename, runtime);
- const b = db.bots[vpsId] || { status: 'running', running: true };
-
- res.json({ success: true, message: 'Process started on live host! [ONLINE]', bot_status: b });
+ // A manual (Re)Start always gets a clean slate: a fresh registration on the
+ // host node resets whatever tripped the crash-loop breaker before.
+ try {
+ await startBotProcess(vpsId, filename, runtime);
+ res.json({ success: true, message: 'Process started on live host! [ONLINE]', bot_status: db.bots[vpsId] });
+ } catch (err) {
+ if (err && err.code === 'NODE_UNAVAILABLE') {
+ return res.status(503).json({
+ success: false,
+ error: 'Host node unavailable — the start is queued and will go live automatically when it reconnects.',
+ bot_status: db.bots[vpsId],
+ });
+ }
+ throw err;
+ }
 });
 
 // Stop Bot
@@ -2091,14 +2202,12 @@ app.post('/api/vps/:vps_id/bot/stop', authRequired, vpsOwnerRequired, (req, res)
 });
 
 // Restart Bot / Selfbot
-app.post('/api/vps/:vps_id/bot/restart', authRequired, vpsOwnerRequired, (req, res) => {
+app.post('/api/vps/:vps_id/bot/restart', authRequired, vpsOwnerRequired, async (req, res) => {
  const vpsId = req.params.vps_id;
  const current = db.bots[vpsId] || {};
  const filename = req.body?.filename || current.filename || 'bot.py';
  const runtime = req.body?.runtime || current.runtime || 'python';
  const { token, user_token, bot_token, token_type } = req.body || {};
-
- crashLoopState.delete(vpsId);
 
  initVpsWorkspace(vpsId);
  if (!db.bots[vpsId]) {db.bots[vpsId] = { logs: [] };}
@@ -2108,25 +2217,37 @@ app.post('/api/vps/:vps_id/bot/restart', authRequired, vpsOwnerRequired, (req, r
  if (token_type !== undefined) {db.bots[vpsId].token_type = token_type;}
  saveDb();
 
- startBotProcess(vpsId, filename, runtime);
- const b = db.bots[vpsId];
-
- res.json({ success: true, message: 'Process restarted on live host [ONLINE]', bot_status: b });
+ try {
+ await startBotProcess(vpsId, filename, runtime);
+ res.json({ success: true, message: 'Process restarted on live host [ONLINE]', bot_status: db.bots[vpsId] });
+ } catch (err) {
+ if (err && err.code === 'NODE_UNAVAILABLE') {
+ return res.status(503).json({
+ success: false,
+ error: 'Host node unavailable — the restart is queued and will go live automatically when it reconnects.',
+ bot_status: db.bots[vpsId],
+ });
+ }
+ throw err;
+ }
 });
 
-// Bot Logs
-app.get('/api/vps/:vps_id/bot/logs', authRequired, vpsOwnerRequired, (req, res) => {
+// Bot Logs — syncs the host node's log ring into the persisted record first,
+// so what the dashboard gets back is fresh (localhost call, stays fast).
+app.get('/api/vps/:vps_id/bot/logs', authRequired, vpsOwnerRequired, async (req, res) => {
  const vpsId = req.params.vps_id;
+ try {
+ await syncWorkloadState(vpsId);
+ } catch (e) { /* node down: serve last known state */ }
  const b = db.bots[vpsId] || { logs: [] };
- const active = activeBots.get(vpsId);
 
  res.json({
  success: true,
  logs: b.logs || [],
  status: {
- status: active ? 'running' : (b.status || 'stopped'),
- running: !!active,
- pid: active ? active.pid : (b.pid || null),
+ status: b.status || 'stopped',
+ running: !!b.running,
+ pid: b.pid || null,
  restarts: b.restarts || 0,
  uptime_seconds: b.started_at ? Math.floor((Date.now() - b.started_at) / 1000) : 0
  }
@@ -2204,10 +2325,13 @@ app.post('/api/vps/:vps_id/bot/token', authRequired, vpsOwnerRequired, (req, res
  const label = token_type === 'user' ? 'Discord User Token (Selfbot)' : (token_type === 'both' ? 'Bot & User Tokens' : 'Discord Bot Token');
  appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Watchdog] ${label} auto-saved to environment (.env)`);
 
- // If already running, restart so the process picks up the new token
- if (activeBots.has(vpsId)) {
- const cur = activeBots.get(vpsId);
- startBotProcess(vpsId, cur.filename, cur.runtime);
+ // If already running on the host node, restart so the process picks up the
+ // new token (a fresh registration replaces the live workload).
+ if (db.bots[vpsId] && db.bots[vpsId].running) {
+ const cur = db.bots[vpsId];
+ startBotProcess(vpsId, cur.filename, cur.runtime)
+ .then(() => appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Watchdog] Token updated — workload restarted on host node.`))
+ .catch((err) => warnNodeDown(vpsId, err));
  }
 
  res.json({
@@ -2347,8 +2471,9 @@ app.get('/api/vps/:vps_id/diagnose', authRequired, vpsOwnerRequired, async (req,
 // ---------------------- PACKAGE DOWNLOADER & DEPENDENCY MANAGER ----------------------
 
 // List installed packages for VPS (persisted ledger + live pip/npm fallback)
-app.get('/api/vps/:vps_id/packages/list', authRequired, vpsOwnerRequired, (req, res) => {
- const vpsId = req.params.vps_id;
+// Package ledger view (shared by the legacy dashboard route and the v1
+// resource API — both must report exactly the same state).
+function listPackagesForVps(vpsId) {
  const wsDir = path.join(INSTANCES_DIR, vpsId);
  initVpsWorkspace(vpsId);
  const state = ensurePackageState(vpsId);
@@ -2398,12 +2523,15 @@ app.get('/api/vps/:vps_id/packages/list', authRequired, vpsOwnerRequired, (req, 
  }
  }
 
- res.json({
- success: true,
+ return {
  python: pythonPackages.slice(0, 150),
  node: nodePackages,
  auto_install: state.auto_install
- });
+ };
+}
+
+app.get('/api/vps/:vps_id/packages/list', authRequired, vpsOwnerRequired, (req, res) => {
+ res.json({ success: true, ...listPackagesForVps(req.params.vps_id) });
 });
 
 // Install Bot / VPS Packages (Real pip & npm execution)
@@ -2494,7 +2622,7 @@ app.post('/api/vps/:vps_id/packages/install', authRequired, vpsOwnerRequired, ha
 app.post('/api/vps/:vps_id/bot/packages/install', authRequired, vpsOwnerRequired, handlePackageInstall);
 
 // Uninstall Package
-app.post('/api/vps/:vps_id/packages/uninstall', authRequired, vpsOwnerRequired, (req, res) => {
+const handlePackageUninstall = (req, res) => {
  const vpsId = req.params.vps_id;
  const { package: pkgName, runtime = 'python' } = req.body || {};
  const wsDir = path.join(INSTANCES_DIR, vpsId);
@@ -2528,7 +2656,9 @@ app.post('/api/vps/:vps_id/packages/uninstall', authRequired, vpsOwnerRequired, 
  appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [Package Downloader] Removed: ${pkgName}`);
  res.json({ success: true, message: `Uninstalled ${pkgName}` });
  });
-});
+};
+
+app.post('/api/vps/:vps_id/packages/uninstall', authRequired, vpsOwnerRequired, handlePackageUninstall);
 
 // Manually (re)run the automatic Discord package stack installer for a VPS.
 // Runs in the background; progress streams to the bot logs and the persisted
@@ -3261,6 +3391,77 @@ app.get('/api/vps/:vps_id/github/info', authRequired, vpsOwnerRequired, async (r
  }
 });
 
+// ---------------------- VERSIONED RESOURCE API (v1) ----------------------
+// One uniform, resource-oriented interface over the whole platform:
+// create / manage / terminate resources (VPS, hosted workloads, files,
+// packages), host-node status and API-key management. Fast by design:
+// responses are immediate, long-running work happens in the background, and
+// every response carries an X-Response-Time header.
+const legacyInstallHandlers = { install: handlePackageInstall, uninstall: handlePackageUninstall };
+app.use('/api/v1', createV1Router({
+  // `loadDb()` replaces the module-level `db` object on boot (spread into a
+  // fresh object), so the router must read it through a getter — capturing
+  // the object by value would leave v1 looking at a stale, empty database
+  // on every boot where the DB file already exists.
+  get db() { return db; },
+  saveDb,
+  authRequired,
+  PLANS,
+  provisionVps,
+  setVpsPower: (vps, status) => { vps.status = status; saveDb(); return vps; },
+  terminateVps,
+  getBot: getBotRecord,
+  runBotAction: async (vpsId, action, opts = {}) => {
+    if (action === 'stop') {
+      stopBotProcess(vpsId);
+      appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Bot process stopped by user.`);
+      return db.bots[vpsId];
+    }
+    initVpsWorkspace(vpsId);
+    if (!db.bots[vpsId]) {db.bots[vpsId] = { logs: [] };}
+    const bot = db.bots[vpsId];
+    if (opts.token !== undefined && opts.token !== '') {bot.token = opts.token;}
+    if (opts.user_token !== undefined && opts.user_token !== '') {bot.user_token = opts.user_token;}
+    if (opts.bot_token !== undefined && opts.bot_token !== '') {bot.bot_token = opts.bot_token;}
+    if (opts.token_type !== undefined) {bot.token_type = opts.token_type;}
+    saveDb();
+    const filename = opts.filename || bot.filename || 'bot.py';
+    const runtime = opts.runtime || bot.runtime || 'python';
+    await startBotProcess(vpsId, filename, runtime);
+    return db.bots[vpsId];
+  },
+  getBotLogs: async (vpsId) => {
+    try { await syncWorkloadState(vpsId); } catch (e) { /* node down: last known state */ }
+    const bot = db.bots[vpsId] || { logs: [] };
+    return {
+      logs: bot.logs || [],
+      status: {
+        status: bot.status || 'stopped',
+        running: !!bot.running,
+        pid: bot.pid || null,
+        restarts: bot.restarts || 0,
+        uptime_seconds: bot.started_at ? Math.floor((Date.now() - bot.started_at) / 1000) : 0,
+      },
+    };
+  },
+  listFiles: (vpsId) => { initVpsWorkspace(vpsId); return getFileList(path.join(INSTANCES_DIR, vpsId)); },
+  workspaceDir: (vpsId) => path.join(INSTANCES_DIR, vpsId),
+  initWorkspace: initVpsWorkspace,
+  listPackages: listPackagesForVps,
+  installPackages: (vpsId, opts) => {
+    runViaLegacyHandler(legacyInstallHandlers.install, vpsId, opts)
+      .then(({ err }) => { if (err) {logger.warn({ err: err.message, vpsId }, '[API v1] background package install failed');} });
+  },
+  uninstallPackage: (vpsId, opts) => {
+    runViaLegacyHandler(legacyInstallHandlers.uninstall, vpsId, opts)
+      .then(({ err }) => { if (err) {logger.warn({ err: err.message, vpsId }, '[API v1] background package uninstall failed');} });
+  },
+  getNodeStatus,
+  rotateApiKey,
+  cookieOpts: COOKIE_OPTS,
+  logger,
+}));
+
 import swaggerUi from 'swagger-ui-express';
 import yaml from 'yamljs';
 
@@ -3299,14 +3500,28 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Final JSON error handler: async route failures (host-node calls, file IO)
+// must never surface as an HTML stack trace. Operational errors keep their
+// message; everything else is logged and reported as a plain 500.
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, _next) => {
+  const status = err.statusCode || err.status || 500;
+  logger.error({ err, url: req.url, status }, '[CloudVPS] unhandled route error');
+  if (res.headersSent) {return;}
+  res.status(status).json({
+    success: false,
+    error: err.isOperational || status < 500 ? err.message : 'Internal server error',
+    code: err.code || (status < 500 ? 'ERROR' : 'INTERNAL_ERROR'),
+  });
+});
+
 // 24/7 Watchdog boot recovery: any bot that was marked as running before the
 // server restarted (or before this host came up) is respawned automatically,
 // so Discord bots come back online after a reboot without user interaction.
-function recoverRunningBots() {
+async function recoverRunningBots() {
   for (const [vpsId, bot] of Object.entries(db.bots)) {
     if (!db.vps[vpsId]) {continue;}
     if (!bot || bot.status !== 'running' || !bot.running) {continue;}
-    if (activeBots.has(vpsId)) {continue;}
     const wsDir = path.join(INSTANCES_DIR, vpsId);
     const targetFile = bot.filename || 'bot.py';
     if (!fs.existsSync(path.join(wsDir, targetFile))) {
@@ -3317,25 +3532,56 @@ function recoverRunningBots() {
       appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Entrypoint "${targetFile}" not found, bot left stopped. Upload your bot files and press Start.`);
       continue;
     }
-    appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Server back online — auto-resuming bot (restart protection).`);
-    startBotProcess(vpsId, targetFile, bot.runtime);
+    try {
+      // The host node is a separate daemon: it may have kept the workload
+      // alive through our own restart (adopted from its pid journal), in
+      // which case there is nothing to resume — just verify and tail logs.
+      const wl = await nodeClient.getWorkload(vpsId, { timeoutMs: 2000 });
+      if (wl && (wl.status === 'running' || wl.status === 'restarting')) {
+        workloadLogCursor.set(vpsId, 0);
+        await pullWorkloadLogs(vpsId);
+        bot.pid = wl.pid || bot.pid;
+        bot.status = 'running';
+        saveDb();
+        appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Server back online — host node process verified [ONLINE].`);
+        continue;
+      }
+      if (wl && wl.status === 'error') {
+        bot.running = false;
+        bot.status = 'error';
+        bot.pid = null;
+        saveDb();
+        appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Crash-loop breaker is tripped on the host node — fix the errors in the logs, then press Start.`);
+        continue;
+      }
+      appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Server back online — auto-resuming bot (restart protection).`);
+      await startBotProcess(vpsId, targetFile, bot.runtime, { quiet: true });
+    } catch (err) {
+      // Host node not up yet: desired state stays "running", so the
+      // reconciler registers the workload the moment the node answers.
+      warnNodeDown(vpsId, err);
+      appendBotLog(vpsId, `[${new Date().toLocaleTimeString()}] [24/7 Watchdog] Host node not reachable yet — will auto-resume automatically once it is back.`);
+    }
   }
   flushDbSync();
 }
 
-// Graceful shutdown: stop child bot processes cleanly on SIGINT/SIGTERM and
-// make sure every last database change is flushed to disk *synchronously*
-// before the process exits — a deferred setImmediate() write is never
-// guaranteed to run once process.exit() is called, and losing that final
-// write is exactly how "it keeps deleting our account" reports happen after
-// a routine platform restart/redeploy.
+// Graceful shutdown: pause every workload on the host node cleanly on
+// SIGINT/SIGTERM (desired state stays "running" so everything resumes on
+// next boot) and make sure every last database change is flushed to disk
+// *synchronously* before the process exits — a deferred setImmediate() write
+// is never guaranteed to run once process.exit() is called, and losing that
+// final write is exactly how "it keeps deleting our account" reports happen
+// after a routine platform restart/redeploy.
 let shuttingDown = false;
 function gracefulShutdown(signal) {
   if (shuttingDown) {return;}
   shuttingDown = true;
-  logger.info({ signal }, '[CloudVPS] Shutting down — bot processes paused, state kept "running" for 24/7 auto-resume on next boot');
-  for (const vpsId of Array.from(activeBots.keys())) {
-    stopBotProcess(vpsId, false);
+  logger.info({ signal }, '[CloudVPS] Shutting down — workloads paused on host node, state kept "running" for 24/7 auto-resume on next boot');
+  for (const [vpsId, bot] of Object.entries(db.bots)) {
+    if (bot && bot.running) {
+      nodeClient.stopWorkload(vpsId).catch(() => { /* node already down — processes die with it */ });
+    }
   }
   flushDbSync();
   server.close(() => process.exit(0));
@@ -3366,13 +3612,39 @@ setInterval(() => {
   if (savePending) {flushDbSync();}
 }, 5000).unref();
 
+// Host-node sync loop: tail logs + mirror status for every desired-running
+// workload (cheap localhost calls — a no-op when nothing is running), so the
+// dashboard and API always see fresh pid/status/logs.
+setInterval(async () => {
+ if (shuttingDown) {return;}
+ for (const [vpsId, bot] of Object.entries(db.bots)) {
+ if (!bot || !bot.running || !db.vps[vpsId] || startInFlight.has(vpsId)) {continue;}
+ try {
+ await syncWorkloadState(vpsId);
+ } catch (err) {
+ warnNodeDown(vpsId, err);
+ }
+ }
+}, 3000).unref();
+
+// Desired-state reconciliation: re-registers workloads after a host-node
+// restart or a missed start — the self-healing layer behind "24/7". The
+// node adopts its own orphans first, so this can never double-spawn.
+setInterval(() => {
+ reconcileWorkloads().catch((err) => {
+ logger.warn({ err: err && err.message }, '[CloudVPS Host Node] reconcile pass failed');
+ });
+}, 15000).unref();
+
 // Start listening
 loadDb();
 const server = app.listen(PORT, '0.0.0.0', () => {
-  logger.info(`[CloudVPS] Server listening on http://0.0.0.0:${PORT}`);
-  logger.info('[CloudVPS] 24/7 bot watchdog enabled — running bots are resumed automatically on boot');
-  recoverRunningBots();
-  recoverPendingInstalls();
+ logger.info(`[CloudVPS] Server listening on http://0.0.0.0:${PORT}`);
+ logger.info(`[CloudVPS] Host node client ready → ${nodeClient.baseUrl} (worker.js holds the real processes 24/7)`);
+ logger.info('[CloudVPS] Resource API v1 mounted at /api/v1 — interactive docs at /api-docs');
+ logger.info('[CloudVPS] 24/7 bot watchdog enabled — running bots are resumed automatically on boot');
+ recoverRunningBots().catch((err) => logger.error({ err }, '[CloudVPS] boot recovery failed'));
+ recoverPendingInstalls();
 });
 // Keep-alive tuning: avoid dropped/duplicate connections behind proxies that
 // terminate idle sockets slightly faster than Node's defaults.

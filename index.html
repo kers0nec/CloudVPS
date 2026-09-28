@@ -602,6 +602,27 @@
     .account-row .k { font-size: 13px; color: var(--muted); }
     .account-row .v { font-size: 13px; font-weight: 500; font-family: var(--mono); word-break: break-all; text-align: right; }
 
+    /* ---------- API tab ---------- */
+    .method-chip { display: inline-block; min-width: 52px; text-align: center; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .04em; padding: 3px 7px; border-radius: 6px; border: 1px solid var(--border); color: var(--muted); }
+    .method-chip.get { color: #7ee2a8; border-color: rgba(126,226,168,.35); background: rgba(126,226,168,.08); }
+    .method-chip.post { color: #8ab8ff; border-color: rgba(138,184,255,.35); background: rgba(138,184,255,.08); }
+    .method-chip.put { color: #ffd479; border-color: rgba(255,212,121,.35); background: rgba(255,212,121,.08); }
+    .method-chip.patch { color: #ffd479; border-color: rgba(255,212,121,.35); background: rgba(255,212,121,.08); }
+    .method-chip.delete { color: #ff9292; border-color: rgba(255,146,146,.35); background: rgba(255,146,146,.08); }
+    .ep-group { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--dim); margin: 14px 0 6px; }
+    .ep { border: 1px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 6px; overflow: hidden; background: rgba(255,255,255,.015); }
+    .ep-head { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 11px; background: none; border: none; cursor: pointer; color: inherit; text-align: left; }
+    .ep-head:hover { background: rgba(255,255,255,.03); }
+    .ep-path { font-family: var(--mono); font-size: 12.5px; flex: 1; word-break: break-all; }
+    .ep-desc { font-size: 12px; color: var(--muted); }
+    .ep-detail { padding: 4px 12px 12px; border-top: 1px dashed var(--border-soft); }
+    .ep-detail p { font-size: 12.5px; color: var(--muted); margin: 9px 0; }
+    .ep-actions { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .ep-curl, .ep-out { font-family: var(--mono); font-size: 11.5px; background: rgba(0,0,0,.35); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); padding: 9px 11px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; margin: 0 0 8px; max-height: 260px; overflow-y: auto; }
+    .node-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 650; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+    .node-pill.on { color: #7ee2a8; border-color: rgba(126,226,168,.4); background: rgba(126,226,168,.08); }
+    .node-pill.off { color: #ff9292; border-color: rgba(255,146,146,.4); background: rgba(255,146,146,.08); }
+
     /* ---------- Modal ---------- */
     .modal-backdrop {
       position: fixed;
@@ -689,6 +710,10 @@
         <button class="nav-btn" data-tab="bot" data-letter="B" onclick="switchTab('bot')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
           <span>Dc Bots</span>
+        </button>
+        <button class="nav-btn" data-tab="api" data-letter="P" onclick="switchTab('api')" title="Resource API — create, manage and terminate resources">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <span>Api</span>
         </button>
         <button class="nav-btn" data-tab="account" data-letter="A" onclick="switchTab('account')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -854,6 +879,11 @@
           </div>
         </section>
 
+        <!-- ============ API ============ -->
+        <section class="view" id="view-api">
+          <div id="api-body"></div>
+        </section>
+
         <!-- ============ ACCOUNT ============ -->
         <section class="view" id="view-account">
           <div id="account-body"></div>
@@ -960,6 +990,7 @@
       netFailNotified: false,
       pkgAutoStatus: '',      // Discord-stack auto-install status of active VPS
       diagTimer: null,
+      apiNodeTimer: null,     // host-node status poll while the API tab is open
     };
     // Sidebar collapsed — persisted for 1 year
     const SIDEBAR_KEY = 'cloudvps_sidebar_collapsed';
@@ -1079,12 +1110,13 @@
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       $('view-' + tab).classList.add('active');
       const titleEl = $('page-title-text') || $('page-title');
-      if (titleEl) titleEl.textContent = tab === 'vps' ? 'My Vps' : tab === 'bot' ? 'Dc Bots' : 'Account';
+      if (titleEl) titleEl.textContent = tab === 'vps' ? 'My Vps' : tab === 'bot' ? 'Dc Bots' : tab === 'api' ? 'API' : 'Account';
 
       const actions = $('page-actions');
       actions.innerHTML = '';
       stopLogPolling();
       if (STATE.statusTimer) { clearInterval(STATE.statusTimer); STATE.statusTimer = null; }
+      if (STATE.apiNodeTimer) { clearInterval(STATE.apiNodeTimer); STATE.apiNodeTimer = null; }
 
       if (tab === 'vps') {
         const b = document.createElement('button');
@@ -1096,6 +1128,8 @@
         loadHardware();
       } else if (tab === 'bot') {
         loadBotTab();
+      } else if (tab === 'api') {
+        renderApiTab();
       } else if (tab === 'account') {
         renderAccount();
       }
@@ -2029,6 +2063,233 @@
         sel.removeAllRanges();
         sel.addRange(range);
         toast('Key revealed — select and copy manually');
+      }
+    }
+
+    /* ================= API TAB — resource API + host node ================= */
+    // The catalog of /api/v1 endpoints. `{id}` is resolved against the
+    // signed-in user's first resource when a request is actually run.
+    const API_ENDPOINTS = [
+      { group: 'Host node', method: 'GET', path: '/api/v1/node', desc: 'Real node status',
+        long: 'Uptime, load, memory and workload counts of the dedicated host-node daemon (worker.js) that runs your processes 24/7. Returns reachable:false instead of hanging if the node is down.' },
+      { group: 'Host node', method: 'POST', path: '/api/v1/api-key/rotate', desc: 'Rotate API key',
+        long: 'Generates a new API key for your account and invalidates the previous one immediately. Update every script/device that uses the old key.' },
+      { group: 'Resources', method: 'GET', path: '/api/v1/resources', desc: 'List resources',
+        long: 'Every VPS resource you own, each with a live workload summary (running, status, pid).' },
+      { group: 'Resources', method: 'POST', path: '/api/v1/resources', desc: 'Create resource',
+        long: 'Create a VPS resource {name?, plan?, os?, auto_install?}. Responds immediately (201); the Discord stack installs in the background.' },
+      { group: 'Resources', method: 'GET', path: '/api/v1/resources/{id}', desc: 'Inspect resource',
+        long: 'Full resource detail: VPS record, hosted workload state, package counts and file count.' },
+      { group: 'Resources', method: 'PATCH', path: '/api/v1/resources/{id}', desc: 'Update resource',
+        long: 'Change name / plan / os of a resource. Plan changes update cpu/memory/storage instantly.' },
+      { group: 'Resources', method: 'POST', path: '/api/v1/resources/{id}/actions', desc: 'Power actions',
+        long: 'start | stop | restart | reboot — manage the resource lifecycle state.' },
+      { group: 'Resources', method: 'DELETE', path: '/api/v1/resources/{id}', desc: 'Terminate resource',
+        long: 'Terminates the resource: stops its hosted workload on the node, deletes the records and scrubs the workspace in the background. Responds in ~1ms.' },
+      { group: 'Workload', method: 'GET', path: '/api/v1/resources/{id}/bot', desc: 'Workload state',
+        long: 'State of the 24/7 hosted process: status, pid, restarts, uptime and supervisor record.' },
+      { group: 'Workload', method: 'POST', path: '/api/v1/resources/{id}/bot/actions', desc: 'start / stop / restart',
+        long: 'Run the workload as a real OS process on the host node {action, filename?, runtime?, token?}. Auto-restarted on crash with backoff and a crash-loop breaker. Returns 503 fast if the node is down — the start is queued and goes live automatically.' },
+      { group: 'Workload', method: 'GET', path: '/api/v1/resources/{id}/bot/logs', desc: 'Live logs',
+        long: 'Tails the host node log buffer into the persisted record and returns logs + live status (pid, uptime, restarts).' },
+      { group: 'Files', method: 'GET', path: '/api/v1/resources/{id}/files', desc: 'List files',
+        long: 'Workspace file listing (name, size, modified) with folders flattened.' },
+      { group: 'Files', method: 'GET', path: '/api/v1/resources/{id}/files/content?path=bot.py', desc: 'Read file',
+        long: 'Read a workspace file. Path traversal outside the workspace is rejected with 403.' },
+      { group: 'Files', method: 'PUT', path: '/api/v1/resources/{id}/files/content', desc: 'Write file',
+        long: 'Create or overwrite a file {path, content} in the workspace (parent folders are created automatically).' },
+      { group: 'Files', method: 'DELETE', path: '/api/v1/resources/{id}/files?path=old.py', desc: 'Delete file',
+        long: 'Delete a file or folder by workspace-relative path. The workspace root itself cannot be deleted.' },
+      { group: 'Packages', method: 'GET', path: '/api/v1/resources/{id}/packages', desc: 'Package ledger',
+        long: 'Persisted python + node package ledger and Discord-stack auto-install state — survives restarts.' },
+      { group: 'Packages', method: 'POST', path: '/api/v1/resources/{id}/packages/install', desc: 'Install packages',
+        long: '{packages, runtime} — accepted instantly (202); pip/npm runs in the background and the ledger + logs update as it lands.' },
+      { group: 'Packages', method: 'POST', path: '/api/v1/resources/{id}/packages/uninstall', desc: 'Uninstall package',
+        long: '{package, runtime} — accepted instantly (202); removes it from the workspace and the ledger.' },
+    ];
+    const API_RUNNABLE = new Set(['GET']); // mutations only via curl/docs, never one click from here
+
+    function apiKeyId() {
+      const list = STATE.vpsList || [];
+      return list.length ? list[0].id : null;
+    }
+    function resolveApiPath(p) { return p.replace('{id}', apiKeyId() || '{id}'); }
+
+    function renderApiTab() {
+      const wrap = $('api-body');
+      if (!wrap) return;
+      if (!STATE.user) {
+        wrap.innerHTML = `<div class="card">
+          <div class="card-title">Resource API</div>
+          <p style="font-size:13.5px; color:var(--muted); margin-bottom:14px;">Sign in to manage your API key and explore the resource API.</p>
+          <div style="display:flex; gap:8px;">
+            <button class="btn" onclick="openAuth('login')">Sign In</button>
+            <button class="btn btn-primary" onclick="openAuth('signup')">Create Account</button>
+          </div>
+        </div>`;
+        return;
+      }
+      if (!STATE.vpsList || !STATE.vpsList.length) {
+        api('/api/vps').then(r => { if (r.ok) { STATE.vpsList = r.data.vps || []; if (STATE.tab === 'api') renderEndpoints(); } });
+      }
+      const created = STATE.user.created_at ? new Date(STATE.user.created_at).toLocaleDateString() : '—';
+      wrap.innerHTML = `
+        <div class="card" id="node-card">
+          <div class="card-title">Host Node <span class="node-pill" id="node-pill">checking…</span></div>
+          <div class="account-row"><span class="k">Role</span><span class="v" id="node-role">cloudvps-host-node</span></div>
+          <div class="account-row"><span class="k">Uptime</span><span class="v" id="node-uptime">—</span></div>
+          <div class="account-row"><span class="k">Load (1m)</span><span class="v" id="node-load">—</span></div>
+          <div class="account-row"><span class="k">Workloads running</span><span class="v" id="node-workloads">—</span></div>
+          <div class="account-row"><span class="k">Wanted by API</span><span class="v" id="node-desired">—</span></div>
+          <div class="account-row"><span class="k">Daemon PID</span><span class="v" id="node-pid">—</span></div>
+          <p class="hint" style="margin-top:9px;">worker.js — the dedicated Node.js daemon that hosts every workload 24/7 as a real OS process (auto-restart with backoff, crash-loop breaker, orphan adoption after daemon restarts). Status refreshes every 5s while this tab is open.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">API Key</div>
+          <div class="account-row">
+            <span class="k">Key</span>
+            <span style="display:flex; gap:6px; align-items:center;">
+              <span class="v" id="v1-key-value">${esc(maskKey(STATE.user.api_key || ''))}</span>
+              <button class="btn btn-sm" onclick="revealV1Key()">Reveal</button>
+              <button class="btn btn-sm" onclick="copyV1Key()">Copy</button>
+              <button class="btn btn-sm btn-danger" onclick="rotateV1Key()">Rotate</button>
+            </span>
+          </div>
+          <div class="account-row"><span class="k">Member Since</span><span class="v" style="font-family:inherit;">${esc(created)}</span></div>
+          <div class="hint">Authenticate every request with <code>X-API-Key: &lt;key&gt;</code> or <code>Authorization: Bearer &lt;key&gt;</code>. Anyone with this key can control your resources — rotate it if it leaks.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">API Explorer</div>
+          <p class="hint" style="margin-bottom:10px;">Base URL: <code>${esc(location.origin)}/api/v1</code> — create, manage and terminate resources, control hosted workloads, files and packages. Click an endpoint for details; <strong>Run</strong> executes read-only requests live and shows the server-measured latency.</p>
+          <div id="api-endpoints"></div>
+          <p class="hint" style="margin-top:12px;">Interactive docs: <a href="/api-docs" target="_blank" rel="noopener">/api-docs</a> · raw spec: <a href="/openapi.yaml" target="_blank" rel="noopener">openapi.yaml</a></p>
+        </div>`;
+      renderEndpoints();
+      refreshNodeStatus();
+      if (STATE.apiNodeTimer) clearInterval(STATE.apiNodeTimer);
+      STATE.apiNodeTimer = setInterval(refreshNodeStatus, 5000);
+    }
+
+    function renderEndpoints() {
+      const box = $('api-endpoints');
+      if (!box) return;
+      let html = '';
+      let lastGroup = '';
+      API_ENDPOINTS.forEach((ep, i) => {
+        if (ep.group !== lastGroup) { lastGroup = ep.group; html += `<div class="ep-group">${esc(ep.group)}</div>`; }
+        const m = ep.method.toLowerCase();
+        html += `
+          <div class="ep">
+            <button class="ep-head" onclick="toggleEndpoint(${i})">
+              <span class="method-chip ${m}">${ep.method}</span>
+              <span class="ep-path">${esc(resolveApiPath(ep.path))}</span>
+              <span class="ep-desc">${esc(ep.desc)}</span>
+            </button>
+            <div class="ep-detail" id="ep-detail-${i}" style="display:none;">
+              <p>${esc(ep.long)}</p>
+              <div class="ep-actions">
+                <button class="btn btn-sm" onclick="copyApiCurl(${i})">Copy cURL</button>
+                ${API_RUNNABLE.has(ep.method) ? `<button class="btn btn-sm btn-primary" onclick="runApiProbe(${i})">Run ▸</button>` : ''}
+              </div>
+              <pre class="ep-curl" id="ep-curl-${i}">${esc(apiCurl(ep))}</pre>
+              <pre class="ep-out" id="ep-out-${i}" style="display:none;"></pre>
+            </div>
+          </div>`;
+      });
+      box.innerHTML = html;
+    }
+
+    function apiCurl(ep) {
+      const path = resolveApiPath(ep.path);
+      const mut = ep.method !== 'GET';
+      return `curl ${mut ? `-X ${ep.method} ` : ''}'${location.origin}${path}' \\\n  -H 'X-API-Key: $CLOUDVPS_KEY'${mut ? ` \\\n  -H 'Content-Type: application/json'` : ''}`;
+    }
+
+    function toggleEndpoint(i) {
+      const el = $('ep-detail-' + i);
+      if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+    }
+
+    async function copyApiCurl(i) {
+      try {
+        await navigator.clipboard.writeText(apiCurl(API_ENDPOINTS[i]));
+        toast('cURL copied — set CLOUDVPS_KEY first', 'ok');
+      } catch (e) { toast('Copy failed — select manually', 'err'); }
+    }
+
+    async function runApiProbe(i) {
+      const ep = API_ENDPOINTS[i];
+      if (ep.path.includes('{id}') && !apiKeyId()) {
+        toast('Create a VPS first — {id} needs one of your resources', 'err');
+        return;
+      }
+      const out = $('ep-out-' + i);
+      if (out) { out.style.display = ''; out.textContent = 'Running…'; }
+      const path = resolveApiPath(ep.path);
+      const t0 = performance.now();
+      const res = await api(path, { method: ep.method });
+      const ms = Math.round(performance.now() - t0);
+      if (out) {
+        out.textContent = `HTTP ${res.status} · client ${ms} ms` +
+          `\n\n` + JSON.stringify(res.data, null, 2);
+      }
+      if (res.status === 401) return; // api() already handled sign-out
+      if (!res.ok && res.status === 0) { if (out) out.textContent = 'Network error — is the server running?'; }
+    }
+
+    async function refreshNodeStatus() {
+      if (STATE.tab !== 'api' || !STATE.user) return;
+      const pill = $('node-pill');
+      const res = await api('/api/v1/node');
+      if (!res.ok || !res.data || !res.data.node) {
+        if (pill) { pill.textContent = 'error'; pill.className = 'node-pill off'; }
+        return;
+      }
+      const n = res.data.node;
+      if (pill) {
+        pill.textContent = n.reachable ? 'ONLINE' : 'OFFLINE';
+        pill.className = 'node-pill ' + (n.reachable ? 'on' : 'off');
+      }
+      const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+      set('node-role', n.role || 'cloudvps-host-node');
+      set('node-uptime', n.uptime_s != null ? fmtDuration(n.uptime_s) : '—');
+      set('node-load', n.load_avg != null ? String(n.load_avg) : '—');
+      set('node-workloads', n.workloads ? `${n.workloads.running} running / ${n.workloads.total} total` : '—');
+      set('node-desired', n.desired_workloads != null ? String(n.desired_workloads) : '—');
+      set('node-pid', n.pid != null ? String(n.pid) : (n.reachable ? '—' : 'n/a'));
+      if (!n.reachable && n.error) set('node-role', n.error);
+    }
+
+    function fmtDuration(sec) {
+      sec = Math.max(0, Math.floor(sec || 0));
+      const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+      if (d) return `${d}d ${h}h ${m}m`;
+      if (h) return `${h}h ${m}m ${s}s`;
+      if (m) return `${m}m ${s}s`;
+      return `${s}s`;
+    }
+
+    function revealV1Key() { const el = $('v1-key-value'); if (el) el.textContent = STATE.user.api_key || ''; }
+    async function copyV1Key() {
+      try {
+        await navigator.clipboard.writeText(STATE.user.api_key || '');
+        toast('API key copied', 'ok');
+      } catch (e) { revealV1Key(); toast('Key revealed — select and copy manually'); }
+    }
+    async function rotateV1Key() {
+      const oldKey = STATE.user.api_key;
+      const ok = await confirmModal('Rotate API key', 'Generate a new API key? The current key stops working immediately — update every script, device or integration that uses it.', 'Rotate');
+      if (!ok) return;
+      const res = await api('/api/v1/api-key/rotate', { method: 'POST' });
+      if (res.ok && res.data.api_key) {
+        STATE.user.api_key = res.data.api_key;
+        localStorage.setItem('cloudvps_key', res.data.api_key);
+        if (oldKey) forgetAccount(oldKey);
+        rememberAccount(STATE.user);
+        toast('API key rotated — the old key is dead', 'ok');
+        renderApiTab();
+      } else {
+        toast(res.data.error || 'Rotate failed', 'err');
       }
     }
 

@@ -70,5 +70,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start the application
-CMD ["node", "server.js"]
+# Start the full stack (host node daemon + web API) with crash supervision
+CMD ["node", "scripts/start-all.js"]

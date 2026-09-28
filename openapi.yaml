@@ -41,6 +41,10 @@ tags:
     description: GitHub repository integration
   - name: Hardware
     description: Hardware info and benchmarks
+  - name: V1 Resources
+    description: Versioned resource API — create, manage and terminate every resource (VPS, workloads, files, packages)
+  - name: Host Node
+    description: Dedicated host-node daemon (worker.js) that runs workloads 24/7
 paths:
   /api/health:
     get:
@@ -869,6 +873,491 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TunnelResponse'
+  # ---------------------- Resource API v1 ----------------------
+  /api/v1/node:
+    get:
+      tags: [Host Node]
+      summary: Real hosting node status
+      description: >-
+        Status of the dedicated host-node daemon (worker.js) that runs every
+        workload 24/7: uptime, load, memory, workload counts and whether the
+        node is reachable. Responds 200 with reachable:false instead of
+        hanging when the node is down.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Host node status (reachable or not)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeStatusResponse'
+        '401':
+          description: Authentication required
+  /api/v1/api-key/rotate:
+    post:
+      tags: [Authentication]
+      summary: Rotate this account's API key
+      description: Generates a new API key and invalidates the previous one immediately.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: New API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RotateKeyResponse'
+        '401':
+          description: Authentication required
+  /api/v1/resources:
+    get:
+      tags: [V1 Resources]
+      summary: List all resources
+      description: Every VPS resource owned by the caller, with its workload summary.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Resource list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceListResponse'
+        '401':
+          description: Authentication required
+    post:
+      tags: [V1 Resources]
+      summary: Create a resource
+      description: >-
+        Creates a VPS resource (workspace + package ledger + supervisor
+        record). The Discord stack auto-installs in the background unless
+        auto_install is false. Response is immediate.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateResourceRequest'
+      responses:
+        '201':
+          description: Resource created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceResponse'
+        '400':
+          description: Validation error
+        '401':
+          description: Authentication required
+  /api/v1/resources/{id}:
+    get:
+      tags: [V1 Resources]
+      summary: Inspect a resource
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource detail (vps + workload + package + file summaries)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceDetailResponse'
+        '401':
+          description: Authentication required
+        '403':
+          description: Not owned by caller
+        '404':
+          description: Resource not found
+    patch:
+      tags: [V1 Resources]
+      summary: Update a resource (name / plan / os)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                plan:
+                  type: string
+                  enum: [starter, standard, performance, ultra]
+                os:
+                  type: string
+      responses:
+        '200':
+          description: Updated resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Not owned by caller
+        '404':
+          description: Resource not found
+    delete:
+      tags: [V1 Resources]
+      summary: Terminate a resource
+      description: >-
+        Stops the hosted workload, removes the resource records and scrubs
+        the workspace (background). Responds immediately.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Terminated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminateResponse'
+        '403':
+          description: Not owned by caller
+        '404':
+          description: Resource not found
+  /api/v1/resources/{id}/actions:
+    post:
+      tags: [V1 Resources]
+      summary: Power actions (start | stop | restart | reboot)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [start, stop, restart, reboot]
+      responses:
+        '200':
+          description: Action applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceResponse'
+        '400':
+          description: Validation error
+        '404':
+          description: Resource not found
+  /api/v1/resources/{id}/bot:
+    get:
+      tags: [V1 Resources]
+      summary: Hosted workload (bot) state
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Workload state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotStateResponse'
+        '404':
+          description: Resource not found
+  /api/v1/resources/{id}/bot/actions:
+    post:
+      tags: [V1 Resources]
+      summary: Workload actions (start | stop | restart)
+      description: >-
+        start/restart registers the process on the host node (real OS
+        process, auto-restarted on crash); stop terminates it. Returns 503
+        NODE_UNAVAILABLE within milliseconds if the node is down — the start
+        is still queued and goes live automatically when it reconnects.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [start, stop, restart]
+                filename:
+                  type: string
+                runtime:
+                  type: string
+                  enum: [python, node, bash]
+                token:
+                  type: string
+                token_type:
+                  type: string
+                  enum: [bot, user, both]
+      responses:
+        '200':
+          description: Action accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotActionResponse'
+        '503':
+          description: Host node unavailable (NODE_UNAVAILABLE) — start queued
+  /api/v1/resources/{id}/bot/logs:
+    get:
+      tags: [V1 Resources]
+      summary: Workload logs (synced from the host node)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Logs + live status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotLogsResponse'
+        '404':
+          description: Resource not found
+  /api/v1/resources/{id}/files:
+    get:
+      tags: [V1 Resources]
+      summary: List workspace files
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileListResponse'
+        '404':
+          description: Resource not found
+    delete:
+      tags: [V1 Resources]
+      summary: Delete a file or folder
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          required: false
+          description: Workspace-relative path (also accepted in the JSON body)
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                path:
+                  type: string
+      responses:
+        '200':
+          description: Deleted
+        '400':
+          description: Path required
+        '403':
+          description: Path traversal blocked
+  /api/v1/resources/{id}/files/content:
+    get:
+      tags: [V1 Resources]
+      summary: Read a file
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File content (empty string when the file does not exist)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileContentResponse'
+        '403':
+          description: Path traversal blocked
+        '400':
+          description: Path is a directory
+    put:
+      tags: [V1 Resources]
+      summary: Create or overwrite a file
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [path]
+              properties:
+                path:
+                  type: string
+                content:
+                  type: string
+      responses:
+        '200':
+          description: Saved
+        '403':
+          description: Path traversal blocked
+  /api/v1/resources/{id}/packages:
+    get:
+      tags: [V1 Resources]
+      summary: Package ledger (python + node)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Installed packages + auto-install state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackagesResponse'
+        '404':
+          description: Resource not found
+  /api/v1/resources/{id}/packages/install:
+    post:
+      tags: [V1 Resources]
+      summary: Install packages (accepted instantly)
+      description: pip/npm runs in the background; progress lands in the workload logs and package ledger.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                packages:
+                  type: string
+                runtime:
+                  type: string
+                  enum: [python, node]
+                  default: python
+      responses:
+        '202':
+          description: Install accepted (background)
+        '400':
+          description: Validation error
+  /api/v1/resources/{id}/packages/uninstall:
+    post:
+      tags: [V1 Resources]
+      summary: Uninstall a package (accepted instantly)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [package]
+              properties:
+                package:
+                  type: string
+                runtime:
+                  type: string
+                  enum: [python, node]
+                  default: python
+      responses:
+        '202':
+          description: Uninstall accepted (background)
+        '400':
+          description: Validation error
+
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -1413,4 +1902,264 @@ components:
         status:
           type: string
         encryption:
+          type: string
+    WorkloadSummary:
+      type: object
+      properties:
+        running:
+          type: boolean
+        status:
+          type: string
+          enum: [running, restarting, stopping, stopped, error]
+        pid:
+          type: integer
+          nullable: true
+        restarts:
+          type: integer
+        uptime_seconds:
+          type: integer
+    Resource:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+          enum: [vps]
+        user_id:
+          type: string
+        name:
+          type: string
+        plan:
+          type: string
+        os:
+          type: string
+        status:
+          type: string
+        cpu:
+          type: string
+        memory:
+          type: string
+        storage:
+          type: string
+        ip:
+          type: string
+        engine:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        workload:
+          $ref: '#/components/schemas/WorkloadSummary'
+    ResourceListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Resource'
+        count:
+          type: integer
+    ResourceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        resource:
+          $ref: '#/components/schemas/Resource'
+    ResourceDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        resource:
+          $ref: '#/components/schemas/Resource'
+        bot:
+          type: object
+        packages:
+          type: object
+          properties:
+            python_count:
+              type: integer
+            node_count:
+              type: integer
+            auto_install:
+              type: object
+        file_count:
+          type: integer
+    CreateResourceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        plan:
+          type: string
+          enum: [starter, standard, performance, ultra]
+          default: performance
+        os:
+          type: string
+          default: ubuntu
+        auto_install:
+          type: boolean
+          default: true
+    TerminateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        terminated:
+          type: boolean
+        resource_id:
+          type: string
+        message:
+          type: string
+    BotStateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        bot:
+          type: object
+        workload:
+          $ref: '#/components/schemas/WorkloadSummary'
+    BotActionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        action:
+          type: string
+        bot_status:
+          type: object
+        message:
+          type: string
+    BotLogsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        logs:
+          type: array
+          items:
+            type: string
+        status:
+          type: object
+          properties:
+            status:
+              type: string
+            running:
+              type: boolean
+            pid:
+              type: integer
+              nullable: true
+            restarts:
+              type: integer
+            uptime_seconds:
+              type: integer
+    FileEntry:
+      type: object
+      properties:
+        name:
+          type: string
+        isDirectory:
+          type: boolean
+        size:
+          type: integer
+        modified:
+          type: integer
+    FileListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileEntry'
+        count:
+          type: integer
+    FileContentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        path:
+          type: string
+        content:
+          type: string
+        size:
+          type: integer
+    PackagesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        python:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              version:
+                type: string
+              auto:
+                type: boolean
+        node:
+          type: array
+          items:
+            type: object
+        auto_install:
+          type: object
+    NodeStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        node:
+          type: object
+          properties:
+            reachable:
+              type: boolean
+            role:
+              type: string
+            hostname:
+              type: string
+            pid:
+              type: integer
+            uptime_s:
+              type: integer
+            load_avg:
+              type: number
+            memory:
+              type: object
+            workloads:
+              type: object
+            desired_workloads:
+              type: integer
+            error:
+              type: string
+    RotateKeyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        api_key:
+          type: string
+        message:
           type: string

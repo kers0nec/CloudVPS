@@ -191,6 +191,79 @@ Get a key by registering or logging in.
 
 Interactive docs are served at `/api-docs` (Swagger UI, `openapi.yaml`).
 
+## Resource API v1 (versioned) + host node daemon
+
+The platform ships a second, **versioned, resource-oriented API** at
+`/api/v1` — one uniform interface for creating, managing and terminating
+every resource, plus the dashboard **Api** tab that documents and exercises
+it live. It authenticates with the same account API key (`X-API-Key` /
+`Authorization: Bearer`), validates input with zod, and returns an
+`X-Response-Time` header on every response. Long-running work (package
+installs, workspace scrubbing) is accepted and executed in the background so
+responses stay fast — resource creation answers in a few milliseconds, and a
+workload start that must touch the real node answers in ~40 ms.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET    | `/api/v1/node` | Real host-node status (uptime, load, workloads) — reports `reachable:false` instead of hanging |
+| POST   | `/api/v1/api-key/rotate` | Rotate this account's API key (old key dies immediately) |
+| GET    | `/api/v1/resources` | List your resources with live workload summaries |
+| POST   | `/api/v1/resources` | Create `{name?, plan?, os?, auto_install?}` → `201` |
+| GET    | `/api/v1/resources/<id>` | Inspect (vps + workload + packages + file count) |
+| PATCH  | `/api/v1/resources/<id>` | Update `{name?, plan?, os?}` |
+| POST   | `/api/v1/resources/<id>/actions` | Power `{action: start\|stop\|restart\|reboot}` |
+| DELETE | `/api/v1/resources/<id>` | **Terminate**: stops the workload, drops records, scrubs workspace (bg) |
+| GET    | `/api/v1/resources/<id>/bot` | Hosted workload state |
+| POST   | `/api/v1/resources/<id>/bot/actions` | `{action: start\|stop\|restart, filename?, runtime?, token?}` |
+| GET    | `/api/v1/resources/<id>/bot/logs` | Live logs (tail-synced from the node) |
+| GET    | `/api/v1/resources/<id>/files` | List workspace files |
+| GET    | `/api/v1/resources/<id>/files/content?path=` | Read file (403 on traversal) |
+| PUT    | `/api/v1/resources/<id>/files/content` | Create/overwrite `{path, content}` |
+| DELETE | `/api/v1/resources/<id>/files?path=` | Delete file/folder |
+| GET    | `/api/v1/resources/<id>/packages` | Persisted package ledger |
+| POST   | `/api/v1/resources/<id>/packages/install` | `{packages, runtime}` → `202` (background) |
+| POST   | `/api/v1/resources/<id>/packages/uninstall` | `{package, runtime}` → `202` (background) |
+
+### The real node: `worker.js`
+
+Workloads no longer run inside the web server. `worker.js` is a **dedicated
+Node.js host-node daemon** — a separate process that actually hosts every
+bot/workload 24/7:
+
+- spawns workloads as real OS processes inside each VPS workspace,
+- auto-restarts crashes with escalating backoff (3s → 30s) and trips a
+  crash-loop breaker after 8 rapid failures so a broken script can never
+  starve the host,
+- keeps a per-workload log ring buffer the API tails cheaply (cursor-based),
+- journals spawned PIDs and **adopts orphans after a daemon restart**
+  (verified against `/proc/<pid>/cmdline`, so a recycled PID is never
+  adopted or killed) — nothing gets double-spawned,
+- binds `127.0.0.1:3101` by default and requires the shared token in
+  `<PERSIST_DIR>/data/node-worker.token` (or `NODE_WORKER_TOKEN`).
+
+`server.js` holds the *desired* state and runs a reconciler every 15s: any
+workload marked running that is missing from the node is re-registered
+automatically. That's how hosting self-heals when either process restarts —
+kill the worker, and workloads are back within one reconcile pass; kill the
+API server, and the node keeps running everything.
+
+`npm start` launches **both** processes via `scripts/start-all.js`, which
+restarts either one on crash (exponential backoff) and forwards shutdown
+signals — same command for local dev, Docker (`CMD`) and Render
+(`startCommand`). Individually: `npm run start:api` / `npm run start:worker`.
+
+Failure behaviour is explicit and fast: if the node is down, workload
+operations return `503 NODE_UNAVAILABLE` in a few milliseconds (the start is
+still queued and goes live automatically when the node reconnects), and
+`GET /api/v1/node` reports `reachable:false` rather than hanging.
+
+### Dashboard → Api tab
+
+The sidebar's **Api** tab shows live host-node status (refreshed every 5s),
+your API key (reveal / copy / rotate), and an endpoint explorer with cURL
+snippets and a one-click **Run** for read-only requests that reports the
+measured round-trip time.
+
 ## Legacy Python backend
 
 `app.py` is the original Flask backend (Docker-backed VPS containers,

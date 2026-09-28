@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: starter
     buildCommand: npm ci --omit=dev
-    startCommand: node server.js
+    startCommand: node scripts/start-all.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV

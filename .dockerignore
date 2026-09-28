@@ -1,0 +1,12 @@
+node_modules
+vps_instances
+data
+test_data
+*.log
+*.pid
+.git
+.github
+.env
+.env.local
+.cache
+coverage

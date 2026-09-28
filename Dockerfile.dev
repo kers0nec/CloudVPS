@@ -14,7 +14,7 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY package*.json ./
 
 # Install all dependencies (including devDependencies)
-RUN npm ci
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Create directories for data and instances
 RUN mkdir -p /app/data /app/vps_instances && \

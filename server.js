@@ -3399,7 +3399,11 @@ app.get('/api/vps/:vps_id/github/info', authRequired, vpsOwnerRequired, async (r
 // every response carries an X-Response-Time header.
 const legacyInstallHandlers = { install: handlePackageInstall, uninstall: handlePackageUninstall };
 app.use('/api/v1', createV1Router({
-  db,
+  // `loadDb()` replaces the module-level `db` object on boot (spread into a
+  // fresh object), so the router must read it through a getter — capturing
+  // the object by value would leave v1 looking at a stale, empty database
+  // on every boot where the DB file already exists.
+  get db() { return db; },
   saveDb,
   authRequired,
   PLANS,
